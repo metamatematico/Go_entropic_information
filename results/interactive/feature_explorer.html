@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Go Entropy Dataset — Feature Explorer</title>
+<style>
+:root {
+  --bg:     #EDECEA;
+  --paper:  #F7F6F4;
+  --ink:    #111518;
+  --dim:    #6B6760;
+  --line:   #D0CCC5;
+  --m1:     #1748A3;
+  --m1-lt:  #D6E4FF;
+  --al:     #AD5500;
+  --al-lt:  #FFE8C4;
+  --go:     #2E6B4A;
+  --go-lt:  #D0EAD8;
+  --cmp:    #6B3FA0;
+  --cmp-lt: #EDE5FF;
+  --map:    #7B5E00;
+  --map-lt: #FFF3C4;
+  --trj:    #1A6B7B;
+  --trj-lt: #D0EEF4;
+  --warn:   #C0392B;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:    #1A1917; --paper: #242220; --ink: #E8E5E0; --dim: #9B9590;
+    --line:  #3A3733;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* HEADER */
+.header { background: #1A2C1E; color: #EAF0EB; padding: 40px 32px 32px; position: relative; overflow: hidden; }
+.header-grid-bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; }
+.header-grid-bg::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.22) 1.5px, transparent 1.5px); background-size: 96px 96px; background-position: 16px 16px; }
+.header-inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+.eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #7EAB8A; margin-bottom: 10px; font-weight: 500; }
+h1 { font-family: Georgia, serif; font-size: clamp(22px, 3vw, 34px); font-weight: normal; line-height: 1.2; color: #EAF0EB; text-wrap: balance; margin-bottom: 8px; }
+h1 em { font-style: italic; color: #9DBFA6; }
+.subtitle { font-size: 13px; color: #8FAA95; max-width: 620px; margin-bottom: 28px; }
+.stats-row { display: flex; gap: 2px; flex-wrap: wrap; }
+.stat-tile { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 12px 20px; min-width: 110px; }
+.stat-tile:first-child { border-radius: 3px 0 0 3px; }
+.stat-tile:last-child  { border-radius: 0 3px 3px 0; }
+.stat-num { font-family: Georgia, serif; font-size: 26px; color: #EAF0EB; display: block; font-variant-numeric: tabular-nums; }
+.stat-lbl { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6D9278; display: block; margin-top: 2px; }
+
+/* MAIN */
+.main { max-width: 1200px; margin: 0 auto; padding: 32px 32px 60px; }
+section { margin-bottom: 44px; }
+.section-label { font-size: 10.5px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* CATEGORY GRID */
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.cat-card { background: var(--paper); border: 1px solid var(--line); padding: 16px 18px; border-radius: 2px; }
+.cat-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.cat-code { font-family: ui-monospace, monospace; font-size: 10px; padding: 2px 6px; border-radius: 2px; font-weight: 600; }
+.cat-count { font-size: 11px; color: var(--dim); }
+.cat-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.cat-desc { font-size: 12px; color: var(--dim); margin-bottom: 10px; line-height: 1.4; }
+.feat-list { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.feat-item { font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--dim); padding: 2px 0; border-bottom: 1px solid var(--line); }
+.feat-item:last-child { border-bottom: none; }
+.feat-item span { float: right; font-size: 10px; color: #9B978F; }
+
+/* ERA 2007 vs 2025 */
+.era-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.era-card { background: var(--paper); border: 1px solid var(--line); padding: 12px 14px; border-radius: 2px; }
+.era-id { font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; color: var(--m1); }
+.era-desc { font-size: 11.5px; color: var(--ink); margin: 3px 0 6px; line-height: 1.35; }
+.era-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; }
+.era-estable  { background: #D0EAD8; color: #2E6B4A; }
+.era-ascendio { background: #D6E4FF; color: #1748A3; }
+.era-descendio{ background: #FFE0DC; color: #C0392B; }
+.era-ampliado { background: #FFE8C4; color: #AD5500; }
+.era-nuevo    { background: #EDE5FF; color: #6B3FA0; }
+.era-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.era-legend span { font-size: 11px; color: var(--dim); display: flex; align-items: center; gap: 4px; }
+
+/* CORRELATIONS */
+.corr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.corr-card { background: var(--paper); border: 1px solid var(--line); padding: 14px 16px; border-radius: 2px; }
+.corr-pair { font-family: ui-monospace, monospace; font-size: 10px; color: var(--dim); margin-bottom: 6px; line-height: 1.5; }
+.corr-val { font-family: Georgia, serif; font-size: 22px; }
+.corr-bar-bg { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.corr-bar-fill { height: 100%; border-radius: 2px; }
+
+/* TABLE */
+.table-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.sort-label { font-size: 11.5px; color: var(--dim); }
+.sort-btn { padding: 4px 10px; font-size: 11px; font-family: inherit; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; border-radius: 2px; transition: all 0.12s; }
+.sort-btn:hover  { background: var(--m1-lt); border-color: var(--m1); color: var(--m1); }
+.sort-btn.active { background: var(--m1); border-color: var(--m1); color: #fff; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--dim); padding: 7px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; background: var(--paper); position: sticky; top: 0; z-index: 2; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; font-variant-numeric: tabular-nums; }
+tr:hover td { background: rgba(23,72,163,0.03); }
+tr.top3-row td { background: rgba(46,107,74,0.04); }
+.id-cell { font-family: ui-monospace, monospace; font-weight: 700; font-size: 12px; color: var(--m1); white-space: nowrap; }
+.desc-cell { max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.num-cell { text-align: right; font-family: ui-monospace, monospace; font-size: 11.5px; white-space: nowrap; }
+.bar-cell { min-width: 100px; }
+.bar-wrap { display: flex; align-items: center; gap: 6px; }
+.bar-bg { flex: 1; height: 6px; background: var(--line); border-radius: 1px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 1px; }
+.bar-val { font-family: ui-monospace, monospace; font-size: 11px; width: 44px; text-align: right; flex-shrink: 0; }
+.inf-tag { font-size: 9px; background: #FEE2E2; color: var(--warn); padding: 1px 4px; border-radius: 2px; font-weight: 700; margin-left: 3px; }
+.rk-badge { font-size: 11px; font-weight: 700; color: var(--dim); min-width: 22px; text-align: center; display: inline-block; }
+.rk-badge.top3 { color: var(--go); }
+.stone { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
+.stone-B { background: #111; border: 1px solid #333; }
+.stone-W { background: #f0ede8; border: 1px solid #aaa; }
+.cat-tag { font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700; padding: 1px 5px; border-radius: 2px; white-space: nowrap; }
+
+/* FILES */
+.files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.file-card { background: var(--paper); border: 1px solid var(--line); padding: 14px 18px; border-radius: 2px; }
+.file-name { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--m1); font-weight: 700; margin-bottom: 4px; }
+.file-tag { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; display: block; }
+.file-desc { font-size: 12px; color: var(--dim); line-height: 1.5; }
+
+/* COLOR SCHEMES */
+.c1  { background: #D0EAD8; color: #2E6B4A; }
+.c2  { background: #D6E4FF; color: #1748A3; }
+.c3  { background: #D6E4FF; color: #1748A3; }
+.c4  { background: #FFE8C4; color: #AD5500; }
+.c5  { background: #FFE8C4; color: #AD5500; }
+.c6  { background: #FFF3C4; color: #7B5E00; }
+.c7  { background: #EDE5FF; color: #6B3FA0; }
+.c8  { background: #D0EEF4; color: #1A6B7B; }
+
+.legend-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--dim); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-grid-bg"></div>
+  <div class="header-inner">
+    <p class="eyebrow">Ising Models · Go Opening Patterns · 3 024 Partidas Profesionales · Era 2007 vs 2025</p>
+    <h1>Dataset de Features<br><em>Entropía en el Juego de Go</em></h1>
+    <p class="subtitle">
+      107 features numéricas extraídas de los 19 patrones de apertura del Campeonato chino 2020,
+      organizadas en 8 categorías — incluyendo entropías Ising, trayectoria por jugada y frecuencia
+      en datos reales. Dos modelos: M1 (Sesma &amp; Jiménez 2025) y Atomic-Go (Alvarado 2019).
+    </p>
+    <div class="stats-row">
+      <div class="stat-tile"><span class="stat-num">19</span><span class="stat-lbl">Patrones</span></div>
+      <div class="stat-tile"><span class="stat-num">107</span><span class="stat-lbl">Features num.</span></div>
+      <div class="stat-tile"><span class="stat-num">8</span><span class="stat-lbl">Categorías</span></div>
+      <div class="stat-tile"><span class="stat-num">2</span><span class="stat-lbl">Modelos Ising</span></div>
+      <div class="stat-tile"><span class="stat-num">3 024</span><span class="stat-lbl">Partidas SGF</span></div>
+      <div class="stat-tile"><span class="stat-num">4</span><span class="stat-lbl">Archivos CSV</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- CATEGORIES -->
+<section>
+  <p class="section-label">Taxonomía de features</p>
+  <div class="cat-grid" id="catGrid"></div>
+</section>
+
+<!-- ERA 2007 vs 2025 -->
+<section>
+  <p class="section-label">Era 2007 vs 2025 — cambio de rango por patrón</p>
+  <div class="era-legend">
+    <span><span class="era-badge era-estable">estable</span> mantiene rango</span>
+    <span><span class="era-badge era-ascendio">ascendió</span> más frecuente en era IA</span>
+    <span><span class="era-badge era-descendio">descendió</span> menos frecuente en era IA</span>
+    <span><span class="era-badge era-ampliado">ampliado</span> joseki extendido por IA</span>
+    <span><span class="era-badge era-nuevo">nuevo</span> patrón emergente 2025</span>
+  </div>
+  <div class="era-grid" id="eraGrid"></div>
+</section>
+
+<!-- CORRELATIONS -->
+<section>
+  <p class="section-label">Correlaciones clave</p>
+  <div class="corr-grid" id="corrGrid"></div>
+</section>
+
+<!-- TABLE -->
+<section>
+  <p class="section-label">Los 19 patrones — features principales</p>
+  <div class="legend-row">
+    <div class="legend-item"><span class="legend-dot" style="background:var(--m1)"></span>Modelo M1 (Sesma &amp; Jiménez)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--al)"></span>Atomic-Go (Alvarado)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--trj)"></span>Trayectoria</div>
+    <div class="legend-item"><span class="inf-tag">∞</span> T_eff divergente</div>
+  </div>
+  <div class="table-controls">
+    <span class="sort-label">Ordenar:</span>
+    <button class="sort-btn active" data-sort="rk_lnW">S_B ln W (M1)</button>
+    <button class="sort-btn" data-sort="m1_sh">S_Shannon (M1)</button>
+    <button class="sort-btn" data-sort="n">Nº piedras</button>
+    <button class="sort-btn" data-sort="al_lnW">S_B (Alvarado)</button>
+    <button class="sort-btn" data-sort="d_sh">ΔS_Shannon</button>
+    <button class="sort-btn" data-sort="n_steps">N° pasos traj.</button>
+    <button class="sort-btn" data-sort="cum_E">E_final acum.</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rk</th><th>ID</th><th>Cat.</th><th>Desc.</th><th>Pieds.</th>
+          <th colspan="2">S_B ln W · M1</th>
+          <th colspan="2">S_sh · M1</th>
+          <th>T_eff M1</th>
+          <th colspan="2">S_B ln W · AL</th>
+          <th>T_eff AL</th>
+          <th colspan="2">ΔS_sh</th>
+          <th>Pasos</th>
+          <th colspan="2">E_acum M1</th>
+          <th>dE_asim</th>
+          <th>Era</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FILES -->
+<section>
+  <p class="section-label">Archivos generados</p>
+  <div class="files-grid" id="filesGrid"></div>
+</section>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+
+const PATTERNS = [
+  { id:'1b',  desc:'4-4 hoshi',                           cat:'apertura',  n:1, nB:1, nW:0, m1_sh:2.023, m1_lnW:39.80,  m1_T:0.167, m1_Ti:0, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.023, rk_lnW:18, rk_sh:18, n_steps:1, cum_E:-12.0,  asym:0.00,   rank_change:'estable'   },
+  { id:'2b',  desc:'3-4 komoku',                          cat:'apertura',  n:1, nB:1, nW:0, m1_sh:2.023, m1_lnW:39.80,  m1_T:0.167, m1_Ti:0, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.023, rk_lnW:18, rk_sh:18, n_steps:1, cum_E:-12.0,  asym:0.00,   rank_change:'estable'   },
+  { id:'3b',  desc:'Approach bajo a 3-4',                 cat:'approach',  n:2, nB:1, nW:1, m1_sh:2.716, m1_lnW:79.40,  m1_T:50.0,  m1_Ti:1, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:14, rk_sh:14, n_steps:2, cum_E:0.0,    asym:0.00,   rank_change:'descendio' },
+  { id:'4b',  desc:'Invasión san-san a hoshi',            cat:'invasion',  n:2, nB:1, nW:1, m1_sh:2.716, m1_lnW:79.40,  m1_T:50.0,  m1_Ti:1, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:14, rk_sh:14, n_steps:2, cum_E:0.0,    asym:0.00,   rank_change:'descendio' },
+  { id:'5b',  desc:'Joseki san-san — invader gote',       cat:'joseki',    n:5, nB:2, nW:3, m1_sh:3.342, m1_lnW:131.69, m1_T:7.233, m1_Ti:0, al_sh:2.303, al_lnW:46.37, al_T:1.067, al_Ti:0, d_sh:1.040, rk_lnW:7,  rk_sh:8,  n_steps:5, cum_E:8.0,    asym:0.00,   rank_change:'ampliado'  },
+  { id:'6b',  desc:'Extensión blanca tras joseki',        cat:'joseki',    n:6, nB:2, nW:4, m1_sh:3.525, m1_lnW:151.03, m1_T:4.056, m1_Ti:0, al_sh:2.485, al_lnW:55.38, al_T:2.667, al_Ti:0, d_sh:1.040, rk_lnW:5,  rk_sh:4,  n_steps:6, cum_E:16.0,   asym:0.00,   rank_change:'nuevo'     },
+  { id:'7b',  desc:'Approach bajo a 4-4',                 cat:'approach',  n:2, nB:1, nW:1, m1_sh:2.716, m1_lnW:79.40,  m1_T:50.0,  m1_Ti:1, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:14, rk_sh:14, n_steps:2, cum_E:0.0,    asym:0.00,   rank_change:'estable'   },
+  { id:'8b',  desc:'Approach a cercado desde 4-4',        cat:'approach',  n:3, nB:2, nW:1, m1_sh:3.121, m1_lnW:110.30, m1_T:4.500, m1_Ti:0, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:3.121, rk_lnW:10, rk_sh:9,  n_steps:3, cum_E:-12.0,  asym:0.00,   rank_change:'nuevo'     },
+  { id:'9b',  desc:'Joseki san-san — variante A',         cat:'joseki',    n:5, nB:2, nW:3, m1_sh:3.406, m1_lnW:139.03, m1_T:5.292, m1_Ti:0, al_sh:2.079, al_lnW:39.80, al_T:50.0,  al_Ti:1, d_sh:1.327, rk_lnW:6,  rk_sh:6,  n_steps:5, cum_E:12.0,   asym:-0.80,  rank_change:'nuevo'     },
+  { id:'10b', desc:'Salto doble desde komoku',            cat:'enclosure', n:2, nB:2, nW:0, m1_sh:2.716, m1_lnW:70.91,  m1_T:0.167, m1_Ti:0, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:17, rk_sh:14, n_steps:2, cum_E:-24.0,  asym:0.00,   rank_change:'ascendio'  },
+  { id:'11b', desc:'Approach alto a komoku',              cat:'approach',  n:2, nB:1, nW:1, m1_sh:2.716, m1_lnW:79.40,  m1_T:50.0,  m1_Ti:1, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:14, rk_sh:14, n_steps:2, cum_E:0.0,    asym:0.00,   rank_change:'nuevo'     },
+  { id:'12b', desc:'Joseki san-san — 6 jugadas',          cat:'joseki',    n:6, nB:2, nW:4, m1_sh:3.578, m1_lnW:157.85, m1_T:3.474, m1_Ti:0, al_sh:2.303, al_lnW:46.37, al_T:1.067, al_Ti:0, d_sh:1.275, rk_lnW:2,  rk_sh:2,  n_steps:6, cum_E:20.0,   asym:0.00,   rank_change:'nuevo'     },
+  { id:'13b', desc:'Approach bajo 5ª línea a 4-4',        cat:'approach',  n:2, nB:1, nW:1, m1_sh:2.716, m1_lnW:79.40,  m1_T:50.0,  m1_Ti:1, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:2.716, rk_lnW:14, rk_sh:14, n_steps:2, cum_E:0.0,    asym:0.00,   rank_change:'descendio' },
+  { id:'14b', desc:'San-san + extensión 3ª línea',        cat:'joseki',    n:7, nB:2, nW:5, m1_sh:3.679, m1_lnW:168.79, m1_T:2.929, m1_Ti:0, al_sh:2.639, al_lnW:63.46, al_T:6.857, al_Ti:0, d_sh:1.040, rk_lnW:1,  rk_sh:1,  n_steps:7, cum_E:24.0,   asym:0.00,   rank_change:'nuevo'     },
+  { id:'15b', desc:'Joseki san-san — hane blanco',        cat:'joseki',    n:5, nB:2, nW:3, m1_sh:3.342, m1_lnW:131.69, m1_T:7.233, m1_Ti:0, al_sh:2.303, al_lnW:46.37, al_T:1.067, al_Ti:0, d_sh:1.040, rk_lnW:7,  rk_sh:8,  n_steps:5, cum_E:8.0,    asym:-0.80,  rank_change:'descendio' },
+  { id:'16b', desc:'Approach a cercado (alt.)',           cat:'approach',  n:3, nB:2, nW:1, m1_sh:3.121, m1_lnW:110.30, m1_T:4.500, m1_Ti:0, al_sh:0.000, al_lnW:0.00,  al_T:0.0,   al_Ti:0, d_sh:3.121, rk_lnW:10, rk_sh:9,  n_steps:3, cum_E:-12.0,  asym:0.00,   rank_change:'descendio' },
+  { id:'17b', desc:'Joseki hane blanco — respuesta',      cat:'joseki',    n:6, nB:3, nW:3, m1_sh:3.525, m1_lnW:152.95, m1_T:50.0,  m1_Ti:1, al_sh:2.485, al_lnW:55.38, al_T:2.667, al_Ti:0, d_sh:1.040, rk_lnW:3,  rk_sh:4,  n_steps:6, cum_E:0.0,    asym:-0.667, rank_change:'nuevo'     },
+  { id:'18b', desc:'Joseki raro en juego moderno',        cat:'joseki',    n:4, nB:2, nW:2, m1_sh:3.119, m1_lnW:110.30, m1_T:50.0,  m1_Ti:1, al_sh:2.079, al_lnW:35.55, al_T:0.0,   al_Ti:0, d_sh:1.040, rk_lnW:10, rk_sh:11, n_steps:4, cum_E:0.0,    asym:0.00,   rank_change:'descendio' },
+  { id:'19b', desc:'Continuación joseki (patrón 9b)',     cat:'joseki',    n:6, nB:3, nW:3, m1_sh:3.525, m1_lnW:152.80, m1_T:17.89, m1_Ti:0, al_sh:2.485, al_lnW:56.00, al_T:50.0,  al_Ti:1, d_sh:1.040, rk_lnW:4,  rk_sh:4,  n_steps:6, cum_E:4.0,    asym:-0.333, rank_change:'nuevo'     },
+];
+
+const CATEGORIES = [
+  { code:'CAT1', cls:'c1', name:'Board — Geometría',           n:19,
+    desc:'Propiedades del tablero independientes del modelo: conteo de piedras, densidad, clusters y centros de masa.',
+    feats:[['board_n_stones','total piedras'],['board_balance','(nB−nW)/n ∈ [−1,+1]'],['board_n_clusters_B/W','grupos conectados'],['board_spread_B/W','dispersión espacial (std)'],['board_min_dist_BW','dist. Manhattan mín.'],['board_cm_B/W_r/c','centros de masa [0,1]']] },
+  { code:'CAT2', cls:'c2', name:'M1 — Energía de bonos',       n:17,
+    desc:'Distribución de los 324 bonos dirigidos bajo H=s₀+2s₁−s₀s₁²−s₀²s₁. Energías: {−2,−1,0,+1,+2}.',
+    feats:[['m1_E_total/mean/std','energía y estadísticas'],['m1_frac_En2…Ep2','fracción por valor E'],['m1_frac_Eneg/Epos','atracción/repulsión'],['m1_E_asym','asimetría rep.−atr.'],['m1_n_active_bonds','bonos con E≠0']] },
+  { code:'CAT3', cls:'c3', name:'M1 — Entropías',              n:7,
+    desc:'Cuatro entropías + T_eff bajo M1. Cada una captura un aspecto distinto del desorden en la posición.',
+    feats:[['m1_S_shannon','−Σ|E|/Σ|E| ln(·)'],['m1_S_gibbs','S_G canónica'],['m1_S_boltzmann','ln W extensiva'],['m1_H_hist','H histograma'],['m1_T_eff','σ²(E)/|⟨E⟩| (cap 50)'],['m1_lnW_per_bond','S_B / N']] },
+  { code:'CAT4', cls:'c4', name:'Alvarado — Energía',          n:13,
+    desc:'Distribución de bonos bajo H(xᵢ,xⱼ)=xᵢ·xⱼ. Solo {−1,0,+1}; vacío invisible (E=0).',
+    feats:[['al_E_total/mean/std','energía y estadísticas'],['al_frac_En1/E0/Ep1','fracción por valor E'],['al_frac_Eneg/Epos','repulsión/mismo color'],['al_E_asym','asimetría'],['al_n_active_bonds','bonos con E≠0']] },
+  { code:'CAT5', cls:'c5', name:'Alvarado — Entropías',        n:7,
+    desc:'Mismas cuatro entropías bajo Alvarado. S_B=0 cuando todos los bonos son iguales.',
+    feats:[['al_S_shannon','S_sh ponderada |E|'],['al_S_gibbs','S_Gibbs canónica'],['al_S_boltzmann','S_B = ln W'],['al_H_hist','H_hist'],['al_T_eff','T_eff Alvarado'],['al_lnW_per_bond','S_B / N']] },
+  { code:'CAT6', cls:'c6', name:'Mapa de energía M1',          n:15,
+    desc:'Estadísticas del mapa celda-nivel (GoEntropyAnalyzer): contrasta con el análisis por bono.',
+    feats:[['map_E_mean/std/range','estadísticas 9×9'],['map_n_pos/neg/zero','celdas por signo'],['map_S_shannon','S_Shannon mapa'],['map_S_boltzmann','S_B mapa'],['map_T_eff','T_eff mapa']] },
+  { code:'CAT7', cls:'c7', name:'Comparativa M1 vs Alvarado',  n:12,
+    desc:'Diferencias y ratios entre modelos. Capturan el vacío activo de M1 y la asimetría de interacciones.',
+    feats:[['cmp_delta_S_shannon','ΔS_sh = S_M1 − S_AL'],['cmp_delta_S_boltzmann','Δln W'],['cmp_ratio_S_boltzmann','lnW_M1 / lnW_AL'],['cmp_delta_n_active','Δ bonos activos'],['cmp_delta_T_eff','ΔT_eff']] },
+  { code:'CAT8', cls:'c8', name:'Trayectoria por jugada',       n:17,
+    desc:'Features temporales: energía por colocación de piedra individual. Requieren orden real de movimientos del SGF.',
+    feats:[['n_steps','pasos totales del joseki'],['dE_stone_mean/std','ΔE piedra–piedra por paso'],['dE_stone_first/last','energía del 1er/último paso'],['cum_E_M1_final','energía M1 acumulada final'],['asym_M1_mean','asimetría M1 media (H→−H)'],['dS_M1_total','ΔS_Shannon total (= S_Shannon final)']] },
+];
+
+const CORRELATIONS = [
+  { a:'m1_S_boltzmann', b:'al_S_boltzmann', r:0.894, label:'S_B  M1 ↔ Alvarado',         color:'#1748A3' },
+  { a:'m1_S_shannon',   b:'al_S_shannon',   r:0.831, label:'S_Shannon  M1 ↔ Alvarado',     color:'#2E6B4A' },
+  { a:'m1_S_boltzmann', b:'m1_S_shannon',   r:0.987, label:'S_B ↔ S_Shannon  (M1)',         color:'#1748A3' },
+  { a:'m1_S_boltzmann', b:'board_n_stones', r:0.979, label:'S_B ↔ n_stones  (M1)',          color:'#1748A3' },
+  { a:'al_S_boltzmann', b:'board_n_stones', r:0.926, label:'S_B ↔ n_stones  (Alvarado)',    color:'#AD5500' },
+  { a:'m1_S_boltzmann', b:'n_steps',        r:0.997, label:'S_B ↔ n_pasos trayectoria',     color:'#1A6B7B' },
+  { a:'cum_E_M1_final', b:'n_steps',        r:0.708, label:'E_acum ↔ n_pasos  (M1)',         color:'#1A6B7B' },
+  { a:'m1_S_boltzmann', b:'m1_H_hist',      r:0.987, label:'S_B ↔ H_hist  (Stirling M1)',   color:'#6B3FA0' },
+];
+
+const ERA_NOTES = {
+  '1b':'Hoshi 4-4 sigue siendo el 1° más frecuente en era IA',
+  '2b':'Komoku 3-4 mantiene el 2° lugar',
+  '3b':'En 2007 era approach bajo a hoshi; hoy el approach a komoku es más urgente',
+  '4b':'Era approach alto a komoku (4°); la san-san lo superó',
+  '5b':'Solo 2 piedras en 2007; la IA completó el joseki a 5 jugadas',
+  '6b':'No existía como patrón en 2007; emerge del joseki 5b',
+  '7b':'Permanece en rango 7; hoy menos frecuente vs san-san',
+  '8b':'Patrón nuevo en era IA; approach a cercado desde hoshi',
+  '9b':'Joseki nuevo de variante san-san; 18b actual era 9a en 2007',
+  '10b':'Ascendió: la IA prefiere salto doble sobre salto simple',
+  '11b':'Approach alto a komoku descendió del 4° al 11°',
+  '12b':'Variante joseki emergente no presente en tabla 2007',
+  '13b':'Approach 5ª línea ahora menos frecuente; descendió',
+  '14b':'Extension larga del joseki san-san; nuevo en era IA',
+  '15b':'Hane blanco en joseki menos frecuente hoy',
+  '16b':'Approach alternativo a cercado; menos frecuente',
+  '17b':'Respuesta tras hane blanco; nuevo patrón 2025',
+  '18b':'Era 9° (9a) en 2007; ahora descendió al 18°',
+  '19b':'Continuación nueva de joseki san-san; no listada en 2007',
+};
+
+const FILES = [
+  { name:'dataset_features.csv',   tag:'CSV principal · 19 × 107', desc:'Una fila por patrón. Todas las features numéricas + id + desc + rankings.' },
+  { name:'dataset_board_flat.csv', tag:'Tablero · 19 × 82',        desc:'Tablero 9×9 codificado: B=−1, vacío=0, W=+1. Input crudo para CNN.' },
+  { name:'sgf_openings.csv',       tag:'SGF · 3 024 × 32',         desc:'Una fila por partida: primeros 30 movimientos de 3 024 juegos reales.' },
+  { name:'sgf_patterns.csv',       tag:'Prefijos · 591 filas',      desc:'Top-20 secuencias más comunes por longitud de prefijo 1–30.' },
+  { name:'trajectory_full.csv',    tag:'Trayectoria · 90 × 31',     desc:'Features por jugada individual (turno k) para cada patrón.' },
+  { name:'trajectory_summary.csv', tag:'Resumen traj. · 19 × 17',   desc:'Features de trayectoria agregadas por patrón (media, std, final, total).' },
+  { name:'patterns_base.csv',      tag:'Base · 19 × 18',            desc:'Posición de piedras, secuencia Go, rank_change 2007 vs 2025, tablero flat.' },
+  { name:'dataset_metadata.json',  tag:'Metadata · 107 entradas',   desc:'Descripción, categoría, tipo y estadísticas de cada feature.' },
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+
+const maxLnW_M1  = Math.max(...PATTERNS.map(p => p.m1_lnW));
+const maxLnW_AL  = Math.max(...PATTERNS.map(p => p.al_lnW));
+const maxSsh     = Math.max(...PATTERNS.map(p => p.m1_sh));
+const maxDsh     = Math.max(...PATTERNS.map(p => p.d_sh));
+const maxCumE    = Math.max(...PATTERNS.map(p => Math.abs(p.cum_E)));
+
+function bar(v, max, color) {
+  const pct = max > 0 ? Math.min(Math.abs(v) / max * 100, 100) : 0;
+  return `<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div></div><span class="bar-val">${v.toFixed(2)}</span></div>`;
+}
+
+function stones(nB, nW) {
+  return Array(nB).fill('<span class="stone stone-B"></span>').join('')
+       + Array(nW).fill('<span class="stone stone-W"></span>').join('');
+}
+
+function tcell(v, isInf) {
+  const s = isInf ? '<span class="inf-tag">∞</span>' : '';
+  return `<td class="num-cell">${isInf ? '∞' : v.toFixed(2)}${s}</td>`;
+}
+
+const CAT_COLORS = {
+  apertura: '#2E6B4A', approach: '#1748A3', invasion: '#C0392B',
+  joseki: '#AD5500', enclosure: '#6B3FA0'
+};
+const CAT_BG = {
+  apertura: '#D0EAD8', approach: '#D6E4FF', invasion: '#FFE0DC',
+  joseki: '#FFE8C4', enclosure: '#EDE5FF'
+};
+
+function catTag(c) {
+  return `<span class="cat-tag" style="background:${CAT_BG[c]||'#eee'};color:${CAT_COLORS[c]||'#444'}">${c}</span>`;
+}
+
+function eraBadge(rc) {
+  return `<span class="era-badge era-${rc}">${rc}</span>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+
+function renderCats() {
+  document.getElementById('catGrid').innerHTML = CATEGORIES.map(c => `
+    <div class="cat-card">
+      <div class="cat-header">
+        <span class="cat-code ${c.cls}">${c.code}</span>
+        <span class="cat-count">${c.n} features</span>
+      </div>
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-desc">${c.desc}</div>
+      <ul class="feat-list">
+        ${c.feats.map(([f,d]) => `<li class="feat-item">${f}<span>${d}</span></li>`).join('')}
+      </ul>
+    </div>`).join('');
+}
+
+function renderEra() {
+  document.getElementById('eraGrid').innerHTML = PATTERNS.map(p => `
+    <div class="era-card">
+      <div class="era-id">${p.id} &nbsp; ${eraBadge(p.rank_change)}</div>
+      <div class="era-desc">${p.desc}</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.4">${ERA_NOTES[p.id]||''}</div>
+    </div>`).join('');
+}
+
+function renderCorrs() {
+  document.getElementById('corrGrid').innerHTML = CORRELATIONS.map(c => {
+    const pct = Math.round(c.r * 100);
+    return `<div class="corr-card">
+      <div class="corr-pair">${c.a.replace(/^(m1_|al_)/,'')}<br>↔ ${c.b.replace(/^(m1_|al_)/,'')}</div>
+      <span class="corr-val" style="color:${c.color}">r = ${c.r.toFixed(3)}</span>
+      <div style="font-size:11px;color:var(--dim);margin-top:3px">${c.label}</div>
+      <div class="corr-bar-bg"><div class="corr-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+let currentSort = 'rk_lnW';
+
+function sorted() {
+  const d = [...PATTERNS];
+  if      (currentSort==='rk_lnW')  d.sort((a,b) => a.rk_lnW - b.rk_lnW);
+  else if (currentSort==='m1_sh')   d.sort((a,b) => b.m1_sh  - a.m1_sh);
+  else if (currentSort==='n')       d.sort((a,b) => b.n       - a.n);
+  else if (currentSort==='al_lnW')  d.sort((a,b) => b.al_lnW - a.al_lnW);
+  else if (currentSort==='d_sh')    d.sort((a,b) => b.d_sh   - a.d_sh);
+  else if (currentSort==='n_steps') d.sort((a,b) => b.n_steps - a.n_steps);
+  else if (currentSort==='cum_E')   d.sort((a,b) => b.cum_E  - a.cum_E);
+  return d;
+}
+
+function renderTable() {
+  document.getElementById('tableBody').innerHTML = sorted().map(p => `
+    <tr class="${p.rk_lnW<=3?'top3-row':''}">
+      <td><span class="rk-badge ${p.rk_lnW<=3?'top3':''}">${p.rk_lnW}</span></td>
+      <td class="id-cell">${p.id}</td>
+      <td>${catTag(p.cat)}</td>
+      <td class="desc-cell" title="${p.desc}">${p.desc}</td>
+      <td>${stones(p.nB,p.nW)} <span style="font-size:10px;color:var(--dim)">n=${p.n}</span></td>
+      <td class="bar-cell">${bar(p.m1_lnW,maxLnW_M1,'#1748A3')}</td>
+      <td class="num-cell" style="color:var(--dim);font-size:10px">${p.rk_lnW}</td>
+      <td class="bar-cell">${bar(p.m1_sh,maxSsh,'#1748A3')}</td>
+      <td class="num-cell" style="color:var(--dim);font-size:10px">${p.rk_sh}</td>
+      ${tcell(p.m1_T, p.m1_Ti===1)}
+      <td class="bar-cell">${bar(p.al_lnW,maxLnW_M1,'#AD5500')}</td>
+      <td class="num-cell" style="color:var(--dim);font-size:10px">—</td>
+      ${tcell(p.al_T, p.al_Ti===1)}
+      <td class="bar-cell">${bar(p.d_sh,maxDsh,'#2E6B4A')}</td>
+      <td class="num-cell" style="color:var(--dim);font-size:10px">+${p.d_sh.toFixed(3)}</td>
+      <td class="num-cell" style="color:var(--trj);font-weight:700">${p.n_steps}</td>
+      <td class="bar-cell">${bar(p.cum_E,maxCumE,'#1A6B7B')}</td>
+      <td class="num-cell" style="color:var(--dim);font-size:10px">${p.cum_E>=0?'+':''}${p.cum_E}</td>
+      <td class="num-cell" style="color:${p.asym<0?'#C0392B':p.asym>0?'#2E6B4A':'var(--dim)'}">${p.asym.toFixed(2)}</td>
+      <td>${eraBadge(p.rank_change)}</td>
+    </tr>`).join('');
+}
+
+function renderFiles() {
+  document.getElementById('filesGrid').innerHTML = FILES.map(f => `
+    <div class="file-card">
+      <div class="file-name">${f.name}</div>
+      <span class="file-tag">${f.tag}</span>
+      <p class="file-desc">${f.desc}</p>
+    </div>`).join('');
+}
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    renderTable();
+  });
+});
+
+renderCats(); renderEra(); renderCorrs(); renderTable(); renderFiles();
+</script>
+</body>
+</html>

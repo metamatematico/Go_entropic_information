@@ -1,0 +1,49 @@
+RANKING DE PATRONES DE GO — ENTROPIA E TEMPERATURA
+Modelo: Ising Clasico
+======================================================================
+
+RANKING POR ENTROPIA DE SHANNON
+----------------------------------------------------------------------
+  #  ID      S_Shannon     T_eff   S_Boltz  Descripcion
+  1  8b         2.6593    7.2000    3.1009  Approach a cercado desde 4-4
+  2  16b        2.6593    7.2000    3.1009  Approach a cercado (menos frecuente)
+  3  19b        2.5127   21.6923    2.9081  Continuation de joseki (patron 9b)
+  4  12b        2.4410    1.9333    4.1205  Joseki san-san — 6 jugadas
+  5  14b        2.4260    2.0000    4.1122  San-san joseki + extension 3ra linea
+  6  9b         2.3420    5.5758    3.1877  Joseki san-san — variante
+  7  3b         2.2539       inf    3.2733  Approach bajo a 3-4
+  8  7b         2.2539       inf    3.2733  Approach bajo a 4-4
+  9  11b        2.2539       inf    3.2733  Approach alto a komoku
+ 10  13b        2.2539       inf    3.2733  Approach bajo desde 5ta linea a 4-4
+ 11  17b        2.2539       inf    3.2733  Tras hane blanco en joseki
+ 12  5b         2.1640    5.1111    4.1001  Joseki san-san — invader en gote
+ 13  15b        2.1640    5.1111    4.1001  San-san joseki — hane blanco
+ 14  6b         2.1383    2.7222    4.1468  Extension blanca tras joseki
+ 15  10b        2.1383    0.3333    2.9799  Salto doble desde komoku (cercado)
+ 16  18b        2.0794       inf    4.0728  Joseki menos frecuente en juego moderno
+ 17  4b         1.7329       inf    3.2647  Invasion san-san (3-3) a hoshi
+ 18  1b         1.5607    0.2667    3.3434  4-4 hoshi
+ 19  2b         1.5607    0.2667    3.3434  3-4 komoku
+
+RANKING POR TEMPERATURA EFECTIVA
+----------------------------------------------------------------------
+  #  ID          T_eff   S_Shannon  Descripcion
+  1  3b            inf      2.2539  Approach bajo a 3-4
+  2  4b            inf      1.7329  Invasion san-san (3-3) a hoshi
+  3  7b            inf      2.2539  Approach bajo a 4-4
+  4  11b           inf      2.2539  Approach alto a komoku
+  5  13b           inf      2.2539  Approach bajo desde 5ta linea a 4-4
+  6  17b           inf      2.2539  Tras hane blanco en joseki
+  7  18b           inf      2.0794  Joseki menos frecuente en juego moderno
+  8  19b       21.6923      2.5127  Continuation de joseki (patron 9b)
+  9  8b         7.2000      2.6593  Approach a cercado desde 4-4
+ 10  16b        7.2000      2.6593  Approach a cercado (menos frecuente)
+ 11  9b         5.5758      2.3420  Joseki san-san — variante
+ 12  5b         5.1111      2.1640  Joseki san-san — invader en gote
+ 13  15b        5.1111      2.1640  San-san joseki — hane blanco
+ 14  6b         2.7222      2.1383  Extension blanca tras joseki
+ 15  14b        2.0000      2.4260  San-san joseki + extension 3ra linea
+ 16  12b        1.9333      2.4410  Joseki san-san — 6 jugadas
+ 17  10b        0.3333      2.1383  Salto doble desde komoku (cercado)
+ 18  1b         0.2667      1.5607  4-4 hoshi
+ 19  2b         0.2667      1.5607  3-4 komoku

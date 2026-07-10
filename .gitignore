@@ -1,0 +1,17 @@
+# Datos crudos — demasiado grandes para el repo (4 000 archivos SGF)
+data/sgf_partidas/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
