@@ -11,7 +11,7 @@ Analysis in the Game of Go"*, Journal of Go Studies, Vol. 19 No. 2, 2025.
 
 ## Models compared
 
-### Model M1 — Sesma González & Jiménez Martínez
+### Model M1 — Mercado Sánchez & Jiménez Martínez
 ```
 H(sᵢ, sⱼ) = sᵢ + 2sⱼ − sᵢ·sⱼ² − sᵢ²·sⱼ
 ```

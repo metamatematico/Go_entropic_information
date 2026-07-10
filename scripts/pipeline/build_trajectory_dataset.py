@@ -318,7 +318,7 @@ def build_viz(all_trajs, pattern_list, summary_rows):
     fig = plt.figure(figsize=(22, 18), facecolor=BG)
     fig.suptitle(
         'Matriz de Trayectoria de Energia — Patrones de Apertura de Go\n'
-        'Modelo M1 (Sesma & Jimenez 2025)  ·  Extraccion turno a turno',
+        'Modelo M1 (Mercado & Jimenez)  ·  Extraccion turno a turno',
         fontsize=13, fontweight='bold', y=0.985, color='#1a1a1a',
     )
 
