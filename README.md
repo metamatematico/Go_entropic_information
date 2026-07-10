@@ -45,31 +45,83 @@ pip install numpy>=1.23 scipy>=1.10 matplotlib>=3.7
 Go_entropic_information/
 │
 ├── src/
-│   ├── go_ising_classical.py   # M1 Hamiltonian, energy map, kernel config
-│   ├── go_entropy.py           # Shannon, Boltzmann entropy, T_eff
-│   ├── go_game_engine.py       # Go rules engine + SGF parser
-│   ├── go_visualization.py     # Grid and comparison plots
-│   └── board_utils.py          # Board utilities
+│   ├── go_ising_classical.py       # M1 Hamiltonian, energy map, kernel config
+│   ├── go_entropy.py               # Shannon, Boltzmann entropy, T_eff
+│   ├── go_game_engine.py           # Go rules engine + SGF parser
+│   ├── go_visualization.py         # Grid and comparison plots
+│   └── board_utils.py              # Board utilities
+│
+├── scripts/
+│   ├── pipeline/                   # Data generation scripts
+│   │   ├── build_dataset.py        # Build main feature dataset
+│   │   ├── build_patterns_dataset.py
+│   │   ├── build_trajectory_dataset.py
+│   │   ├── extract_sgf_patterns.py # SGF opening pattern extraction
+│   │   └── analyze_sgf_evolution.py # SGF phase/block energy analysis
+│   ├── analysis/
+│   │   ├── analysis_patterns.py
+│   │   ├── analysis_game.py
+│   │   └── compare_per_bond.py
+│   └── viz/
+│       └── ...                     # Visualization scripts
 │
 ├── data/
-│   └── sgf_partidas/           # Professional game records (SGF format)
+│   └── sgf_partidas/               # ~3024 professional SGF games (not in repo)
 │
-├── results/                    # All generated figures and animations
-│
-├── analysis_patterns.py        # 19 opening patterns (Table I of paper)
-├── compare_per_bond.py         # Bond-level energy functions (both models)
-│
-├── viz_interaction_comparison.py  # 4-panel bond interaction table
-├── viz_entropy_comparison.py      # Shannon + Boltzmann + T_eff comparison
-│
-├── animation_game.py              # GIF: board + M1 energy overlay
-├── animation_entropy_compare.py   # GIF: dual-model entropy evolution
-│
-├── analysis_game.py            # Game metrics analysis
-├── analysis_patterns.py        # Pattern entropy analysis
-├── visualize_dashboard.py      # Dashboard per model
-├── visualize_energy_inventory.py
-└── visualize_interactions.py
+└── results/
+    ├── 01_patrones/                # 19 joseki opening patterns
+    │   ├── patterns_base_boards.png
+    │   ├── patterns_comparison.png
+    │   ├── energy_grid_M1.png
+    │   ├── energy_grid_alvarado.png
+    │   ├── energy_inventory.png
+    │   └── patterns_base.csv       # Pattern definitions table
+    │
+    ├── 02_enlaces_ising/           # Bond-level Ising interaction analysis
+    │   ├── bond_interaction_table.png
+    │   ├── bond_interaction_graph.png
+    │   ├── bond_distribution.png
+    │   ├── bond_entropy_compare.png
+    │   ├── interaction_comparison.png
+    │   └── interactions_H.png
+    │
+    ├── 03_entropia/                # Shannon, Boltzmann entropy & T_eff
+    │   ├── entropy_comparison.png  # Full 3-model comparison
+    │   ├── entropy_compare_M1.png
+    │   ├── entropy_boltzmann_lnW.png
+    │   ├── dashboard_M1.png        # Complete M1 dashboard
+    │   ├── dashboard_alvarado.png
+    │   ├── dataset_features.csv    # 107 features × 19 patterns
+    │   ├── dataset_board_flat.csv
+    │   └── dataset_metadata.json
+    │
+    ├── 04_trayectoria/             # Turn-by-turn trajectory (19 patterns)
+    │   ├── trajectory_viz.png      # Heatmaps + energy curves
+    │   ├── trajectory_full.csv     # One row per (pattern, turn)
+    │   └── trajectory_summary.csv  # Aggregated per pattern
+    │
+    ├── 05_partidas_reales/         # Analysis of 3024 real professional games
+    │   ├── sgf_heatmap.png         # Positional frequency heatmaps
+    │   ├── sgf_histogram.png       # Opening divergence histogram
+    │   ├── sgf_top_openings.png    # Most common openings (4/8/16 moves)
+    │   ├── sgf_phase_heatmaps.png  # Spatial distribution by phase
+    │   ├── sgf_phase_energy.png    # M1 + Alvarado energy by phase
+    │   ├── sgf_phase_sequences.png # Most frequent sequences per phase
+    │   ├── sgf_openings.csv        # First 30 moves per game (3024 rows)
+    │   ├── sgf_patterns.csv        # Top-20 recurring patterns by length
+    │   ├── sgf_evolution_by_move.csv   # Energy per (game, turn) — 121k rows
+    │   └── sgf_evolution_by_block.csv  # Stats per 10-move phase (6 rows)
+    │
+    ├── 06_animaciones/             # GIF animations of real games
+    │   └── *.gif
+    │
+    ├── interactive/
+    │   └── feature_explorer.html   # Interactive feature dashboard
+    │
+    └── reports/
+        ├── reporte_completo.pdf
+        ├── libro_entropia_go.pdf
+        └── *.txt
 ```
 
 ---

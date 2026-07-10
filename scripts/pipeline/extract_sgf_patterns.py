@@ -26,7 +26,7 @@ import matplotlib.gridspec as gridspec
 
 BASE = str(Path(__file__).resolve().parents[2])
 DATA = os.path.join(BASE, 'data', 'sgf_partidas')
-RES  = os.path.join(BASE, 'results')
+RES  = os.path.join(BASE, 'results', '05_partidas_reales')
 os.makedirs(RES, exist_ok=True)
 
 SIZE    = 19

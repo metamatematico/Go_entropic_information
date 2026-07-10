@@ -40,8 +40,11 @@ from compare_per_bond     import (
 )
 from analysis_patterns    import PATTERNS, BOARD_SIZE
 
-RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+_BASE   = str(Path(__file__).resolve().parents[2])
+RESULTS = os.path.join(_BASE, 'results', '03_entropia')
+REPORTS = os.path.join(_BASE, 'results', 'reports')
 os.makedirs(RESULTS, exist_ok=True)
+os.makedirs(REPORTS, exist_ok=True)
 
 T_CAP    = 50.0   # cap para T_eff = inf → 50 (señal de "desorden total")
 EPS      = 1e-12  # evitar divisiones por cero
@@ -550,7 +553,7 @@ def main():
         columns=['rank_M1_S_shannon', 'rank_AL_S_shannon', 'rank_M1_S_boltzmann'],
         errors='ignore')
 
-    summary_path = os.path.join(RESULTS, 'dataset_summary.txt')
+    summary_path = os.path.join(REPORTS, 'dataset_summary.txt')
     with open(summary_path, 'w', encoding='utf-8') as f:
         f.write("DATASET DE FEATURES — 19 PATRONES DE APERTURA DE GO\n")
         f.write("="*65 + "\n\n")

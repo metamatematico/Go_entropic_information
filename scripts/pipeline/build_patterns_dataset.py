@@ -29,7 +29,7 @@ import textwrap
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from analysis_patterns import PATTERNS, BOARD_SIZE
 
-RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results', '01_patrones')
 os.makedirs(RESULTS, exist_ok=True)
 
 # ── Notacion Go estandar (tablero 9x9) ───────────────────────────────────────

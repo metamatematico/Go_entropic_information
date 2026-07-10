@@ -36,7 +36,7 @@ from compare_per_bond    import (
     bond_shannon_entropy, bond_boltzmann_entropy, bond_boltzmann_lnW, bond_T_eff,
 )
 
-RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results', '06_animaciones')
 os.makedirs(RESULTS, exist_ok=True)
 
 # ── Paleta ────────────────────────────────────────────────────────────────────

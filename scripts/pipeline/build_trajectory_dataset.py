@@ -41,7 +41,7 @@ from compare_per_bond  import (
 from src.go_entropy    import board_from_stones
 from src.go_ising_classical import IsingGoConfig
 
-RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results', '04_trayectoria')
 os.makedirs(RESULTS, exist_ok=True)
 
 COL_LETTERS = list('ABCDEFGHJ')

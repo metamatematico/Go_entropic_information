@@ -38,7 +38,7 @@ from src.go_ising_classical import IsingGoConfig, ClassicalIsingModel
 from src.go_entropy         import board_from_stones
 from analysis_patterns      import PATTERNS, BOARD_SIZE
 
-RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results', '02_enlaces_ising')
 os.makedirs(RESULTS, exist_ok=True)
 
 BG         = '#F9F6EE'

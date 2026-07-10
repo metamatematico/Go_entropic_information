@@ -35,8 +35,13 @@ from src.go_ising_classical import ClassicalIsingModel, EnergyMapGenerator
 from src.go_entropy import GoEntropyAnalyzer, board_from_stones
 from src.go_visualization import plot_energy_grid, plot_entropy_comparison
 
-RESULTS_DIR = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+_BASE       = str(Path(__file__).resolve().parents[2])
+RESULTS_DIR = os.path.join(_BASE, 'results', '01_patrones')
+REPORTS_DIR = os.path.join(_BASE, 'results', 'reports')
+ENTROPY_DIR = os.path.join(_BASE, 'results', '03_entropia')
 os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs(ENTROPY_DIR, exist_ok=True)
 
 # ============================================================================
 # DEFINICION DE PATRONES  (tablero 9x9, coordenadas 0-indexed desde esquina)
@@ -284,7 +289,7 @@ def main():
         print_ranking(metrics, sort_by='S_shannon')
 
         # Grafico 1: Grilla de mapas de energia
-        grid_path = os.path.join(RESULTS_DIR, f'energy_grid_M{M}.png')
+        grid_path = os.path.join(RESULTS_DIR, f'energy_grid_M{M}.png')  # 01_patrones
         plot_energy_grid(
             boards=boards,
             energy_maps=emaps,
@@ -296,7 +301,7 @@ def main():
         plt.close('all')
 
         # Grafico 2: Comparacion de entropia y temperatura
-        cmp_path = os.path.join(RESULTS_DIR, f'entropy_compare_M{M}.png')
+        cmp_path = os.path.join(ENTROPY_DIR, f'entropy_compare_M{M}.png')
         plot_entropy_comparison(
             names=ids,
             s_shannon=s_shannon,
@@ -308,7 +313,7 @@ def main():
         plt.close('all')
 
         # Ranking a archivo
-        rank_path = os.path.join(RESULTS_DIR, f'ranking_M{M}.txt')
+        rank_path = os.path.join(REPORTS_DIR, f'ranking_M{M}.txt')
         save_ranking(metrics, rank_path)
 
     print("\nListo. Resultados en:", RESULTS_DIR)

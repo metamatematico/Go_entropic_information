@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.go_game_engine import GoBoard, SGFParser, _sgf_to_coords
 from src.go_entropy import GoEntropyAnalyzer
 
-RESULTS_DIR = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
+RESULTS_DIR = os.path.join(str(Path(__file__).resolve().parents[2]), 'results', '06_animaciones')
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # ─── Paleta dark-mode ────────────────────────────────────────────────────────
