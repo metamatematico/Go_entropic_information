@@ -44,7 +44,7 @@ from src.go_entropy import board_from_stones
 # ── Rutas ────────────────────────────────────────────────────────────────────
 HERE    = str(Path(__file__).resolve().parents[2])
 RESULTS = os.path.join(HERE, 'results')
-OUT     = os.path.join(RESULTS, 'libro_entropia_go.pdf')
+OUT     = os.path.join(HERE, 'docs', 'libro_entropia_go.pdf')
 
 # ── Dimensiones A5 ───────────────────────────────────────────────────────────
 PW, PH  = A5          # 419.53 × 595.28 pts

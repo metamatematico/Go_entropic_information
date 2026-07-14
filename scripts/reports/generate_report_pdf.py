@@ -34,8 +34,10 @@ from analysis_patterns import PATTERNS, BOARD_SIZE
 from src.go_entropy import board_from_stones
 
 RESULTS = os.path.join(str(Path(__file__).resolve().parents[2]), 'results')
-OUT     = os.path.join(RESULTS, 'reporte_completo.pdf')
+DOCS    = os.path.join(str(Path(__file__).resolve().parents[2]), 'docs')
+OUT     = os.path.join(DOCS, 'reporte_completo.pdf')
 os.makedirs(RESULTS, exist_ok=True)
+os.makedirs(DOCS, exist_ok=True)
 
 PW, PH = 8.27, 11.69   # A4
 

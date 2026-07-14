@@ -27,7 +27,7 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from matplotlib.lines import Line2D
 
 BASE    = str(Path(__file__).resolve().parents[2])
-OUT     = os.path.join(BASE, 'results', 'reports', 'informe_algebra_topologia.pdf')
+OUT     = os.path.join(BASE, 'docs', 'informe_algebra_topologia.pdf')
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
 # ── Paleta ────────────────────────────────────────────────────────────────────
