@@ -351,7 +351,408 @@ def page_matrices(pdf):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PÁGINA 4 — VARIEDADES ALGEBRAICAS
+# PÁGINA 4 — SOPORTE DEL VECTOR E IMPLICACIONES GEOMÉTRICAS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def page_vector_support(pdf):
+    fig = plt.figure(figsize=(8.5, 11))
+    page_bg(fig)
+    ax = blank_ax(fig, [0.07, 0.06, 0.86, 0.90])
+
+    ax.text(0.0, 1.0, '3.  El Soporte del Vector y la Topología de las Fibras',
+            fontsize=15, fontweight='bold', color=INK, va='top')
+    ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
+            transform=ax.transAxes)
+
+    y = 0.925
+    body(ax,
+         'El soporte de un vector en R⁹ es el conjunto de posiciones con '
+         'coeficiente no nulo.  En el anillo R[x,y]/(x³−x, y³−y), cada posición '
+         'corresponde a un monomio de grado específico.  '
+         'El grado máximo del soporte determina el grado de las curvas de nivel '
+         'H = c, y por la fórmula de Plücker, el género de esas curvas.',
+         y, size=9.5)
+
+    # ── Tabla de la base ──────────────────────────────────────────────────────
+    y -= 0.075
+    headers = ['Pos.', 'Monomio', 'Grado', 'Coef. H_AL', 'Coef. H_M1', 'En soporte de']
+    col_x   = [0.00, 0.08, 0.20, 0.30, 0.44, 0.58]
+    row_h   = 0.040
+
+    # Cabecera
+    for h, cx in zip(headers, col_x):
+        ax.add_patch(plt.Rectangle((cx, y - row_h + 0.005), 0.13, row_h - 0.003,
+                     fc=INK, ec='none', transform=ax.transAxes, zorder=0, clip_on=False))
+        ax.text(cx + 0.005, y - 0.005, h, fontsize=8, color='white',
+                transform=ax.transAxes, va='top', fontweight='bold')
+
+    data = [
+        ('0', '1',     '0', '0',  '0',  '—'),
+        ('1', 'x',     '1', '0', '+1',  'M1  ←  campo en s₀'),
+        ('2', 'y',     '1', '0', '+2',  'M1  ←  campo en s₁ (doble)'),
+        ('3', 'x²',    '2', '0',  '0',  '—'),
+        ('4', 'y²',    '2', '0',  '0',  '—'),
+        ('5', 'xy',    '2', '+1', '0',  'AL  ←  único término'),
+        ('6', 'x²y',   '3', '0', '−1',  'M1  ←  acopl. mediado por ocup.'),
+        ('7', 'xy²',   '3', '0', '−1',  'M1  ←  acopl. mediado por ocup.'),
+        ('8', 'x²y²',  '4', '0',  '0',  '—'),
+    ]
+
+    colors_row = [BG, '#FEF9F0', BG, '#FEF9F0', BG, '#EBF5FB',
+                  '#FDEDEC', '#FDEDEC', BG]
+
+    for i, (pos, mono, deg, cal, cm1, note) in enumerate(data):
+        ry = y - (i + 1) * row_h
+        ax.add_patch(plt.Rectangle((0.0, ry + 0.003), 0.99, row_h - 0.003,
+                     fc=colors_row[i], ec='none', transform=ax.transAxes, zorder=0))
+        vals = [pos, mono, deg, cal, cm1, note]
+        txt_colors = [GRAY, INK, GRAY,
+                      RED if cal != '0' else GRAY,
+                      BLUE if cm1 != '0' else GRAY,
+                      RED if 'AL' in note else (BLUE if 'M1' in note else GRAY)]
+        for v, cx, tc in zip(vals, col_x, txt_colors):
+            ax.text(cx + 0.005, ry + row_h - 0.007, v, fontsize=8.5,
+                    color=tc, transform=ax.transAxes, va='top',
+                    fontweight='bold' if v not in ('0', '—', '') else 'normal')
+
+    y -= (len(data) + 1) * row_h + 0.015
+
+    # ── Diagrama: soporte → grado → género ───────────────────────────────────
+    ax_flow = fig.add_axes([0.06, 0.22, 0.88, 0.13])
+    ax_flow.set_facecolor(BG); ax_flow.axis('off')
+    ax_flow.set_xlim(0, 1); ax_flow.set_ylim(0, 1)
+
+    blocks = [
+        (0.05, 0.35, 'Soporte\ndel vector', '{5}', '{1,2,6,7}', RED, BLUE),
+        (0.28, 0.20, 'Grado\nmáximo', 'deg = 2', 'deg = 3', RED, BLUE),
+        (0.51, 0.20, 'Fórmula\nPlücker\ng=(d−1)(d−2)/2', 'g = 0', 'g = 1', RED, BLUE),
+        (0.74, 0.20, 'Topología\nde la fibra', 'cónica\n(racional)', 'cúbica\nelíptica', RED, BLUE),
+    ]
+
+    for bx, bw, label, val_al, val_m1, cal, cm1 in blocks:
+        ax_flow.add_patch(FancyBboxPatch((bx, 0.05), bw, 0.90,
+                          boxstyle='round,pad=0.02', fc='white',
+                          ec=LGRAY, lw=0.8))
+        ax_flow.text(bx + bw/2, 0.90, label, ha='center', va='top',
+                     fontsize=7.5, color=GRAY, linespacing=1.2)
+        ax_flow.text(bx + bw/2, 0.55, val_al, ha='center', va='center',
+                     fontsize=8, color=cal, fontweight='bold')
+        ax_flow.text(bx + bw/2, 0.25, val_m1, ha='center', va='center',
+                     fontsize=8, color=cm1, fontweight='bold')
+        if bx < 0.74:
+            ax_flow.annotate('', xy=(bx + bw + 0.005, 0.5),
+                             xytext=(bx + bw, 0.5),
+                             arrowprops=dict(arrowstyle='->', color=LGRAY, lw=1.2))
+
+    ax_flow.text(0.01, 0.55, 'H_AL', fontsize=8, color=RED, va='center',
+                 fontweight='bold')
+    ax_flow.text(0.01, 0.25, 'H_M1', fontsize=8, color=BLUE, va='center',
+                 fontweight='bold')
+
+    y = 0.195
+    body(ax,
+         'La fórmula de Plücker g = (d−1)(d−2)/2 aplica para curvas planas '
+         'proyectivas lisas de grado d.  '
+         'Alvarado tiene soporte en el monomio xy de grado 2 → d=2 → g=0 '
+         '(hipérbolas, racionalmente parametrizables).  '
+         'M1 tiene soporte en x²y y xy² de grado 3 → d=3 → g=1 '
+         '(curvas elípticas, no racionalmente parametrizables).  '
+         'La AUSENCIA de x²y², xy², x²y en Alvarado y la AUSENCIA de xy en M1 '
+         'no son accidentales: definen el tipo geométrico de cada modelo.',
+         y, size=9.5, color=PURPLE)
+
+    y -= 0.095
+    body(ax,
+         'Si se añadiera el término x²y² (posición 8) a cualquier modelo, '
+         'el grado subiría a 4 y el género a g = (3)(2)/2 = 3.  '
+         'Si se eliminaran los términos de grado 3 de M1, '
+         'las fibras bajarían a género 0 y M1 perdería su riqueza topológica.',
+         y, size=9, color=GRAY)
+
+    pdf.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PÁGINA 5 — ANÁLISIS COMPONENTE A COMPONENTE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def page_component_analysis(pdf):
+    fig = plt.figure(figsize=(8.5, 11))
+    page_bg(fig)
+    ax = blank_ax(fig, [0.07, 0.06, 0.86, 0.90])
+
+    ax.text(0.0, 1.0, '4.  Análisis Componente a Componente',
+            fontsize=15, fontweight='bold', color=INK, va='top')
+    ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
+            transform=ax.transAxes)
+
+    # ── Alvarado: posición 5 ─────────────────────────────────────────────────
+    y = 0.920
+    ax.add_patch(FancyBboxPatch((0.0, y - 0.195), 0.99, 0.200,
+                 boxstyle='round,pad=0.01', fc='#EBF5FB', ec=RED, lw=1.2,
+                 transform=ax.transAxes))
+    ax.text(0.01, y - 0.005,
+            'H_AL = xy   →   vector (0, 0, 0, 0, 0,  1 , 0, 0, 0)   — posición 5 únicamente',
+            fontsize=9.5, color=RED, fontweight='bold', transform=ax.transAxes, va='top',
+            fontfamily='monospace')
+
+    items_al = [
+        ('Simetría bajo swap x↔y',
+         'xy → yx = xy.  Invariante exacto.  El único monomio de grado 2 '
+         'que es simétrico bajo intercambio de los dos spins.'),
+        ('Simetría bajo cambio de color (x,y)→(−x,−y)',
+         '(−x)(−y) = xy.  Invariante exacto.  H_AL es PAR bajo '
+         'la inversión global de color B↔W.'),
+        ('Vacuum-invisible',
+         'H_AL(0, y) = 0 y H_AL(x, 0) = 0.  El vacío no contribuye energía.  '
+         'Algebraicamente: xy tiene factor x e y, ambos se anulan con s=0.'),
+        ('Rango de la matriz 3×3',
+         'H_AL = v⊗vᵀ con v = (−1, 0, +1)ᵀ.  Matriz de rango 1.  '
+         'Eigenvalores: {2, 0, 0}.  El "tensor de interacción" más degenerado posible.'),
+    ]
+
+    yy = y - 0.038
+    for title, text in items_al:
+        ax.text(0.02, yy, f'▸ {title}:', fontsize=8.5, color=RED,
+                transform=ax.transAxes, va='top', fontweight='bold')
+        ax.text(0.02, yy - 0.022, text, fontsize=8, color=INK,
+                transform=ax.transAxes, va='top', linespacing=1.3)
+        yy -= 0.048
+
+    # ── M1: posiciones 1, 2, 6, 7 ────────────────────────────────────────────
+    y = 0.700
+    ax.add_patch(FancyBboxPatch((0.0, y - 0.520), 0.99, 0.525,
+                 boxstyle='round,pad=0.01', fc='#EBF5FB', ec=BLUE, lw=1.2,
+                 transform=ax.transAxes))
+    ax.text(0.01, y - 0.005,
+            'H_M1 = x + 2y − xy² − x²y   →   (0,  1 ,  2 , 0, 0, 0, −1 , −1 , 0)',
+            fontsize=9.5, color=BLUE, fontweight='bold', transform=ax.transAxes, va='top',
+            fontfamily='monospace')
+
+    items_m1 = [
+        ('Pos. 1: coef. +1 de x  (campo externo sobre s₀)',
+         'Contribuye s₀ a la energía.  H_M1(x, 0) = x: cuando el vecino s₁ está vacío, '
+         'la energía es el propio spin s₀.  Hace al vacío de s₁ VISIBLE desde s₀.'),
+        ('Pos. 2: coef. +2 de y  (campo externo sobre s₁, el doble)',
+         'H_M1(0, y) = 2y: cuando s₀=0, la energía del vecino s₁ vale el doble.  '
+         'El vecino preexistente s₁ pesa MÁS que la piedra que se coloca s₀.  '
+         'Rompe la simetría entre "quien coloca" y "quien recibe la influencia".'),
+        ('Pos. 6: coef. −1 de x²y  (ocupación de s₀ modifica el campo de s₁)',
+         'x² = s₀² es la indicadora de que s₀ está ocupado (vale 1 si s₀≠0, 0 si vacío).  '
+         'El término −x²y = −(1 si s₀ ocupado)·s₁ reduce el campo de s₁ cuando s₀ está ocupado.  '
+         'Cuando s₀ ≠ 0: campo neto sobre s₁ = 2y − y = y.'),
+        ('Pos. 7: coef. −1 de xy²  (ocupación de s₁ modifica el campo de s₀)',
+         'Análogamente: −xy² = −s₀·(1 si s₁ ocupado).  '
+         'Cuando s₁ ≠ 0: campo neto sobre s₀ = x − x = 0.'),
+        ('Caso ambos ocupados: H_M1 = s₁  (resultado exacto)',
+         'Si s₀ ≠ 0 y s₁ ≠ 0, entonces s₀²=s₁²=1 y: '
+         'H = s₀ + 2s₁ − s₀·1 − 1·s₁ = s₀ + 2s₁ − s₀ − s₁ = s₁.  '
+         'El resultado es solo el color del vecino: el modelo mide '
+         '"¿de qué color es el vecino que rodea la piedra recién colocada?"'),
+    ]
+
+    yy = y - 0.038
+    for title, text in items_m1:
+        ax.text(0.02, yy, f'▸ {title}:', fontsize=8, color=BLUE,
+                transform=ax.transAxes, va='top', fontweight='bold')
+        ax.text(0.02, yy - 0.023, text, fontsize=7.8, color=INK,
+                transform=ax.transAxes, va='top', linespacing=1.3)
+        yy -= 0.095
+
+    # ── Posición 8: ausente en ambos ─────────────────────────────────────────
+    y = 0.155
+    ax.add_patch(FancyBboxPatch((0.0, y - 0.085), 0.99, 0.088,
+                 boxstyle='round,pad=0.01', fc='#F9F9F9', ec=GRAY, lw=0.8,
+                 transform=ax.transAxes))
+    ax.text(0.01, y - 0.008,
+            'Pos. 8: coef. 0 de x²y²  (ausente en AMBOS modelos)',
+            fontsize=9, color=GRAY, fontweight='bold', transform=ax.transAxes, va='top')
+    ax.text(0.02, y - 0.032,
+            'x²y² = s₀²·s₁² es la indicadora conjunta de que AMBAS celdas están ocupadas.  '
+            'Coeficiente 0 en ambos modelos → ninguno añade "bonus energético '
+            'por densidad de piedras".  Un modelo con este término sería sensible '
+            'a la densidad local independientemente del color.',
+            fontsize=8, color=GRAY, transform=ax.transAxes, va='top', linespacing=1.3)
+
+    pdf.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PÁGINA 6 — SIMETRÍA, DESCOMPOSICIÓN Y NÚCLEO
+# ─────────────────────────────────────────────────────────────────────────────
+
+def page_symmetry_nullspace(pdf):
+    fig = plt.figure(figsize=(8.5, 11))
+    page_bg(fig)
+    ax = blank_ax(fig, [0.07, 0.06, 0.86, 0.90])
+
+    ax.text(0.0, 1.0, '5.  Simetría, Descomposición y Núcleo',
+            fontsize=15, fontweight='bold', color=INK, va='top')
+    ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
+            transform=ax.transAxes)
+
+    # ── §A: Acción del grupo S₂ (swap) ────────────────────────────────────────
+    y = 0.915
+    section_header(ax, 'A.  Acción del grupo S₂ (intercambio de spins x↔y)', y,
+                   color=BLUE, size=10)
+    y -= 0.042
+    body(ax,
+         'El swap x↔y permuta los componentes del vector: '
+         '(coef_x, coef_y) → (coef_y, coef_x)  y  (coef_{x²y}, coef_{xy²}) → '
+         '(coef_{xy²}, coef_{x²y}).  Los demás componentes son fijos.',
+         y, size=9)
+
+    y -= 0.050
+    math(ax,
+         r'H$_{AL}$: (0,0,0,0,0, 1 ,0,0,0)  $\rightarrow$  '
+         r'(0,0,0,0,0, 1 ,0,0,0)    $\Rightarrow$  INVARIANTE  (simétrico)',
+         0.03, y, size=8.5, color=RED)
+    y -= 0.038
+    math(ax,
+         r'H$_{M1}$: (0, 1 , 2 ,0,0,0,−1,−1,0)  $\rightarrow$  '
+         r'(0, 2 , 1 ,0,0,0,−1,−1,0)    $\Rightarrow$  CAMBIA',
+         0.03, y, size=8.5, color=BLUE)
+
+    y -= 0.045
+    body(ax,
+         'La parte antisimétrica de H_M1 (lo que cambia de signo bajo swap):',
+         y, size=9)
+    y -= 0.038
+    math(ax,
+         r'H$_{M1}^{antisim}$ = $\frac{1}{2}$[(0,1,2,...) − (0,2,1,...)] = '
+         r'(0, −½, +½, 0,...) = $\frac{y − x}{2}$',
+         0.1, y, size=9.5, color=BLUE)
+    y -= 0.038
+    body(ax,
+         'Toda la no-simetría de M1 se reduce a un único término: (y−x)/2.  '
+         'Es la perturbación mínima que eleva el género de 0 a 1.',
+         y, size=8.5, color=PURPLE)
+
+    # ── §B: Cambio de color ────────────────────────────────────────────────────
+    y -= 0.052
+    section_header(ax, 'B.  Cambio global de color  (x, y) → (−x, −y)', y,
+                   color=BLUE, size=10)
+    y -= 0.042
+    body(ax,
+         'La paridad de cada monomio bajo (x,y)→(−x,−y): '
+         '1,x²,y²,xy,x²y² son pares (+1).  x, y, x²y, xy² son impares (−1).',
+         y, size=9)
+
+    y -= 0.042
+    math(ax,
+         r'H$_{AL}$: coef. en posición 5 (xy, PAR) → H$_{AL}$(−x,−y) = xy = +H$_{AL}$   '
+         r'[INVARIANTE bajo B↔W]',
+         0.03, y, size=8.5, color=RED)
+    y -= 0.035
+    math(ax,
+         r'H$_{M1}$: coefs. en posiciones 1,2,6,7 (IMPARES) → H$_{M1}$(−x,−y) = −H$_{M1}$   '
+         r'[ANTISIMÉTRICO bajo B↔W]',
+         0.03, y, size=8.5, color=BLUE)
+
+    y -= 0.042
+    body(ax,
+         'Consecuencia directa: en una partida real con igual número de piedras '
+         'negras y blancas, ⟨H_M1⟩ = 0 exactamente por antisimetría.  '
+         'Esto explica el hallazgo empírico T_eff → ∞: con ⟨E_M1⟩ ≈ 0, '
+         'el modelo cree estar en temperatura infinita.',
+         y, size=8.8, color=PURPLE)
+
+    # ── §C: Descomposición campo + acoplamiento ────────────────────────────────
+    y -= 0.058
+    section_header(ax, 'C.  Descomposición Ising: campo externo + acoplamiento', y,
+                   color=BLUE, size=10)
+    y -= 0.038
+
+    ax_dec = fig.add_axes([0.07, 0.295, 0.86, 0.075])
+    ax_dec.set_facecolor(BG); ax_dec.axis('off')
+    ax_dec.set_xlim(0, 1); ax_dec.set_ylim(0, 1)
+
+    ax_dec.add_patch(FancyBboxPatch((0.0, 0.0), 0.30, 1.0,
+                     boxstyle='round,pad=0.02', fc='#EBF5FB', ec=RED, lw=1.2))
+    ax_dec.text(0.15, 0.85, 'H_AL', ha='center', fontsize=9.5, color=RED,
+                fontweight='bold', va='top')
+    ax_dec.text(0.15, 0.55, 'h = 0', ha='center', fontsize=9, color=GRAY, va='top')
+    ax_dec.text(0.15, 0.25, 'J = xy', ha='center', fontsize=9, color=RED,
+                fontweight='bold', va='top')
+
+    ax_dec.text(0.50, 0.50, '=   h·(s₀ + s₁)  +  J(s₀, s₁)',
+                ha='center', fontsize=9, color=INK, va='center')
+
+    ax_dec.add_patch(FancyBboxPatch((0.69, 0.0), 0.30, 1.0,
+                     boxstyle='round,pad=0.02', fc='#EBF5FB', ec=BLUE, lw=1.2))
+    ax_dec.text(0.84, 0.85, 'H_M1', ha='center', fontsize=9.5, color=BLUE,
+                fontweight='bold', va='top')
+    ax_dec.text(0.84, 0.55, 'h = (1, 2)', ha='center', fontsize=9,
+                color=GRAY, va='top')
+    ax_dec.text(0.84, 0.25, 'J = −x²y − xy²', ha='center', fontsize=9,
+                color=BLUE, fontweight='bold', va='top')
+
+    y = 0.268
+    body(ax,
+         'H_AL es ACOPLAMIENTO PURO (sin campo).  '
+         'H_M1 = CAMPO ASIMÉTRICO (h_x=1, h_y=2) + ACOPLAMIENTO MEDIADO POR OCUPACIÓN.  '
+         'El campo asimétrico (h_y = 2h_x) hace que el vecino s₁ pese el doble que s₀.',
+         y, size=8.8)
+
+    # ── §D: Núcleo (null space) ────────────────────────────────────────────────
+    y -= 0.075
+    section_header(ax, 'D.  Núcleo de la matriz 3×3', y, color=BLUE, size=10)
+    y -= 0.040
+
+    rows_null = [
+        ('H_AL', 'rango 1', 'dim = 2',
+         'span{(1,0,1), (0,1,0)}',
+         'Estado balanceado B=W  Y  estado vacío',
+         RED),
+        ('H_M1', 'rango 2', 'dim = 1',
+         'span{(1,0,1)}',
+         'Solo el estado balanceado B=W',
+         BLUE),
+    ]
+
+    col_nx = [0.0, 0.10, 0.20, 0.30, 0.56]
+    for model, rank, dim, null_v, meaning, color in rows_null:
+        ax.add_patch(FancyBboxPatch((0.0, y-0.048), 0.99, 0.048,
+                     boxstyle='round,pad=0.005', fc=BG, ec=color, lw=0.8,
+                     transform=ax.transAxes))
+        for v, cx in zip([model, rank, dim, null_v, meaning], col_nx):
+            ax.text(cx + 0.01, y - 0.004, v, fontsize=8.2,
+                    color=color if v == model else (INK if v == meaning else GRAY),
+                    transform=ax.transAxes, va='top',
+                    fontweight='bold' if v == model else 'normal')
+        y -= 0.055
+
+    y -= 0.005
+    body(ax,
+         'El estado vacío (0, 1, 0) — toda la probabilidad en s₁=0 — '
+         'está en el núcleo de H_AL pero NO en el de H_M1:',
+         y, size=9)
+    y -= 0.038
+    math(ax,
+         r'H$_{AL}$ · (0, 1, 0)$^T$ = (0, 0, 0)$^T$   '
+         r'[vacío invisible]',
+         0.08, y, size=9, color=RED)
+    y -= 0.032
+    math(ax,
+         r'H$_{M1}$ · (0, 1, 0)$^T$ = (−1, 0, +1)$^T$ $\neq$ 0   '
+         r'[vacío activa vector B↔W]',
+         0.08, y, size=9, color=BLUE)
+    y -= 0.040
+    body(ax,
+         'Cuando s₁=0, M1 produce el vector (−1, 0, +1) en la imagen — '
+         'exactamente el vector de diferencia de color.  '
+         'El vacío "activa" una distinción entre negro y blanco en M1.  '
+         'Esta es la manifestación algebraica exacta de la propiedad vacuum-active.',
+         y, size=8.8, color=PURPLE)
+
+    pdf.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PÁGINA 7 — VARIEDADES ALGEBRAICAS
 # ─────────────────────────────────────────────────────────────────────────────
 
 def page_varieties(pdf):
@@ -359,7 +760,7 @@ def page_varieties(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '3.  Variedades Algebraicas de cada Modelo',
+    ax.text(0.0, 1.0, '6.  Variedades Algebraicas de cada Modelo',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -468,7 +869,7 @@ def page_critical(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '4.  Valores Críticos y Topología de las Fibras',
+    ax.text(0.0, 1.0, '7.  Valores Críticos y Topología de las Fibras',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -598,7 +999,7 @@ def page_simplex(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '5.  El Símplex de Estados y los Estados de Gibbs',
+    ax.text(0.0, 1.0, '8.  El Símplex de Estados y los Estados de Gibbs',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -695,7 +1096,7 @@ def page_legendre(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '6.  Dualidad de Legendre: Energía ↔ Entropía',
+    ax.text(0.0, 1.0, '9.  Dualidad de Legendre: Energía ↔ Entropía',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -813,7 +1214,7 @@ def page_info_geometry(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '7.  Geometría de la Información',
+    ax.text(0.0, 1.0, '10. Geometría de la Información',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -901,7 +1302,7 @@ def page_persistent(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.08, 0.06, 0.84, 0.90])
 
-    ax.text(0.0, 1.0, '8.  Homología Persistente de la Trayectoria',
+    ax.text(0.0, 1.0, '11. Homología Persistente de la Trayectoria',
             fontsize=16, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -1011,7 +1412,7 @@ def page_summary(pdf):
     page_bg(fig)
     ax = blank_ax(fig, [0.04, 0.06, 0.92, 0.90])
 
-    ax.text(0.0, 1.0, '9.  Tabla Resumen — Estructura Matemática del Proyecto',
+    ax.text(0.0, 1.0, '12. Tabla Resumen — Estructura Matemática del Proyecto',
             fontsize=14, fontweight='bold', color=INK, va='top')
     ax.plot([0, 1], [0.965, 0.965], '-', color=GOLD, lw=1.5,
             transform=ax.transAxes)
@@ -1128,6 +1529,9 @@ def main():
         page_cover(pdf)
         page_ring(pdf)
         page_matrices(pdf)
+        page_vector_support(pdf)
+        page_component_analysis(pdf)
+        page_symmetry_nullspace(pdf)
         page_varieties(pdf)
         page_critical(pdf)
         page_simplex(pdf)
@@ -1136,7 +1540,7 @@ def main():
         page_persistent(pdf)
         page_summary(pdf)
 
-    print(f'  Listo: {OUT}  ({10} páginas)')
+    print(f'  Listo: {OUT}  ({13} páginas)')
 
 
 if __name__ == '__main__':
