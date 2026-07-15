@@ -1,0 +1,37 @@
+# ── Configuración del pipeline: La familia de polinomios Go ────────────────────
+family:
+  template: cubic_mixed   # cubic_mixed | quadratic | sparse_cubic | odd_cubic | h_m1
+  n_samples: 300          # candidatos a generar
+  sample_mode: random     # random | grid
+  coef_linear_range: [-3, 3]
+  coef_quad_range:   [-3, 3]
+  coef_cubic_range:  [-1, 1]
+  seed: 42
+
+analysis:
+  box_L: 2.0          # dominio [-L, L]² para TDA
+  grid_size: 150       # resolución de la malla (150×150)
+  n_crit_starts: 25    # inicios múltiples para puntos críticos numéricos
+  numerical_tol: 1e-9
+
+tda:
+  n_thresholds: 80     # niveles para diagrama de persistencia
+  tau: 0.15            # umbral mínimo de vida H1 (normalizado en [0,1])
+
+filter:
+  tau1:       0.20   # vida máxima H1 mínima (normalizada)
+  delta_E:    0.50   # profundidad mínima de pozo
+  delta_crit: 0.30   # separación mínima entre valores críticos
+  min_criteria: 2    # cuántos criterios deben cumplirse (de 3)
+  n_robustness: 12   # perturbaciones ±5% para test de robustez
+
+validation:
+  sgf_dir: ../../data/sgf_partidas   # relativo a la carpeta del proyecto
+  n_games:  5                         # partidas SGF a analizar
+  window:   2                         # ventana ±window alrededor de cada jugada
+
+output:
+  catalog_path: output/catalog.json
+  figures_dir:  output/figures
+  reports_dir:  output/reports
+  top_n: 10    # cuántos candidatos incluir en el resumen ejecutivo
