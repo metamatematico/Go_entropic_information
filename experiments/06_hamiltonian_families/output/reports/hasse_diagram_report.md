@@ -6,6 +6,57 @@
 
 ---
 
+## 0. La familia de candidatos: ¿qué son estos Hamiltonianos?
+
+### Go como sistema de espines
+
+Cada intersección del tablero de Go tiene un valor de espín s ∈ {−1, 0, +1} (negro, vacío, blanco). La energía de interacción entre dos intersecciones vecinas i y j está dada por un **Hamiltoniano de par** H(sᵢ, sⱼ). La energía total del tablero es la suma sobre todos los pares adyacentes:
+
+```
+E = Σ_{<i,j>} H(sᵢ, sⱼ)
+```
+
+El modelo de evaluación estratégica se reduce completamente a la elección de H: qué tipo de vecindades favorece o penaliza.
+
+### Por qué polinomios cúbicos
+
+Sobre {−1, 0, +1}, se cumple x³ = x para todo x. Por eso los monomios de grado ≥ 3 en una sola variable no aportan información nueva. Los **monomios independientes** en (x,y) ∈ {−1,0,+1}² son exactamente 7 (sin contar la constante):
+
+```
+x,  y,  x²,  xy,  y²,  x²y,  xy²
+```
+
+Cualquier función H: {−1,0,+1}² → ℝ se expresa como combinación lineal de estos 7 términos. Esto hace que los polinomios cúbicos sean la **familia completa** — no existe una familia más general para este espacio de estados.
+
+### La plantilla cubic_mixed
+
+El experimento exploró la plantilla:
+
+```
+H(x,y) = a₁·x + a₂·y + b₁₁·x² + b₁₂·xy + b₂₂·y² + c₁₁₂·x²y + c₁₂₂·xy²
+```
+
+Los coeficientes se muestrearon aleatoriamente (seed=42, 300 muestras) con:
+- a₁, a₂, b₁₁, b₁₂, b₂₂ ∈ [−3, 3]
+- c₁₁₂, c₁₂₂ ∈ [−1, 1]
+
+Cada nodo del diagrama de Hasse representa uno de los 296 candidatos que pasaron el filtro de calidad (de los 305 analizados, incluyendo 3 referencias: H_M1, Alvarado y el cúbico armónico).
+
+### Qué mide cada criterio de calidad
+
+Los 4 criterios del orden Pareto evalúan propiedades distintas e independientes:
+
+| Criterio | Cómo se calcula | Qué mide para Go |
+|----------|----------------|-----------------|
+| **H₁_max** | Vida máxima de un generador H₁ en la filtración por subniveles de H sobre [−2,2]², normalizada por el rango | Capacidad del Hamiltoniano de detectar **estructuras cíclicas de influencia**: grupos que rodean a otros, cadenas de conexión, seki |
+| **Robustez** | Fracción de 12 perturbaciones ±5% de los coeficientes que mantienen H₁_max > 0.20 | **Estabilidad estructural**: las propiedades del modelo no son artefactos de coeficientes exactos; funcionarán bajo ruido numérico o variación de parámetros |
+| **ΔE** | H(x*,y*) máximo − H(x*,y*) mínimo sobre [−2,2]² | **Contraste energético**: separación entre las posiciones de máxima y mínima energía; mayor ΔE = mayor poder para discriminar posiciones fuertes de débiles |
+| **n_A₁** | Número de puntos críticos con det(Hess H) < 0 (nodos de silla) | **Transiciones de régimen**: cada nodo A₁ es un valor crítico c* donde la topología de la fibra H⁻¹(c) cambia; más nodos = más puntos de inflexión estratégica en la partida |
+
+Los dos primeros criterios (H₁_max, Robustez) miden riqueza y estabilidad topológica. Los dos últimos (ΔE, n_A₁) miden potencia discriminativa y complejidad estructural. Los 4 son genuinamente independientes: ningún candidato maximiza los 4 simultáneamente (de ahí que el poset no tenga supremo).
+
+---
+
 ## 1. Qué es este diagrama
 
 El diagrama de Hasse es la representación visual de un **orden parcial**: una forma de comparar candidatos que no obliga a elegir un único "mejor" sino que admite la existencia de múltiples óptimos incomparables entre sí.
