@@ -3,6 +3,7 @@ data/sgf_partidas/
 
 # Python
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 .env
@@ -15,3 +16,7 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Frames de debug / previews intermedios (generados durante desarrollo)
+results/**/_preview_*.png
+results/**/_prologue_*.png
