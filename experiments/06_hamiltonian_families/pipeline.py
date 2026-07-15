@@ -984,17 +984,25 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
             ax.text(-0.025, -(r - 1), f"F{r}",
                     color="#44446A", fontsize=4.5, ha="right", va="center")
 
-    # Aristas
-    border_col = {1: "#FFD700", 2: "#AAAAAA", 3: "#CD7F32"}
-    edge_params = {
-        1: dict(color="#FFD700", alpha=0.90, lw=1.1),
-        2: dict(color="#888888", alpha=0.30, lw=0.40),
-        3: dict(color="#996633", alpha=0.20, lw=0.30),
-    }
-    default_ep = dict(color="#22224A", alpha=0.09, lw=0.15)
+    # Aristas — colores que resaltan sobre fondo negro
+    border_col = {1: "#FFD700", 2: "#44DDFF", 3: "#FF9944"}
+
+    def _edge_style(rank: int) -> dict:
+        if rank == 1:
+            return dict(color="#FFD700", alpha=0.95, lw=1.3)   # oro
+        if rank == 2:
+            return dict(color="#44DDFF", alpha=0.70, lw=0.70)  # cian brillante
+        if rank == 3:
+            return dict(color="#FF9944", alpha=0.60, lw=0.55)  # naranja
+        if rank <= 8:
+            return dict(color="#CC88FF", alpha=0.45, lw=0.38)  # violeta
+        if rank <= 20:
+            return dict(color="#88FFAA", alpha=0.32, lw=0.28)  # verde menta
+        return     dict(color="#6699CC", alpha=0.22, lw=0.18)  # azul acero
+
     for ii, jj in zip(I_e, J_e):
-        ri  = int(rnk[ii])
-        ep  = edge_params.get(ri, default_ep)
+        ri = int(rnk[ii])
+        ep = _edge_style(ri)
         ax.plot([pos[ii,0], pos[jj,0]], [pos[ii,1], pos[jj,1]],
                 zorder=1, solid_capstyle="round", **ep)
 
@@ -1003,8 +1011,8 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
     for idx, (e, img) in enumerate(zip(entries, thumbs)):
         cx, cy = pos[idx]
         rank   = int(rnk[idx])
-        bc     = border_col.get(rank, "#1A1A3A")
-        blw    = 1.8 if rank <= 3 else 0.4
+        bc     = border_col.get(rank, "#334466")
+        blw    = 1.8 if rank <= 3 else 0.6
 
         oi = OffsetImage(img, zoom=ZOOM)
         oi.image.axes = ax
