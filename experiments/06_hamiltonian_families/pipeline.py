@@ -855,11 +855,13 @@ def _generate_atlas(catalog: Catalog, cfg: dict, id_to_rank: dict):
     print(f"  Atlas → {out_path.name}  ({len(entries)} candidatos)")
 
 
-def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
+def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict,
+                             mode: str = "2d"):
     """
     Diagrama de Hasse del orden parcial Pareto.
-    Nodos = candidatos (mini heatmap 2D). Aristas = cobertura:
-      i → j  iff  i domina a j  y  no existe k tal que i dom k dom j.
+    mode='2d' : nodos como heatmaps 2D  → hasse_diagram.png
+    mode='3d' : nodos como superficies Gamma(H) en 3D → hasse_diagram_3d.png
+    Aristas = cobertura: i→j iff i domina a j y no existe k intermedio.
     Layout jerárquico: y = frente Pareto, x = baricéntrico para minimizar cruces.
     """
     import matplotlib
@@ -868,6 +870,7 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg
     from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
     import numpy as np
     from src.families import Hamiltonian as _Ham
 
@@ -930,31 +933,63 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
             pos[idx, 0] = (k + 0.5) / nf
 
     # ── Thumbnails ────────────────────────────────────────────────────────────
-    L   = cfg["analysis"].get("box_L", 2.0)
-    Ng  = 32
+    L      = cfg["analysis"].get("box_L", 2.0)
+    is_3d  = (mode == "3d")
+    Ng     = 20 if is_3d else 32
+    PX_T   = 80 if is_3d else 64
+    DPI_T  = 72;  TH_T = PX_T / DPI_T
     Xg, Yg = np.meshgrid(np.linspace(-L, L, Ng), np.linspace(-L, L, Ng))
-    PX_T = 64; DPI_T = 72; TH_T = PX_T / DPI_T
 
-    print(f"  Renderizando {n} thumbnails...")
+    print(f"  Renderizando {n} thumbnails {'3D' if is_3d else '2D'}...")
     thumbs = []
     for e in entries:
-        fig_t  = Figure(figsize=(TH_T, TH_T), dpi=DPI_T)
-        cv_t   = FigureCanvasAgg(fig_t)
-        fig_t.patch.set_facecolor("#0A0A18")
-        ax_t   = fig_t.add_axes([0, 0, 1, 1])
-        ax_t.set_facecolor("#0A0A18")
-        ax_t.set_xticks([]); ax_t.set_yticks([])
-        for sp in ax_t.spines.values(): sp.set_visible(False)
-        try:
-            h = _Ham(e["template"], e["coefficients"])
-            Z = np.nan_to_num(np.array(h(Xg, Yg), dtype=float))
-            v1, v99 = np.percentile(Z, 1), np.percentile(Z, 99)
-            if v99 - v1 < 1e-9: v99 = v1 + 1
-            ax_t.imshow(Z[::-1], origin="upper", extent=[-L, L, -L, L],
-                       cmap="RdBu_r", vmin=v1, vmax=v99,
-                       aspect="auto", interpolation="bilinear")
-        except Exception:
-            pass
+        fig_t = Figure(figsize=(TH_T, TH_T), dpi=DPI_T)
+        cv_t  = FigureCanvasAgg(fig_t)
+        fig_t.patch.set_facecolor("#060610")
+
+        if is_3d:
+            ax_t = fig_t.add_axes([0, 0, 1, 1], projection="3d")
+            ax_t.set_facecolor("#060610")
+            ax_t.set_axis_off()
+            for pane in [ax_t.xaxis.pane, ax_t.yaxis.pane, ax_t.zaxis.pane]:
+                pane.fill = False
+                pane.set_edgecolor("none")
+            try:
+                h  = _Ham(e["template"], e["coefficients"])
+                Z  = np.nan_to_num(np.array(h(Xg, Yg), dtype=float))
+                p2, p98 = np.percentile(Z, 2), np.percentile(Z, 98)
+                if p98 - p2 < 1e-9: p98 = p2 + 1.0
+                ax_t.plot_surface(Xg, Yg, np.clip(Z, p2, p98),
+                                  cmap="RdBu_r", rcount=16, ccount=16,
+                                  linewidth=0, alpha=0.92, antialiased=False)
+                for p in e["algebraic"].get("critical_points_summary", []):
+                    if p.get("type") == "A1_node":
+                        try:
+                            pz = float(h(p["x"], p["y"]))
+                            ax_t.scatter([p["x"]], [p["y"]], [pz],
+                                         s=22, c="#F59B0A", marker="*",
+                                         depthshade=False, zorder=10)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+            ax_t.view_init(elev=28, azim=-55)
+        else:
+            ax_t = fig_t.add_axes([0, 0, 1, 1])
+            ax_t.set_facecolor("#0A0A18")
+            ax_t.set_xticks([]); ax_t.set_yticks([])
+            for sp in ax_t.spines.values(): sp.set_visible(False)
+            try:
+                h  = _Ham(e["template"], e["coefficients"])
+                Z  = np.nan_to_num(np.array(h(Xg, Yg), dtype=float))
+                v1, v99 = np.percentile(Z, 1), np.percentile(Z, 99)
+                if v99 - v1 < 1e-9: v99 = v1 + 1
+                ax_t.imshow(Z[::-1], origin="upper", extent=[-L, L, -L, L],
+                            cmap="RdBu_r", vmin=v1, vmax=v99,
+                            aspect="auto", interpolation="bilinear")
+            except Exception:
+                pass
+
         cv_t.draw()
         buf = np.frombuffer(cv_t.buffer_rgba(), dtype=np.uint8)
         thumbs.append(buf.reshape(cv_t.get_width_height()[::-1] + (4,))[:, :, :3])
@@ -971,10 +1006,11 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
     ax.set_ylim(-(max_rank - 1) - 0.5, 0.55)
     ax.set_axis_off()
 
+    suffix = "Gamma(H)={z=H(x,y)} en 3D" if is_3d else "heatmap 2D"
     fig.text(0.5, 0.998,
         f"Diagrama de Hasse — Orden Parcial Pareto   |   "
         f"{n} candidatos  ·  {max_rank} frentes  ·  {len(I_e)} coberturas   |   "
-        f"i → j : i domina a j sin intermediarios",
+        f"nodos: {suffix}   |   i → j : i domina a j sin intermediarios",
         color="white", fontsize=9, ha="center", va="top")
 
     # Guías horizontales por frente
@@ -1007,7 +1043,7 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
                 zorder=1, solid_capstyle="round", **ep)
 
     # Nodos con AnnotationBbox
-    ZOOM = 0.38
+    ZOOM = 0.44 if is_3d else 0.38
     for idx, (e, img) in enumerate(zip(entries, thumbs)):
         cx, cy = pos[idx]
         rank   = int(rnk[idx])
@@ -1030,11 +1066,12 @@ def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
                     color="#FFD700", fontsize=5.5, ha="center", va="bottom",
                     fontweight="bold", zorder=5)
 
-    out_path = out_dir / "hasse_diagram.png"
+    fname    = "hasse_diagram_3d.png" if is_3d else "hasse_diagram.png"
+    out_path = out_dir / fname
     fig.savefig(out_path, dpi=130, facecolor=fig.get_facecolor(),
                bbox_inches="tight")
     plt.close(fig)
-    print(f"  Hasse → {out_path.name}")
+    print(f"  Hasse {'3D' if is_3d else '2D'} → {out_path.name}")
 
 
 def _generate_atlas_3d(catalog: Catalog, cfg: dict, id_to_rank: dict):
@@ -1219,7 +1256,8 @@ def main():
             id_to_rank = _generate_pareto_overview(catalog, cfg)
             _generate_atlas(catalog, cfg, id_to_rank)
             _generate_atlas_3d(catalog, cfg, id_to_rank)
-            _generate_hasse_diagram(catalog, cfg, id_to_rank)
+            _generate_hasse_diagram(catalog, cfg, id_to_rank, mode="2d")
+            _generate_hasse_diagram(catalog, cfg, id_to_rank, mode="3d")
         if args.figures:
             # Figuras detalladas para frente 1 (o top 20 si front1 > 20)
             id_to_rank_f, _ = _compute_pareto_ranks(catalog)
