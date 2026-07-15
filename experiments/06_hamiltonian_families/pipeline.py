@@ -525,7 +525,7 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
 
     gs = mgridspec.GridSpec(2, 3, figure=fig,
                             hspace=0.38, wspace=0.30,
-                            left=0.06, right=0.91, top=0.93, bottom=0.06)
+                            left=0.06, right=0.91, top=0.93, bottom=0.21)
 
     def _ax(pos, xlabel, ylabel, title):
         ax = fig.add_subplot(gs[pos])
@@ -675,10 +675,87 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
     # Colorbar compartida
     sm = ScalarMappable(norm=norm, cmap=cmap)
     sm.set_array([])
-    cax = fig.add_axes([0.925, 0.12, 0.018, 0.76])
+    cax = fig.add_axes([0.925, 0.21, 0.018, 0.69])
     cb  = fig.colorbar(sm, cax=cax)
     cb.set_label("Rango Pareto", color="white", fontsize=9)
     cb.ax.yaxis.set_tick_params(color="white", labelcolor="white")
+
+    # ── Panel de leyenda / explicación general ─────────────────────────────────
+    legend_ax = fig.add_axes([0.035, 0.01, 0.955, 0.175])
+    legend_ax.set_facecolor("#0B0B1E")
+    for sp in legend_ax.spines.values():
+        sp.set_edgecolor("#3A3A5C"); sp.set_linewidth(0.8)
+    legend_ax.set_xticks([]); legend_ax.set_yticks([])
+
+    # Título del panel
+    legend_ax.text(0.5, 0.93,
+        "¿QUÉ ES EL ORDEN PARCIAL PARETO?",
+        transform=legend_ax.transAxes,
+        fontsize=9.5, fontweight="bold", color="#FFD700",
+        ha="center", va="top")
+
+    col_w = 0.245   # ancho de cada columna (en fracción de ejes)
+    col_xs = [0.005, 0.255, 0.505, 0.755]  # x inicio de cada columna
+    col_titles = ["CONCEPTO", "4 CRITERIOS PARETO", "CÓDIGO VISUAL", "INTERPRETACIÓN EN GO"]
+    col_bodies = [
+        (
+            "Un orden parcial no produce un ranking lineal único,\n"
+            "sino una jerarquía por capas (frentes).\n\n"
+            "El candidato i  domina  a j  si:\n"
+            "  · i ≥ j  en TODOS los 4 criterios, y\n"
+            "  · i > j  en AL MENOS UNO.\n\n"
+            "Frente 1 (★): ningún candidato los domina.\n"
+            "Frente k: eliminando los frentes 1…k−1,\n"
+            "son los no dominados del resto."
+        ),
+        (
+            "1. H₁_max  →  vida del generador H₁ en la\n"
+            "   filtración de sublevel sets de H.\n"
+            "   Mide ciclos topológicos (toros de Milnor).\n\n"
+            "2. Robustez  →  fracción de perturbaciones\n"
+            "   ±5% que mantienen al candidato activo.\n\n"
+            "3. ΔE  →  rango energético en [−2,2]².\n"
+            "   Contraste entre posiciones extremas.\n\n"
+            "4. Nodos A₁  →  puntos críticos de silla\n"
+            "   (det Hess < 0): transiciones de fibra."
+        ),
+        (
+            "Color  →  rango Pareto.\n"
+            "  Amarillo  = Frente 1 (óptimos).\n"
+            "  Violeta   = Frentes tardíos.\n\n"
+            "Tamaño del punto  →  H₁_max.\n"
+            "  Puntos grandes = más ciclos topológicos\n"
+            "  en la fibración de Milnor.\n\n"
+            "★ en gráficos = candidato del Frente 1.\n"
+            "Borde blanco   = candidato no dominado."
+        ),
+        (
+            "Cada A₁ corresponde a un  momento crítico\n"
+            "de la partida: la fibra H⁻¹(c*) deja de ser\n"
+            "un toro (g=1) y se convierte en una figura-8.\n\n"
+            "H₁_max alto  →  el jugador atraviesa regiones\n"
+            "topológicamente ricas; mayor tensión táctica.\n\n"
+            "Frente 1 = los 4 candidatos que ofrecen la\n"
+            "mejor combinación posible sin sacrificar\n"
+            "ningún criterio estratégico a la vez."
+        ),
+    ]
+
+    for ci, (cx, ctitle, cbody) in enumerate(zip(col_xs, col_titles, col_bodies)):
+        # Línea divisoria vertical (excepto primera)
+        if ci > 0:
+            legend_ax.axvline(cx - 0.008, color="#2A2A4A", lw=0.8)
+        # Título de columna
+        legend_ax.text(cx + col_w * 0.48, 0.82, ctitle,
+                       transform=legend_ax.transAxes,
+                       fontsize=7.2, fontweight="bold", color="#A0A0FF",
+                       ha="center", va="top")
+        # Cuerpo
+        legend_ax.text(cx + 0.005, 0.73, cbody,
+                       transform=legend_ax.transAxes,
+                       fontsize=6.6, color="#C8C8DC", va="top", ha="left",
+                       linespacing=1.4,
+                       fontfamily="monospace")
 
     out_path = out_dir / "pareto_overview.png"
     fig.savefig(out_path, dpi=130, facecolor=fig.get_facecolor(),
