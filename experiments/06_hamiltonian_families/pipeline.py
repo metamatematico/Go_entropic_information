@@ -149,42 +149,110 @@ def _print_summary(catalog: Catalog, cfg: dict):
 
 
 def _write_summary_md(catalog: Catalog, cfg: dict, path: str):
-    top = catalog.top_n(cfg.get("output",{}).get("top_n",10))
+    import datetime
+    top_n = cfg.get("output", {}).get("top_n", 10)
+    top   = catalog.top_n(top_n)
+    df    = catalog.to_dataframe()
+    n_total    = len(df)
+    n_pass     = int(df["passes"].sum()) if "passes" in df.columns else 0
+    n_ref      = int(df["is_reference"].sum()) if "is_reference" in df.columns else 0
+    templates  = df["template"].value_counts().to_dict() if not df.empty else {}
+    today      = str(datetime.date.today())
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    lines = [
-        "# Resumen ejecutivo: Familia de polinomios Go",
-        f"*Generado: {__import__('datetime').date.today()}*\n",
-        "## Descripción",
-        "Pipeline de búsqueda, análisis y validación de Hamiltonianos polinómicos",
-        "para modelar estrategia en Go mediante la teoría de la fibración de Milnor.",
-        "",
-        f"## Top {len(top)} candidatos\n",
-        "| ID | Template | Expresión | H₁_max | Robustez | Mejora estratégica | Score |",
-        "|---|---|---|---|---|---|---|",
-    ]
-    for e in top:
+
+    def _row(e):
         sc  = e["scores"]
+        alg = e["algebraic"]
         val = e["validation"]
         imp = val.get("improvement") or 0.0
-        lines.append(
-            f"| {e['id']} | {e['template']} | `{e['expression'][:40]}` |"
-            f" {e['tda'].get('max_h1_lifetime',0):.3f} |"
+        pv  = val.get("p_value")
+        pv_str = f"{pv:.3f}" if pv is not None else "—"
+        crit_sep = alg.get("min_crit_separation", 0)
+        crit_sep_str = f"{crit_sep:.3f}" if isinstance(crit_sep, float) and crit_sep != float("inf") else "∞"
+        return (
+            f"| {e['id']} | {e['template']} | `{e['expression'][:38]}` |"
+            f" {alg.get('n_nodes_A1','?')} |"
+            f" {crit_sep_str} |"
+            f" {e['tda'].get('well_depth',0):.1f} |"
             f" {sc.get('robustness',0):.3f} |"
-            f" {imp:.4f} |"
-            f" {sc.get('total',0):.4f} |"
+            f" {imp:+.4f} | {pv_str} |"
+            f" **{sc.get('total',0):.4f}** |"
         )
+
+    criteria_cfg = cfg.get("filter", {})
+    tau1   = criteria_cfg.get("tau1",       0.20)
+    dE     = criteria_cfg.get("delta_E",    0.50)
+    dcrit  = criteria_cfg.get("delta_crit", 0.30)
+
+    tmpl_lines = "\n".join(
+        f"  - `{t}`: {n} muestras" for t, n in templates.items()
+    )
+
+    lines = [
+        "# La familia de polinomios Go y sus variedades asociadas",
+        "## Informe ejecutivo — Fibración de Milnor en estrategia de Go",
+        "",
+        f"*Generado automáticamente · {today}*",
+        f"*Catálogo: {n_total} Hamiltonianos ({n_ref} referencias + {n_total-n_ref} candidatos) · {n_pass} pasan el filtro*",
+        "",
+        "---",
+        "",
+        "## Resumen de la búsqueda",
+        "",
+        f"Plantillas exploradas:",
+        tmpl_lines,
+        "",
+        f"| Métrica              | Valor  |",
+        f"|----------------------|--------|",
+        f"| Total analizados     | {n_total}  |",
+        f"| Pasan el filtro      | {n_pass}   |",
+        f"| Tasa de éxito        | {100*n_pass/max(n_total,1):.1f} % |",
+        f"| Top candidatos       | {len(top)}   |",
+        "",
+        "---",
+        "",
+        f"## Top {len(top)} candidatos",
+        "",
+        "| ID | Template | Expresión | A₁ | Δc | ΔE | Rob. | Mejora | p-val | Score |",
+        "|---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|",
+    ]
+    for e in top:
+        lines.append(_row(e))
+
     lines += [
         "",
-        "## Criterios de filtrado",
-        "- Vida máxima H₁ normalizada > 0.20",
-        "- Profundidad de pozo ΔE > 0.50",
-        "- Separación entre valores críticos > 0.30",
-        "- Robustez: ≥80% de perturbaciones ±5% mantienen el score",
+        "> **A₁**: nodos A₁ detectados · **Δc**: separación mínima entre c* ·",
+        "> **ΔE**: rango energético en [−2,2]² · **Rob.**: fracción de perturbaciones ±5% estables",
         "",
-        "## Invariantes clave",
-        "- **Nodo A₁**: punto crítico no degenerado → fibra singular (pinchada)",
-        "- **H₁ persistente**: agujero topológico en los subniveles → pozo estratégico",
-        "- **Fibración de Milnor**: familia {H⁻¹(c) : c ∈ ℝ} parametrizada por el hamiltoniano",
+        "---",
+        "",
+        "## Criterios de selección",
+        "",
+        f"Un candidato pasa si cumple **al menos 2 de 3**:",
+        "",
+        f"| Criterio       | Umbral  | Qué mide                                      |",
+        f"|----------------|:-------:|-----------------------------------------------|",
+        f"| H₁_max (τ₁)   | > {tau1:.2f} | Loops topológicos en subniveles de H          |",
+        f"| ΔE             | > {dE:.2f} | Rango energético (profundidad del pozo)       |",
+        f"| δ_crit         | > {dcrit:.2f} | Separación mínima entre valores críticos c*   |",
+        "",
+        "**Score total** = 0.45 × TDA + 0.30 × Robustez + 0.25 × Mejora estratégica",
+        "",
+        "---",
+        "",
+        "## Invariantes matemáticos",
+        "",
+        "| Invariante         | Definición                              | Rol en Go                        |",
+        "|--------------------|-----------------------------------------|----------------------------------|",
+        "| Nodo A₁            | det(Hess H) < 0 en punto crítico        | Fibra singular → tensión crítica |",
+        "| Número de Milnor μ | # nodos A₁; μ ≤ (d−1)²                 | Complejidad topológica           |",
+        "| Genus g de fibra   | g=(d−1)(d−2)/2; cúbico → g=1 (toro)    | Tipo topológico de cada estado   |",
+        "| c* (valor crítico) | H(punto crítico)                        | Umbral de cambio topológico      |",
+        "| Separación Δc      | min|c*ᵢ − c*ⱼ|                          | Resolución entre regímenes       |",
+        "",
+        "---",
+        "",
+        "*Pipeline: `experiments/06_hamiltonian_families/` · Catálogo: `output/catalog.json`*",
     ]
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
