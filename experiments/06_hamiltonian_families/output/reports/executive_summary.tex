@@ -1,0 +1,472 @@
+%!TEX program = xelatex
+% Compilar: xelatex executive_summary.tex  (dos pasadas para tikz)
+\documentclass[11pt, a4paper]{article}
+
+% ── Fuentes (XeLaTeX) ─────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Segoe UI}[
+  BoldFont       = Segoe UI Bold,
+  ItalicFont     = Segoe UI Italic,
+  BoldItalicFont = Segoe UI Bold Italic
+]
+\setsansfont{Segoe UI}[
+  BoldFont       = Segoe UI Bold,
+  ItalicFont     = Segoe UI Italic,
+  BoldItalicFont = Segoe UI Bold Italic
+]
+\setmonofont{Consolas}[
+  BoldFont = Consolas Bold
+]
+
+% ── Geometría ─────────────────────────────────────────────────────────────────
+\usepackage[
+  a4paper,
+  top         = 2.8cm,
+  bottom      = 2.4cm,
+  left        = 2.2cm,
+  right       = 2.2cm,
+  headheight  = 30pt,
+  headsep     = 14pt
+]{geometry}
+
+% ── Colores ───────────────────────────────────────────────────────────────────
+\usepackage[table]{xcolor}
+\definecolor{cNavy}   {HTML}{0D1B3E}
+\definecolor{cBlue}   {HTML}{2A4F9B}
+\definecolor{cAccent} {HTML}{4A7FD4}
+\definecolor{cBody}   {HTML}{1A1A2E}
+\definecolor{cMuted}  {HTML}{6B7FA8}
+\definecolor{cCodeFG} {HTML}{1B3A70}
+\definecolor{cCodeBG} {HTML}{EEF2FA}
+\definecolor{cTHbg}   {HTML}{0D1B3E}
+\definecolor{cTRalt}  {HTML}{F2F5FC}
+\definecolor{cRule}   {HTML}{C0CADF}
+\definecolor{cQuoteBG}{HTML}{F0F5FF}
+
+% ── Matemáticas ───────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ── Tipografía ────────────────────────────────────────────────────────────────
+\usepackage{microtype}
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+
+% ── Tablas ────────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{adjustbox}
+\renewcommand{\arraystretch}{1.4}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% ── Cajas de código y citas ───────────────────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+
+\tcbset{
+  codebox/.style = {
+    enhanced,
+    colback    = cCodeBG,
+    colframe   = cAccent,
+    arc        = 3pt,
+    leftrule   = 3pt,
+    rightrule  = 0.5pt,
+    toprule    = 0.5pt,
+    bottomrule = 0.5pt,
+    left       = 10pt,
+    right      = 10pt,
+    top        = 7pt,
+    bottom     = 7pt,
+    fontupper  = \small\ttfamily\color{cCodeFG},
+    breakable
+  },
+  quotebox/.style = {
+    enhanced,
+    colback    = cQuoteBG,
+    colframe   = cAccent,
+    arc        = 2pt,
+    leftrule   = 3pt,
+    rightrule  = 0pt,
+    toprule    = 0pt,
+    bottomrule = 0pt,
+    left       = 12pt,
+    right      = 10pt,
+    top        = 7pt,
+    bottom     = 7pt,
+    fontupper  = \itshape\color{cCodeFG},
+    breakable
+  }
+}
+
+% ── Encabezados de sección ────────────────────────────────────────────────────
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\color{cNavy}\Large\bfseries}
+  {}{0em}{}
+  [\vspace{2pt}{\color{cAccent}\hrule height 1.6pt}\vspace{4pt}]
+
+\titleformat{\subsection}
+  {\color{cBlue}\large\bfseries}
+  {}{0em}{}
+  [\vspace{1pt}{\color{cRule}\hrule height 0.5pt}\vspace{2pt}]
+
+\titleformat{\subsubsection}
+  {\color{cBlue}\normalsize\bfseries}
+  {}{0em}{}
+
+\titlespacing*{\section}      {0pt}{20pt}{8pt}
+\titlespacing*{\subsection}   {0pt}{14pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{3pt}
+
+% ── Cabecera y pie de página ──────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyhead[C]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[cNavy]
+      (current page.north west)
+      rectangle ($(current page.north east) + (0, -1.15cm)$);
+    \fill[cAccent]
+      (current page.north west)
+      rectangle ($(current page.north west) + (0.28\paperwidth, -1.15cm)$);
+    \node[white, anchor=west, font=\small\itshape] at
+      ($(current page.north west) + (0.28\paperwidth + 8pt, -0.58cm)$)
+      {Go Ising \enspace\textbullet\enspace Experimento 06
+       \enspace\textbullet\enspace Familia de Hamiltonianos cúbicos};
+  \end{tikzpicture}%
+}
+
+\fancyfoot[L]{\small\color{cMuted} Leonardo Jiménez Martínez \enspace·\enspace UNAM \enspace·\enspace 2026}
+\fancyfoot[R]{\small\color{cMuted} Página \thepage}
+\renewcommand{\footrulewidth}{0.4pt}
+\def\footrule{{\color{cRule}\vspace{-3pt}\hrule width\headwidth height 0.4pt\vspace{2pt}}}
+
+% ── Listas ────────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{
+  leftmargin = 1.5em,
+  itemsep    = 2pt,
+  topsep     = 4pt,
+  label      = {\color{cAccent}\small$\bullet$}
+}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=2pt, topsep=4pt}
+
+% ── PDF metadata ──────────────────────────────────────────────────────────────
+\usepackage[
+  colorlinks = true,
+  linkcolor  = cAccent,
+  urlcolor   = cAccent,
+  pdfauthor  = {Leonardo Jiménez Martínez},
+  pdftitle   = {La familia de polinomios Go y sus variedades asociadas},
+  pdfsubject = {Go Ising · Experimento 06 · Hamiltonianos cúbicos}
+]{hyperref}
+
+% ── Macros de tabla ───────────────────────────────────────────────────────────
+\newcommand{\TH}[1]{%
+  \cellcolor{cTHbg}\color{white}\textbf{#1}%
+}
+
+% =============================================================================
+\begin{document}
+\thispagestyle{fancy}
+
+% ── Portada ───────────────────────────────────────────────────────────────────
+\vspace*{4pt}
+{\color{cNavy}\Huge\bfseries La familia de polinomios Go}\\[3pt]
+{\color{cNavy}\Large\bfseries y sus variedades asociadas}
+
+\vspace{6pt}
+{\color{cMuted}\large\itshape
+  Informe ejecutivo --- Fibración de Milnor en estrategia de Go}
+
+\vspace{4pt}
+{\color{cMuted}\small\itshape Generado automáticamente · 2026-07-15}\\[1pt]
+{\color{cMuted}\small\itshape
+  Catálogo: 305 Hamiltonianos (5 referencias + 300 candidatos) · 296 pasan el filtro}
+
+\vspace{8pt}
+{\color{cAccent}\hrule height 2pt}
+\vspace{10pt}
+
+% =============================================================================
+\section{La familia Go de Hamiltonianos cúbicos}
+
+\subsection{El modelo de espín en Go}
+
+En el modelo de espín de Go, cada intersección del tablero tiene un valor
+$s \in \{-1,\, 0,\, +1\}$:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{cc}
+  \TH{Espín} & \TH{Significado} \\[1pt]
+  $s = -1$ & Piedra negra \\
+  $s = \phantom{-}0$  & Intersección vacía \\
+  $s = +1$ & Piedra blanca \\
+\end{tabular}
+\end{center}
+\medskip
+
+Un \textbf{Hamiltoniano de interacción} $H(s_i, s_j)$ asigna una energía a cada par
+de intersecciones vecinas $(i, j)$. La energía total del tablero en una configuración
+dada es la suma sobre todos los pares adyacentes:
+
+\begin{tcolorbox}[codebox]
+$\displaystyle E \;=\; \sum_{\langle i,j \rangle} H(s_i,\; s_j)$
+\end{tcolorbox}
+
+Solo existen 6 pares orientados relevantes (excluimos la dirección inversa como
+independiente):
+
+\begin{tcolorbox}[codebox]
+$(-1,-1)$ \quad $(-1,0)$ \quad $(-1,1)$ \quad $(1,-1)$ \quad $(1,0)$ \quad $(1,1)$
+\end{tcolorbox}
+
+Estos 6 valores determinan completamente el comportamiento estratégico del modelo:
+cómo penaliza o favorece cada tipo de vecindad negro--negro, negro--vacío,
+negro--blanco, etc.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{¿Por qué polinomios? La base canónica en $\{-1,\,0,\,+1\}$}
+
+Sobre el conjunto discreto $\{-1, 0, +1\}$, todo polinomio en $x$ satisface
+la identidad:
+
+\begin{tcolorbox}[codebox]
+$x^3 = x \qquad \forall\; x \in \{-1,\, 0,\, +1\}$
+\end{tcolorbox}
+
+\noindent
+(verificar: $(-1)^3 = -1$, $\; 0^3 = 0$, $\; 1^3 = 1$). Esto implica que los
+monomios de grado $\geq 3$ en una sola variable son linealmente dependientes de
+los de menor grado. Los monomios \textbf{independientes} en
+$(x,y) \in \{-1,0,+1\}^2$ son exactamente:
+
+\begin{tcolorbox}[codebox]
+$1, \quad x, \quad y, \quad x^2, \quad xy, \quad y^2, \quad x^2 y, \quad xy^2$
+\end{tcolorbox}
+
+Descartando el término constante (desplaza la energía globalmente sin efecto
+estratégico relativo), obtenemos \textbf{7 monomios base}. Cualquier función
+$H\colon \{-1,0,+1\}^2 \to \mathbb{R}$ puede expresarse como combinación
+lineal de estos 7 términos. Los polinomios cúbicos son, en este sentido,
+\textbf{la familia más general posible} de Hamiltonianos de interacción por par
+para Go.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{La plantilla \texttt{cubic\_mixed}: el espacio completo de 7 parámetros}
+
+\begin{tcolorbox}[codebox]
+$H(x,y) \;=\; a_1 x \;+\; a_2 y \;+\; b_{11} x^2 \;+\; b_{12}\, xy \;+\;
+b_{22} y^2 \;+\; c_{112}\, x^2 y \;+\; c_{122}\, x y^2$
+\end{tcolorbox}
+
+Cada coeficiente controla una dimensión independiente de la interacción:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{C{2cm}C{2cm}X}
+  \TH{Parámetro} & \TH{Monomio} & \TH{Rol estratégico} \\[1pt]
+  $a_1$     & $x$       & Tendencia lineal de la piedra $i$
+                           (favorece negro o blanco puro) \\
+  $a_2$     & $y$       & Tendencia lineal de la piedra $j$ \\
+  $b_{11}$  & $x^2$     & Energía cuadrática de $i$ --- igual para
+                           $-1$ y $+1$ (simétrica en color) \\
+  $b_{12}$  & $xy$      & Interacción directa $i$--$j$ ---
+                           el núcleo Ising clásico \\
+  $b_{22}$  & $y^2$     & Energía cuadrática de $j$ \\
+  $c_{112}$ & $x^2 y$   & Interacción cruzada: el color de $j$
+                           modulado por si $i$ es vacío o no \\
+  $c_{122}$ & $x y^2$   & Interacción cruzada: el color de $i$
+                           modulado por si $j$ es vacío o no \\
+\end{tabularx}
+\end{center}
+\medskip
+
+Los términos $c_{112}$ y $c_{122}$ son los que generan \textbf{asimetría
+direccional}: distinguen si la piedra relevante está en la posición $i$ o en $j$
+del par orientado. El modelo $H_{M1}$ de Mercado \& Jiménez usa exactamente este
+mecanismo con $b_{12}=0$, $a_1=1$, $a_2=2$, $c_{112}=-1$, $c_{122}=-1$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Los Hamiltonianos de referencia}
+
+Tres miembros especiales fijan el marco de comparación:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{2cm}L{2.4cm}L{4.4cm}X}
+  \TH{ID} & \TH{Plantilla} & \TH{Expresión} & \TH{Por qué es referencia} \\[1pt]
+  $H_{M1}$
+    & \texttt{sparse\_cubic}
+    & $x + 2y - xy^2 - x^2y$
+    & Modelo asimétrico con vacío activo; base del paper de josekis
+      (Jiménez \& Sesma, 2025) \\
+  Alvarado
+    & \texttt{quadratic}
+    & $xy$
+    & Modelo simétrico canónico con vacío invisible; Atomic-Go
+      (Rojas-Domínguez et al., 2019) \\
+  Armónico
+    & \texttt{sym\_cubic}
+    & $x^3+y^3 - 3xy - 3(x^2y+xy^2)$
+    & Función armónica ($\Delta f = 0$) y simétrica $f(x,y)=f(y,x)$;
+      2 nodos $A_1$ \\
+\end{tabularx}
+\end{center}
+\medskip
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{¿Por qué 300 muestras aleatorias?}
+
+El espacio de coeficientes de \texttt{cubic\_mixed} es $\mathbb{R}^7$. Un
+muestreo en cuadrícula con solo 3 valores por eje daría $3^7 = 2187$
+combinaciones, con alta redundancia. El muestreo aleatorio uniforme cubre el
+espacio de forma más eficiente:
+
+\begin{itemize}
+  \item $a_1,\; a_2,\; b_{11},\; b_{12},\; b_{22} \;\in\; [-3,\; 3]$
+        \hfill\textit{(términos dominantes)}
+  \item $c_{112},\; c_{122} \;\in\; [-1,\; 1]$
+        \hfill\textit{(términos cúbicos --- perturbación del núcleo cuadrático)}
+\end{itemize}
+
+Con semilla fija (\texttt{seed = 42}) el muestreo es completamente reproducible.
+Los rangos reflejan que los términos cúbicos actúan como correcciones de tercer
+orden, no como el término dominante de la energía.
+
+% =============================================================================
+\section{Resumen de la búsqueda}
+
+Plantillas exploradas:
+
+\begin{itemize}
+  \item \texttt{cubic\_mixed}: 300 muestras aleatorias
+  \item \texttt{h\_m1}: 2 muestras (referencia $H_{M1}$)
+  \item \texttt{quadratic}: 2 muestras (referencia Alvarado)
+  \item \texttt{sym\_cubic}: 1 muestra (referencia armónica)
+\end{itemize}
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lr}
+  \TH{Métrica} & \TH{Valor} \\[1pt]
+  Total analizados  & 305 \\
+  Pasan el filtro   & 296 \\
+  Tasa de éxito     & $97.0\,\%$ \\
+  Top candidatos    & 5 \\
+\end{tabular}
+\end{center}
+
+% =============================================================================
+\section{Top 5 candidatos}
+
+\medskip
+\begin{center}
+\footnotesize
+\begin{adjustbox}{max width=\textwidth}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{llp{6.5cm}C{0.7cm}C{1.1cm}C{0.9cm}C{0.9cm}C{1.1cm}C{0.9cm}r}
+  \TH{ID} & \TH{Template} & \TH{Expresión} &
+  \TH{$A_1$} & \TH{$\Delta c$} & \TH{$\Delta E$} &
+  \TH{Rob.} & \TH{Mejora} & \TH{$p$-val} & \TH{Score} \\[1pt]
+  H\_0094 & cubic\_mixed & \texttt{-0.781435\,x\textasciicircum2*y - 2.778\,...}
+    & 1 & 9.914  & 31.3 & 1.000 & +0.0000 & --- & \textbf{0.4593} \\
+  H\_0022 & cubic\_mixed & \texttt{+0.850240\,x\textasciicircum2*y - 2.380\,...}
+    & 1 & 16.779 & 23.5 & 1.000 & +0.0000 & --- & \textbf{0.4575} \\
+  H\_0113 & cubic\_mixed & \texttt{-0.778741\,x\textasciicircum2*y - 2.944\,...}
+    & 1 & 22.326 & 35.4 & 1.000 & +0.0000 & --- & \textbf{0.4559} \\
+  H\_0045 & cubic\_mixed & \texttt{+0.849684\,x\textasciicircum2*y - 2.390\,...}
+    & 2 & 13.381 & 43.4 & 1.000 & +0.0000 & --- & \textbf{0.4544} \\
+  H\_0275 & cubic\_mixed & \texttt{+0.697584\,x\textasciicircum2*y - 2.670\,...}
+    & 1 & 20.716 & 33.5 & 1.000 & +0.0000 & --- & \textbf{0.4540} \\
+\end{tabular}
+\end{adjustbox}
+\end{center}
+
+\smallskip
+\begin{tcolorbox}[quotebox]
+  \textbf{$A_1$}: nodos $A_1$ detectados \;\textbullet\;
+  \textbf{$\Delta c$}: separación mínima entre valores críticos $c^*$ \;\textbullet\;
+  \textbf{$\Delta E$}: rango energético en $[-2,2]^2$ \;\textbullet\;
+  \textbf{Rob.}: fracción de perturbaciones $\pm 5\%$ estables
+\end{tcolorbox}
+
+% =============================================================================
+\section{Criterios de selección}
+
+Un candidato pasa si cumple \textbf{al menos 2 de 3} de los siguientes criterios:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{3.2cm}C{2cm}X}
+  \TH{Criterio} & \TH{Umbral} & \TH{Qué mide} \\[1pt]
+  $H_1^{\max}$ ($\tau_1$)      & $> 0.20$ &
+    Loops topológicos en subniveles de $H$ ---
+    complejidad táctica de la función de evaluación \\
+  $\Delta E$                   & $> 0.50$ &
+    Rango energético (profundidad del pozo) ---
+    contraste entre posiciones extremas \\
+  $\delta_{\mathrm{crit}}$     & $> 0.30$ &
+    Separación mínima entre valores críticos $c^*$ ---
+    resolución entre regímenes estratégicos \\
+\end{tabularx}
+\end{center}
+
+\medskip
+\textbf{Score total}
+$\;=\; 0.45 \times \mathrm{TDA} \;+\; 0.30 \times \mathrm{Robustez}
+        \;+\; 0.25 \times \mathrm{Mejora\; estratégica}$
+
+% =============================================================================
+\section{Invariantes matemáticos}
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{3cm}L{5.5cm}X}
+  \TH{Invariante} & \TH{Definición} & \TH{Rol en Go} \\[1pt]
+  Nodo $A_1$
+    & $\det(\mathrm{Hess}\,H) < 0$ en punto crítico
+    & Fibra singular $\to$ tensión crítica en la partida \\
+  Número de Milnor $\mu$
+    & $\#$ nodos $A_1$;\; $\mu \leq (d-1)^2$
+    & Complejidad topológica de la fibración \\
+  Genus $g$ de fibra
+    & $g=(d-1)(d-2)/2$;\; cúbico $\Rightarrow g=1$\,(toro)
+    & Tipo topológico de cada estado de la partida \\
+  $c^*$ (valor crítico)
+    & $H(\text{punto crítico})$
+    & Umbral de cambio topológico \\
+  Separación $\Delta c$
+    & $\min_i |c^*_i - c^*_j|$
+    & Resolución entre regímenes estratégicos \\
+\end{tabularx}
+\end{center}
+
+\vfill
+\noindent
+{\color{cRule}\hrule height 0.5pt}
+\vspace{4pt}
+{\color{cMuted}\small\itshape
+  Pipeline: \texttt{experiments/06\_hamiltonian\_families/} \quad\textbullet\quad
+  Catálogo: \texttt{output/catalog.json}
+}
+
+\end{document}
