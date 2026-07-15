@@ -1,32 +1,26 @@
-%!TEX program = xelatex
-% Compilar: xelatex hasse_diagram_report.tex  (dos pasadas para tikz)
+% ─────────────────────────────────────────────────────────────────────────────
+% hasse_diagram_report.tex
+% Overleaf: Menu → Compiler → pdfLaTeX (dos pasadas para el header tikz)
+% ─────────────────────────────────────────────────────────────────────────────
 \documentclass[11pt, a4paper]{article}
 
-% ── Fuentes (XeLaTeX) ─────────────────────────────────────────────────────────
-\usepackage{fontspec}
-\setmainfont{Segoe UI}[
-  BoldFont       = Segoe UI Bold,
-  ItalicFont     = Segoe UI Italic,
-  BoldItalicFont = Segoe UI Bold Italic
-]
-\setsansfont{Segoe UI}[
-  BoldFont       = Segoe UI Bold,
-  ItalicFont     = Segoe UI Italic,
-  BoldItalicFont = Segoe UI Bold Italic
-]
-\setmonofont{Consolas}[
-  BoldFont = Consolas Bold
-]
+% ── Codificación ──────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% ── Fuentes (disponibles en TeX Live / Overleaf) ──────────────────────────────
+\usepackage[default, scale=0.95]{sourcesanspro}
+\usepackage[scaled=0.82]{inconsolata}
 
 % ── Geometría ─────────────────────────────────────────────────────────────────
 \usepackage[
   a4paper,
-  top         = 2.8cm,
-  bottom      = 2.4cm,
-  left        = 2.2cm,
-  right       = 2.2cm,
-  headheight  = 30pt,
-  headsep     = 14pt
+  top        = 2.8cm,
+  bottom     = 2.4cm,
+  left       = 2.2cm,
+  right      = 2.2cm,
+  headheight = 30pt,
+  headsep    = 14pt
 ]{geometry}
 
 % ── Colores ───────────────────────────────────────────────────────────────────
@@ -34,7 +28,6 @@
 \definecolor{cNavy}   {HTML}{0D1B3E}
 \definecolor{cBlue}   {HTML}{2A4F9B}
 \definecolor{cAccent} {HTML}{4A7FD4}
-\definecolor{cBody}   {HTML}{1A1A2E}
 \definecolor{cMuted}  {HTML}{6B7FA8}
 \definecolor{cCodeFG} {HTML}{1B3A70}
 \definecolor{cCodeBG} {HTML}{EEF2FA}
@@ -42,14 +35,14 @@
 \definecolor{cTRalt}  {HTML}{F2F5FC}
 \definecolor{cRule}   {HTML}{C0CADF}
 \definecolor{cQuoteBG}{HTML}{F0F5FF}
-\definecolor{cGold}   {HTML}{B8860B}
+\definecolor{cGold}   {HTML}{A07010}
 
 % ── Matemáticas ───────────────────────────────────────────────────────────────
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
 
-% ── Tipografía ────────────────────────────────────────────────────────────────
+% ── Tipografía y espaciado ────────────────────────────────────────────────────
 \usepackage{microtype}
 \usepackage{parskip}
 \setlength{\parindent}{0pt}
@@ -72,46 +65,31 @@
 \tcbset{
   codebox/.style = {
     enhanced,
-    colback    = cCodeBG,
-    colframe   = cAccent,
+    colback    = cCodeBG,   colframe   = cAccent,
     arc        = 3pt,
-    leftrule   = 3pt,
-    rightrule  = 0.5pt,
-    toprule    = 0.5pt,
-    bottomrule = 0.5pt,
-    left       = 10pt,
-    right      = 10pt,
-    top        = 7pt,
-    bottom     = 7pt,
+    leftrule   = 3pt,       rightrule  = 0.5pt,
+    toprule    = 0.5pt,     bottomrule = 0.5pt,
+    left = 10pt, right = 10pt, top = 7pt, bottom = 7pt,
     fontupper  = \small\ttfamily\color{cCodeFG},
     breakable
   },
   quotebox/.style = {
     enhanced,
-    colback    = cQuoteBG,
-    colframe   = cAccent,
+    colback    = cQuoteBG,  colframe   = cAccent,
     arc        = 2pt,
-    leftrule   = 3pt,
-    rightrule  = 0pt,
-    toprule    = 0pt,
-    bottomrule = 0pt,
-    left       = 12pt,
-    right      = 10pt,
-    top        = 7pt,
-    bottom     = 7pt,
+    leftrule   = 3pt,       rightrule  = 0pt,
+    toprule    = 0pt,       bottomrule = 0pt,
+    left = 12pt, right = 10pt, top = 7pt, bottom = 7pt,
     fontupper  = \itshape\color{cCodeFG},
     breakable
   },
   theorembox/.style = {
     enhanced,
-    colback    = cCodeBG,
-    colframe   = cGold,
+    colback    = cCodeBG,   colframe   = cGold,
     arc        = 3pt,
-    leftrule   = 4pt,
-    right      = 10pt,
-    left       = 12pt,
-    top        = 8pt,
-    bottom     = 8pt,
+    leftrule   = 4pt,       rightrule  = 0.5pt,
+    toprule    = 0.5pt,     bottomrule = 0.5pt,
+    left = 12pt, right = 10pt, top = 8pt, bottom = 8pt,
     breakable
   }
 }
@@ -119,7 +97,6 @@
 % ── Encabezados de sección ────────────────────────────────────────────────────
 \usepackage{titlesec}
 
-% Secciones numeradas con contador personalizado (§ 0, § 1, ...)
 \titleformat{\section}[block]
   {\color{cNavy}\Large\bfseries}
   {\color{cAccent}\S\,\thesection}{0.6em}{}
@@ -138,10 +115,10 @@
 \titlespacing*{\subsection}   {0pt}{14pt}{4pt}
 \titlespacing*{\subsubsection}{0pt}{10pt}{3pt}
 
-% Permitir sección 0
+% Numerar secciones desde 0
 \setcounter{section}{-1}
 
-% ── Cabecera y pie de página ──────────────────────────────────────────────────
+% ── Cabecera y pie ────────────────────────────────────────────────────────────
 \usepackage{fancyhdr}
 \usepackage{tikz}
 \usetikzlibrary{calc}
@@ -154,28 +131,28 @@
   \begin{tikzpicture}[remember picture, overlay]
     \fill[cNavy]
       (current page.north west)
-      rectangle ($(current page.north east) + (0, -1.15cm)$);
+      rectangle ($(current page.north east)+(0,-1.15cm)$);
     \fill[cAccent]
       (current page.north west)
-      rectangle ($(current page.north west) + (0.28\paperwidth, -1.15cm)$);
+      rectangle ($(current page.north west)+(0.28\paperwidth,-1.15cm)$);
     \node[white, anchor=west, font=\small\itshape] at
-      ($(current page.north west) + (0.28\paperwidth + 8pt, -0.58cm)$)
-      {Go Ising \enspace\textbullet\enspace Experimento 06
-       \enspace\textbullet\enspace Diagrama de Hasse · Orden Parcial Pareto};
+      ($(current page.north west)+(0.28\paperwidth+8pt,-0.58cm)$)
+      {Go Ising \enspace\textbullet\enspace
+       Experimento~06 \enspace\textbullet\enspace
+       Diagrama de Hasse \textbullet\ Orden Parcial Pareto};
   \end{tikzpicture}%
 }
 
-\fancyfoot[L]{\small\color{cMuted} Leonardo Jiménez Martínez \enspace·\enspace UNAM \enspace·\enspace 2026}
-\fancyfoot[R]{\small\color{cMuted} Página \thepage}
+\fancyfoot[L]{\small\color{cMuted}
+  Leonardo Jim\'enez Mart\'inez \enspace\textbullet\enspace UNAM \enspace\textbullet\enspace 2026}
+\fancyfoot[R]{\small\color{cMuted} P\'agina \thepage}
 \def\footrule{{\color{cRule}\vspace{-3pt}\hrule width\headwidth height 0.4pt\vspace{2pt}}}
 
 % ── Listas ────────────────────────────────────────────────────────────────────
 \usepackage{enumitem}
 \setlist[itemize]{
-  leftmargin = 1.5em,
-  itemsep    = 2pt,
-  topsep     = 4pt,
-  label      = {\color{cAccent}\small$\bullet$}
+  leftmargin = 1.5em, itemsep = 2pt, topsep = 4pt,
+  label = {\color{cAccent}\small$\bullet$}
 }
 \setlist[enumerate]{leftmargin=1.8em, itemsep=3pt, topsep=4pt}
 
@@ -184,14 +161,13 @@
   colorlinks = true,
   linkcolor  = cAccent,
   urlcolor   = cAccent,
-  pdfauthor  = {Leonardo Jiménez Martínez},
+  pdfauthor  = {Leonardo Jim\'enez Mart\'inez},
   pdftitle   = {Diagrama de Hasse del Orden Parcial Pareto},
-  pdfsubject = {Go Ising · Experimento 06 · Hamiltonians cúbicos}
+  pdfsubject = {Go Ising -- Experimento 06}
 ]{hyperref}
 
 % ── Macros ────────────────────────────────────────────────────────────────────
 \newcommand{\TH}[1]{\cellcolor{cTHbg}\color{white}\textbf{#1}}
-\newcommand{\frente}[1]{\textcolor{cAccent}{\textbf{F#1}}}
 
 % =============================================================================
 \begin{document}
@@ -203,146 +179,125 @@
 
 \vspace{6pt}
 {\color{cMuted}\large\itshape
-  Interpretación matemática y estratégica para el juego de Go}
+  Interpretaci\'on matem\'atica y estrat\'egica para el juego de Go}
 
 \vspace{4pt}
 {\color{cMuted}\small\itshape
-  Experimento 06 --- Familia de Hamiltonianos cúbicos}\\[1pt]
+  Experimento~06 --- Familia de Hamiltonianos c\'ubicos}\\[1pt]
 {\color{cMuted}\small\itshape
-  296 candidatos \enspace·\enspace
-  148 frentes \enspace·\enspace
-  475 relaciones de cobertura}
+  296~candidatos \enspace\textbullet\enspace
+  148~frentes \enspace\textbullet\enspace
+  475~relaciones de cobertura}
 
 \vspace{8pt}
 {\color{cAccent}\hrule height 2pt}
 \vspace{10pt}
 
 % =============================================================================
-\section{La familia de candidatos: ¿qué son estos Hamiltonianos?}
+\section{La familia de candidatos: qu\'e son estos Hamiltonianos}
 
 \subsection{Go como sistema de espines}
 
-Cada intersección del tablero de Go tiene un valor de espín
-$s \in \{-1, 0, +1\}$ (negro, vacío, blanco). La energía de interacción entre
-dos intersecciones vecinas $i$ y $j$ está dada por un \textbf{Hamiltoniano de
-par} $H(s_i, s_j)$. La energía total del tablero es la suma sobre todos los
-pares adyacentes:
+Cada intersecci\'on del tablero de Go tiene un valor de esp\'in
+$s \in \{-1,\,0,\,+1\}$ (negro, vac\'io, blanco). La energ\'ia de
+interacci\'on entre dos intersecciones vecinas $i$ y $j$ est\'a dada por un
+\textbf{Hamiltoniano de par} $H(s_i,s_j)$. La energ\'ia total del tablero es:
 
 \begin{tcolorbox}[codebox]
 $\displaystyle E \;=\; \sum_{\langle i,j \rangle} H(s_i,\; s_j)$
 \end{tcolorbox}
 
-El modelo de evaluación estratégica se reduce completamente a la elección de
-$H$: qué tipo de vecindades favorece o penaliza.
+El modelo de evaluaci\'on estrat\'egica se reduce completamente a la elecci\'on
+de $H$: qu\'e tipo de vecindades favorece o penaliza.
 
-\subsection{Por qué polinomios cúbicos}
+\subsection{Por qu\'e polinomios c\'ubicos}
 
-Sobre $\{-1, 0, +1\}$, se cumple $x^3 = x$ para todo $x$. Por eso los monomios
-de grado $\geq 3$ en una sola variable no aportan información nueva. Los
-\textbf{monomios independientes} en $(x,y) \in \{-1,0,+1\}^2$ son exactamente
-7 (sin contar la constante):
+Sobre $\{-1, 0, +1\}$ se cumple $x^3 = x$ para todo $x$. Los monomios
+independientes en $(x,y)\in\{-1,0,+1\}^2$ son exactamente 7:
 
 \begin{tcolorbox}[codebox]
-$x, \quad y, \quad x^2, \quad xy, \quad y^2, \quad x^2 y, \quad xy^2$
+$x, \quad y, \quad x^2, \quad xy, \quad y^2, \quad x^2y, \quad xy^2$
 \end{tcolorbox}
 
-Cualquier función $H\colon\{-1,0,+1\}^2\to\mathbb{R}$ se expresa como
-combinación lineal de estos 7 términos. Esto hace que los polinomios cúbicos
-sean la \textbf{familia completa} --- no existe una familia más general para
-este espacio de estados.
+Cualquier funci\'on $H\colon\{-1,0,+1\}^2\to\mathbb{R}$ se expresa como
+combinaci\'on lineal de estos 7 t\'erminos. Los polinomios c\'ubicos son la
+\textbf{familia completa} --- no existe ninguna m\'as general para este espacio
+de estados.
 
 \subsection{La plantilla \texttt{cubic\_mixed}}
 
-El experimento exploró la plantilla:
-
 \begin{tcolorbox}[codebox]
 $H(x,y) \;=\; a_1 x + a_2 y + b_{11} x^2 + b_{12}\,xy + b_{22} y^2
-              + c_{112}\,x^2 y + c_{122}\,x y^2$
+              + c_{112}\,x^2y + c_{122}\,xy^2$
 \end{tcolorbox}
 
-Los coeficientes se muestrearon aleatoriamente (\texttt{seed = 42},
-300 muestras) con:
+300~muestras aleatorias (\texttt{seed=42}) con
+$a_1,a_2,b_{11},b_{12},b_{22}\in[-3,3]$ y $c_{112},c_{122}\in[-1,1]$.
+Cada nodo del diagrama es uno de los \textbf{296 candidatos} que pasaron
+el filtro de calidad.
 
-\begin{itemize}
-  \item $a_1,\; a_2,\; b_{11},\; b_{12},\; b_{22} \;\in\; [-3,\; 3]$
-  \item $c_{112},\; c_{122} \;\in\; [-1,\; 1]$
-\end{itemize}
-
-Cada nodo del diagrama de Hasse representa uno de los \textbf{296 candidatos}
-que pasaron el filtro de calidad (de los 305 analizados, incluyendo las
-referencias: $H_{M1}$, Alvarado y el cúbico armónico).
-
-\subsection{Qué mide cada criterio de calidad}
-
-Los 4 criterios del orden Pareto evalúan propiedades distintas e independientes:
+\subsection{Qu\'e mide cada criterio de calidad}
 
 \medskip
 \begin{center}
 \rowcolors{2}{white}{cTRalt}
-\begin{tabularx}{0.96\textwidth}{L{2.5cm}L{4cm}X}
-  \TH{Criterio} & \TH{Cómo se calcula} & \TH{Qué mide para Go} \\[1pt]
+\begin{tabularx}{0.96\textwidth}{L{2.3cm}L{3.8cm}X}
+  \TH{Criterio} & \TH{C\'omo se calcula} & \TH{Qu\'e mide para Go} \\[1pt]
   $H_1^{\max}$
-    & Vida máxima de un generador $H_1$ en la filtración por subniveles de
-      $H$ sobre $[-2,2]^2$, normalizada por el rango
-    & Capacidad del Hamiltoniano de detectar \textbf{estructuras cíclicas de
-      influencia}: grupos que rodean a otros, cadenas de conexión, seki \\
+    & Vida m\'axima de un generador $H_1$ en la filtraci\'on por subniveles
+      de $H$ sobre $[-2,2]^2$, normalizada por el rango
+    & Capacidad de detectar \textbf{estructuras c\'iclicas de influencia}:
+      grupos que rodean a otros, cadenas de conexi\'on, seki \\
   Robustez
-    & Fracción de 12 perturbaciones $\pm 5\%$ de los coeficientes que
-      mantienen $H_1^{\max} > 0.20$
-    & \textbf{Estabilidad estructural}: las propiedades del modelo no son
-      artefactos de coeficientes exactos; funcionarán bajo variación numérica \\
+    & Fracci\'on de 12 perturbaciones $\pm5\%$ de los coeficientes que
+      mantienen $H_1^{\max}>0.20$
+    & \textbf{Estabilidad estructural}: las propiedades no son artefactos
+      de coeficientes exactos \\
   $\Delta E$
-    & $H(x^*, y^*)_{\max} - H(x^*, y^*)_{\min}$ sobre $[-2,2]^2$
-    & \textbf{Contraste energético}: separación entre posiciones de máxima
-      y mínima energía; mayor $\Delta E$ = mayor poder discriminativo \\
+    & $H_{\max}-H_{\min}$ sobre $[-2,2]^2$
+    & \textbf{Contraste energ\'etico}: poder discriminativo entre posiciones
+      fuertes y d\'ebiles \\
   $n_{A_1}$
-    & Número de puntos críticos con $\det(\mathrm{Hess}\,H) < 0$ (sillas)
-    & \textbf{Transiciones de régimen}: cada nodo $A_1$ es un punto donde la
-      topología de la fibra $H^{-1}(c)$ cambia cualitativamente \\
+    & N\'umero de puntos cr\'iticos con $\det(\mathrm{Hess}\,H)<0$
+    & \textbf{Transiciones de r\'egimen}: cada nodo $A_1$ es un cambio
+      topol\'ogico en la fibra $H^{-1}(c)$ \\
 \end{tabularx}
 \end{center}
 \medskip
 
-Los dos primeros criterios ($H_1^{\max}$, Robustez) miden riqueza y estabilidad
-topológica. Los dos últimos ($\Delta E$, $n_{A_1}$) miden potencia discriminativa
-y complejidad estructural. Los 4 son genuinamente independientes: ningún candidato
-maximiza los 4 simultáneamente---de ahí que el poset no tenga supremo.
+Los 4 criterios son genuinamente independientes: ning\'un candidato maximiza
+los 4 a la vez --- de ah\'i que el poset no tenga supremo.
 
 % =============================================================================
-\section{Qué es este diagrama}
+\section{Qu\'e es este diagrama}
 
-El diagrama de Hasse es la representación visual de un \textbf{orden parcial}:
-una forma de comparar candidatos que no obliga a elegir un único ``mejor'' sino
-que admite múltiples óptimos incomparables entre sí.
+El diagrama de Hasse es la representaci\'on visual de un \textbf{orden
+parcial}: una forma de comparar candidatos que admite m\'ultiples \'optimos
+incomparables entre s\'i.
 
 Cada nodo es un \textbf{Hamiltoniano polinómico cúbico} $H(x,y)$ que asigna
-una energía a cada par de intersecciones de Go. La imagen dentro de cada nodo
-muestra la variedad $\Gamma(H) = \{z = H(x,y)\} \subset \mathbb{R}^3$ --- la
-``forma'' topológica de ese Hamiltoniano.
+una energ\'ia a cada par de intersecciones de Go. La imagen dentro de cada
+nodo muestra la variedad $\Gamma(H)=\{z=H(x,y)\}\subset\mathbb{R}^3$ ---
+la forma topol\'ogica de ese Hamiltoniano.
 
 % =============================================================================
-\section{La relación de orden: qué significa ``dominar''}
+\section{La relaci\'on de orden: qu\'e significa ``dominar''}
 
-Cada candidato $H$ tiene cuatro valores que miden su calidad como función de
-evaluación estratégica:
+Cada candidato $H$ tiene cuatro valores que miden su calidad:
 
 \medskip
 \begin{center}
 \rowcolors{2}{white}{cTRalt}
 \begin{tabularx}{0.96\textwidth}{L{2.4cm}C{2cm}X}
-  \TH{Criterio} & \TH{Símbolo} & \TH{Qué mide} \\[1pt]
-  Vida máxima $H_1$
-    & $H_1^{\max}$
-    & Ciclos topológicos en la fibración de Milnor --- complejidad táctica \\
-  Robustez
-    & Rob
-    & Fracción de perturbaciones $\pm 5\%$ que mantienen al candidato activo \\
-  Rango energético
-    & $\Delta E$
-    & $H(\max) - H(\min)$ en $[-2,2]^2$ --- contraste entre posiciones extremas \\
-  Nodos $A_1$
-    & $n_{A_1}$
-    & Puntos críticos de silla donde la fibra $H^{-1}(c)$ cambia de topología \\
+  \TH{Criterio} & \TH{S\'imbolo} & \TH{Qu\'e mide} \\[1pt]
+  Vida m\'ax.\ $H_1$ & $H_1^{\max}$
+    & Ciclos topol\'ogicos en la fibraci\'on de Milnor --- complejidad t\'actica \\
+  Robustez & Rob
+    & Fracci\'on de perturbaciones $\pm5\%$ que mantienen al candidato activo \\
+  Rango energ\'etico & $\Delta E$
+    & $H(\max)-H(\min)$ en $[-2,2]^2$ --- contraste entre posiciones extremas \\
+  Nodos $A_1$ & $n_{A_1}$
+    & Puntos cr\'iticos de silla donde la fibra $H^{-1}(c)$ cambia de topolog\'ia \\
 \end{tabularx}
 \end{center}
 \medskip
@@ -350,167 +305,123 @@ evaluación estratégica:
 Se dice que $H_i$ \textbf{domina a} $H_j$ si:
 
 \begin{tcolorbox}[codebox]
-$H_i \;\geq\; H_j$ \quad en los 4 criterios simultáneamente\\
-$H_i \;>\; H_j$   \quad en al menos uno
+$H_i \;\geq\; H_j$ \quad en los 4 criterios simult\'aneamente\\[3pt]
+$H_i \;>\; H_j$ \quad en al menos uno
 \end{tcolorbox}
-
-Es decir: $H_i$ es al menos igual de bueno en todo, y estrictamente mejor en
-algo. No existe ningún \textit{trade-off} --- $H_i$ gana o empata en cada
-dimensión.
 
 % =============================================================================
 \section{El algoritmo de capas (Pareto peeling)}
 
-El diagrama se construye por capas, como pelando una cebolla:
-
 \begin{tcolorbox}[codebox]
-Frente 1 = \{ H : ningún otro H' domina a H \}\\
-\phantom{Frente 1 }$\to$ eliminar Frente 1\\[4pt]
-Frente 2 = \{ H restante : ningún otro H' restante domina a H \}\\
-\phantom{Frente 2 }$\to$ eliminar Frente 2\\[4pt]
-Frente k = repetir hasta vaciar el conjunto
+Frente~1 = \{ H : ning\'un otro H' domina a H \}\\
+\phantom{Frente~1 }$\to$ eliminar Frente~1\\[4pt]
+Frente~2 = \{ H restante : ning\'un otro H' restante domina a H \}\\
+\phantom{Frente~2 }$\to$ eliminar Frente~2\\[4pt]
+Frente~k = repetir hasta vaciar el conjunto
 \end{tcolorbox}
 
-Resultado: \textbf{148 frentes} para 296 candidatos. La mayoría de frentes
-tienen 1--3 candidatos, lo que indica que el espacio de criterios es altamente
-diverso: casi cada Hamiltoniano tiene un perfil único en las 4 dimensiones.
+Resultado: \textbf{148 frentes} para 296 candidatos. La mayor\'ia tiene 1--3
+candidatos, lo que indica que casi cada Hamiltoniano tiene un perfil \'unico
+en las 4 dimensiones.
 
 % =============================================================================
-\section{Qué es una relación de cobertura (arista del Hasse)}
+\section{Qu\'e es una relaci\'on de cobertura (arista del Hasse)}
 
-No se dibuja una arista por cada par donde $H_i$ domina a $H_j$. Solo se dibuja
-la \textbf{cobertura directa}: $H_i$ cubre a $H_j$ si:
+$H_i$ \textbf{cubre a} $H_j$ si $H_i$ domina a $H_j$ y no existe ning\'un
+$H_k$ con $H_i$ dom.\ $H_k$ dom.\ $H_j$. Es el salto irreducible de
+dominancia --- sin intermediario.
 
 \begin{tcolorbox}[codebox]
-$H_i$ domina a $H_j$\\
-Y no existe ningún $H_k$ tal que:\quad $H_i$ dom. $H_k$ \; y \; $H_k$ dom. $H_j$
+hasse = dom AND NOT (dom $\times$ dom) \quad [reducci\'on transitiva]
 \end{tcolorbox}
 
-Es decir: el paso de $H_i$ a $H_j$ es un salto irreducible --- no hay
-intermediario. Esto da el diagrama más compacto que representa fielmente la
-estructura de dominancia.
-
-El diagrama tiene \textbf{475 coberturas} entre 296 candidatos. Las aristas que
-cruzan muchos frentes de golpe representan saltos donde no existe ningún
-intermediario en ese subespacio de criterios.
+\textbf{475 coberturas} entre 296 candidatos. Las aristas que cruzan muchos
+frentes revelan ``vac\'ios'' en el espacio de parámetros: tramos donde no
+existen compromisos graduales.
 
 % =============================================================================
-\section{Cómo leer el diagrama visualmente}
+\section{C\'omo leer el diagrama visualmente}
 
-\subsection*{Posición vertical}
-\begin{itemize}
-  \item \textbf{Arriba} = Frente 1 (los mejores: nadie los domina)
-  \item \textbf{Abajo} = Frentes tardíos (dominados por más candidatos)
-  \item Cada nivel horizontal es un frente Pareto
-\end{itemize}
+\textbf{Posici\'on vertical.}
+Arriba = Frente~1 (los mejores: nadie los domina).
+Abajo = frentes tard\'ios (dominados por m\'as candidatos).
+Cada nivel horizontal es un frente Pareto.
 
-\subsection*{Posición horizontal}
-Dentro de cada frente, los nodos se colocan usando la \textbf{heurística
-baricéntrica}: cada nodo se alinea con el promedio horizontal de sus
-predecesores. Esto minimiza los cruces de aristas.
-
-\subsection*{Colores de las aristas}
+\textbf{Posici\'on horizontal.}
+Dentro de cada frente, los nodos se colocan con la \textbf{heur\'istica
+baric\'entrica}: cada nodo se alinea con el promedio horizontal de sus
+predecesores.
 
 \medskip
 \begin{center}
 \rowcolors{2}{white}{cTRalt}
-\begin{tabular}{L{3cm}C{3cm}L{6cm}}
-  \TH{Color} & \TH{Frentes de origen} & \TH{Significado} \\[1pt]
-  Oro \texttt{\#FFD700}         & F1       & Coberturas desde los 4 candidatos óptimos \\
-  Cian \texttt{\#44DDFF}        & F2       & Segundo nivel del orden \\
-  Naranja \texttt{\#FF9944}     & F3       & Tercer nivel \\
-  Violeta \texttt{\#CC88FF}     & F4--F8   & Frentes intermedios \\
-  Verde menta \texttt{\#88FFAA} & F9--F20  & Zona media \\
-  Azul acero \texttt{\#6699CC}  & F21+     & Frentes tardíos \\
+\begin{tabular}{L{3.5cm}C{3cm}L{5.5cm}}
+  \TH{Color de arista} & \TH{Frentes de origen} & \TH{Significado} \\[1pt]
+  Oro \texttt{\#FFD700}          & F1      & Coberturas desde los 4 \'optimos \\
+  Cian \texttt{\#44DDFF}         & F2      & Segundo nivel del orden \\
+  Naranja \texttt{\#FF9944}      & F3      & Tercer nivel \\
+  Violeta \texttt{\#CC88FF}      & F4--F8  & Frentes intermedios \\
+  Verde menta \texttt{\#88FFAA}  & F9--F20 & Zona media \\
+  Azul acero \texttt{\#6699CC}   & F21+    & Frentes tard\'ios \\
 \end{tabular}
 \end{center}
 
-\subsection*{Los nodos}
-\begin{itemize}
-  \item \textbf{Versión 2D}: mapa de calor de $H(x,y)$ --- distribución de energía
-  \item \textbf{Versión 3D}: superficie $\Gamma(H) = \{z=H(x,y)\}$ ---
-        forma topológica
-  \item Estrellas naranjas sobre la superficie: nodos $A_1$ (sillas, transiciones)
-  \item Borde dorado: Frente 1 \;\textbullet\; Borde cian: Frente 2 \;\textbullet\;
-        Borde naranja: Frente 3
-\end{itemize}
-
 % =============================================================================
-\section{Propiedades matemáticas del poset}
+\section{Propiedades matem\'aticas del poset}
 
-\subsection{No existe supremo ni ínfimo}
+\subsection{No existe supremo ni \'infimo}
 
-El \textbf{supremo} (elemento máximo) sería un candidato que dominara a todos
-los demás en los 4 criterios simultáneamente. Ese punto teórico tiene
-coordenadas:
+El supremo te\'orico tendr\'ia coordenadas:
 
 \begin{tcolorbox}[codebox]
-$\mathrm{sup\;teórico} \;=\; (H_1 = 0.188,\;\; \mathrm{Rob} = 1.0,\;\;
-\Delta E = 50.9,\;\; A_1 = 2)$
+$\mathrm{sup\;te\'orico} \;=\;
+(H_1=0.188,\;\; \mathrm{Rob}=1.0,\;\; \Delta E=50.9,\;\; A_1=2)$
 \end{tcolorbox}
 
-Ningún candidato de los 296 explorados alcanza esos cuatro valores a la vez.
-Por tanto \textbf{no existe supremo en el poset}. El \textbf{ínfimo} tampoco
-existe: ningún candidato tiene los mínimos simultáneos en las 4 dimensiones.
+Ning\'un candidato de los 296 explorados alcanza esos cuatro valores a la vez.
+Por tanto \textbf{no existe supremo en el poset}. El \'infimo tampoco existe:
+ning\'un candidato tiene los m\'inimos simult\'aneos en las 4 dimensiones.
 
-\subsection{El poset no es una retícula}
+\subsection{El poset no es una ret\'icula}
 
-Para que el poset fuera una \textbf{retícula} (\textit{lattice}), todo par de
-elementos debería tener:
-\begin{itemize}
-  \item Un \textbf{join} (cota superior mínima): el ``menor'' elemento que
-        domina a ambos
-  \item Un \textbf{meet} (cota inferior máxima): el ``mayor'' elemento dominado
-        por ambos
-\end{itemize}
+Para ser una \textbf{ret\'icula} (\textit{lattice}), todo par de elementos
+deber\'ia tener un \textit{join} (cota superior m\'inima) y un \textit{meet}
+(cota inferior m\'axima). Se verific\'o computacionalmente que
+\textbf{ninguno de los 6 pares del Frente~1} tiene un join dentro del poset.
+Por tanto \textbf{no es ret\'icula}.
 
-Se verificó computacionalmente que \textbf{ninguno de los 6 pares del Frente 1}
-tiene un join dentro del poset. El join existiría solo en la completación
-teórica (el supremo externo). Por tanto el poset \textbf{no es retícula}.
-
-\subsection{Teorema de Dilworth: 4 cadenas mínimas}
+\subsection{Teorema de Dilworth: 4 cadenas m\'inimas}
 
 \begin{tcolorbox}[theorembox]
-  \textbf{Teorema de Dilworth} (1950)\medskip\\
-  En todo poset finito, el tamaño de la anticadena máxima es igual al mínimo
-  número de cadenas necesarias para cubrir el poset.
+  \textbf{Teorema de Dilworth} (1950)
+
+  \smallskip
+  En todo poset finito, el tama\~no de la anticadena m\'axima es igual al
+  m\'inimo n\'umero de cadenas necesarias para cubrir el poset.
 \end{tcolorbox}
 
-La anticadena máxima es el Frente 1, con \textbf{4 elementos}. Por tanto:
-
-\begin{center}
-  {\large\bfseries\color{cNavy} El poset se descompone en exactamente
-  \textcolor{cAccent}{4 cadenas}.}
-\end{center}
-
-Estas 4 cadenas corresponden a las cuatro columnas aproximadamente verticales
-visibles en el diagrama. Cada columna es una secuencia de candidatos donde cada
-uno domina al siguiente en al menos un criterio.
-
-\subsection{Clasificación formal}
-
-El poset es un \textbf{poset finito sin cota superior ni inferior}, con:
+La anticadena m\'axima es el Frente~1, con \textbf{4 elementos}. Por tanto
+el poset se descompone en exactamente \textbf{4 cadenas} --- las cuatro
+columnas aproximadamente verticales del diagrama.
 
 \medskip
 \begin{center}
 \rowcolors{2}{white}{cTRalt}
 \begin{tabular}{lr}
   \TH{Propiedad} & \TH{Valor} \\[1pt]
-  Candidatos (nodos)           & 296 \\
-  Frentes Pareto (estratos)    & 148 \\
-  Relaciones de cobertura      & 475 \\
-  Anticadena máxima (Frente 1) & 4 elementos \\
-  Descomposición mínima        & 4 cadenas (Dilworth) \\
-  Es retícula                  & No \\
-  Tiene supremo                & No \\
-  Tiene ínfimo                 & No \\
+  Candidatos (nodos)            & 296 \\
+  Frentes Pareto (estratos)     & 148 \\
+  Relaciones de cobertura       & 475 \\
+  Anticadena m\'axima (F1)      & 4 elementos \\
+  Descomposici\'on m\'inima     & 4 cadenas (Dilworth) \\
+  Es ret\'icula                 & No \\
+  Tiene supremo                 & No \\
+  Tiene \'infimo                & No \\
 \end{tabular}
 \end{center}
 
 % =============================================================================
-\section{El Frente 1: los 4 candidatos óptimos de Pareto}
-
-Los cuatro Hamiltonianos que no son dominados por ningún otro:
+\section{El Frente 1: los 4 candidatos \'optimos de Pareto}
 
 \begin{tcolorbox}[codebox]
 H\_0094 · score=0.459 · $H_1$=0.188, Rob=1.0, $\Delta E$=31.3, $A_1$=1\\
@@ -520,103 +431,77 @@ H\_0042 · score=0.417 · $H_1$=0.120, Rob=1.0, $\Delta E$=33.5, $A_1$=2
 \end{tcolorbox}
 
 Son mutuamente incomparables --- forman una \textbf{anticadena}:
-
 \begin{itemize}
-  \item H\_0094 tiene el mayor $H_1^{\max}$ pero solo 1 nodo $A_1$
-  \item H\_0045 tiene el mayor $\Delta E$ y 2 nodos $A_1$ pero menor $H_1$
-  \item H\_0042 tiene 2 nodos $A_1$ (máximo) pero el menor $H_1$ del grupo
-  \item H\_0113 es intermedio en todo --- ninguno lo domina
+  \item H\_0094: mayor $H_1^{\max}$, solo 1 nodo $A_1$
+  \item H\_0045: mayor $\Delta E$ y 2 nodos $A_1$, pero menor $H_1$
+  \item H\_0042: 2 nodos $A_1$ (m\'aximo), pero el menor $H_1$ del grupo
+  \item H\_0113: intermedio en todo --- ninguno lo domina
 \end{itemize}
 
 Ninguno es ``el mejor'' en todos los sentidos. Son los \textbf{mejores
 compromisos posibles} dado el espacio explorado.
 
 % =============================================================================
-\section{Qué significa esto para el juego de Go}
-
-\subsection{La energía $H(s_0, s_1)$ como función de evaluación}
-
-En el modelo de Go, el Hamiltoniano $H(s_i, s_j)$ asigna una energía a cada par
-de intersecciones vecinas. Hamiltonianos con mayor riqueza topológica
-($H_1^{\max}$ alto) pueden distinguir más finamente entre posiciones estratégicas.
+\section{Qu\'e significa esto para el juego de Go}
 
 \subsection{Significado de cada criterio}
 
-\textbf{$H_1^{\max}$ --- complejidad táctica.}
-Mide el tiempo de vida del generador $H_1$ en la filtración de sublevel sets.
-Un $H_1^{\max}$ alto indica que la función de energía genera bucles topológicos
-persistentes al subir el umbral $c$. En Go: el Hamiltoniano puede detectar
-\textbf{estructuras cíclicas de influencia} en el tablero --- grupos que
-rodean a otros, cadenas de conexión, patrones de seki.
+\textbf{$H_1^{\max}$ --- complejidad t\'actica.}
+Un $H_1^{\max}$ alto indica que la funci\'on de energ\'ia genera bucles
+topol\'ogicos persistentes al subir el umbral $c$. En Go: el Hamiltoniano
+puede detectar \textbf{estructuras c\'iclicas de influencia} en el tablero
+--- grupos que rodean a otros, cadenas de conexi\'on, patrones de seki.
 
 \textbf{Robustez --- estabilidad del modelo.}
-Un candidato robusto (Rob $\approx 1.0$) mantiene su carácter cualitativo ante
-pequeñas variaciones de sus coeficientes. Los 4 del Frente 1 tienen Rob = 1.0:
-sus propiedades topológicas son \textbf{estructuralmente estables}, no artefactos
-de coeficientes precisos.
+Los 4 del Frente~1 tienen Rob $=1.0$: sus propiedades topol\'ogicas son
+\textbf{estructuralmente estables}, no artefactos de coeficientes exactos.
+Funcionar\'an bajo variaci\'on num\'erica o ruido de medici\'on.
 
-\textbf{$\Delta E$ --- contraste energético.}
-El rango $H(\max) - H(\min)$ en $[-2,2]^2$ mide cuánto separa el Hamiltoniano
-las posiciones extremas. En Go: la diferencia energética entre una posición
-fuerte (conexión, territorio establecido) y una posición débil (grupos
-amenazados, ko). Mayor $\Delta E$ = \textbf{mayor poder discriminativo}.
+\textbf{$\Delta E$ --- contraste energ\'etico.}
+Mayor $\Delta E$ = \textbf{mayor poder discriminativo} entre una posici\'on
+fuerte (conexi\'on, territorio establecido) y una d\'ebil (grupos
+amenazados, ko).
 
-\textbf{Nodos $A_1$ --- transiciones estratégicas.}
-Un nodo $A_1$ es un punto crítico donde $\det(\mathrm{Hess}\,H) < 0$ --- una
-silla en la superficie de energía. Al cruzar el valor crítico $c^*$
-correspondiente, la fibra $H^{-1}(c)$ cambia de topología (toro $\to$
-figura-8). Con 2 nodos $A_1$ (H\_0042, H\_0045), el modelo puede detectar
-\textbf{dos transiciones distintas} por partida.
+\textbf{Nodos $A_1$ --- transiciones estrat\'egicas.}
+Cada nodo $A_1$ es un valor cr\'itico $c^*$ donde la fibra $H^{-1}(c)$
+cambia de topolog\'ia (toro $\to$ figura-8). Con 2 nodos $A_1$, el modelo
+puede detectar \textbf{dos transiciones distintas} de r\'egimen por partida.
 
 \subsection{Las 4 cadenas de Dilworth y los 4 estilos de juego}
 
 \begin{tcolorbox}[codebox]
-Cadena 1 (H\_0094 $\to$ \ldots): linaje con $H_1$ máximo ---
-    detecta estructuras cíclicas\\
-Cadena 2 (H\_0113 $\to$ \ldots): linaje equilibrado ---
+Cadena~1 (H\_0094 $\to\;\cdots$): $H_1$ m\'ax ---
+    detecta estructuras c\'iclicas\\
+Cadena~2 (H\_0113 $\to\;\cdots$): equilibrado ---
     compromiso entre todos los criterios\\
-Cadena 3 (H\_0045 $\to$ \ldots): linaje con $\Delta E$ máximo y 2 $A_1$ ---
-    mayor contraste y sensibilidad\\
-Cadena 4 (H\_0042 $\to$ \ldots): linaje con $A_1$ múltiple ---
-    dos transiciones de régimen
+Cadena~3 (H\_0045 $\to\;\cdots$): $\Delta E$ m\'ax + 2\,$A_1$ ---
+    m\'aximo contraste y sensibilidad\\
+Cadena~4 (H\_0042 $\to\;\cdots$): $A_1$ m\'ultiple ---
+    dos transiciones de r\'egimen distintas
 \end{tcolorbox}
 
-Cada cadena representa una \textbf{familia de modelos relacionados por
-dominancia}: bajar en una cadena significa perder algo (un criterio se degrada)
-pero manteniendo el ``estilo'' general del modelo padre. Los candidatos de
-distintas cadenas son \textbf{estratégicamente incomparables}: sirven para
-propósitos distintos y no hay motivo matemático para preferir uno sobre otro
-sin contexto adicional.
+Bajar en una cadena significa perder algo en un criterio mientras se
+mantiene el ``estilo'' del modelo padre. Los candidatos de cadenas distintas
+son \textbf{estrat\'egicamente incomparables}: sirven para prop\'ositos
+distintos.
 
-\subsection{Los saltos largos en el diagrama}
+\subsection{El supremo ausente como objetivo de dise\~no}
 
-Las líneas doradas que cruzan 30--40 frentes de golpe revelan algo importante:
-entre H\_0094 (Frente 1) y ciertos candidatos del Frente 40, \textbf{no existe
-ningún candidato intermedio} que domine a uno y sea dominado por el otro en los
-4 criterios. El espacio de Hamiltonianos cúbicos tiene ``vacíos'' --- regiones
-donde no existen compromisos graduales entre ciertos perfiles de calidad.
-
-En términos de Go: no siempre existe una secuencia de modelos de evaluación que
-transite suavemente entre ``detecta bien los ciclos'' y ``detecta bien el
-contraste energético''. A veces el salto es abrupto.
-
-\subsection{El supremo ausente como objetivo de diseño}
-
-El hecho de que el supremo teórico
-$(H_1=0.188,\; \mathrm{Rob}=1.0,\; \Delta E=50.9,\; A_1=2)$
-no exista como candidato real es una guía de diseño: \textbf{ese punto es el
-Hamiltoniano ideal}. Ningún Hamiltoniano cúbico muestreado lo alcanza, lo que
-sugiere que:
+El supremo te\'orico $(H_1=0.188, \mathrm{Rob}=1.0, \Delta E=50.9, A_1=2)$
+no existe como candidato real. Ese punto es el \textbf{Hamiltoniano ideal}
+de Go. Su ausencia sugiere:
 
 \begin{enumerate}
-  \item El espacio de búsqueda necesita ampliarse (más muestras, otros templates)
-  \item O bien ese punto es matemáticamente imposible con polinomios cúbicos
-        de la forma explorada
-  \item O se requiere una familia diferente (grado 4, combinaciones no lineales)
+  \item El espacio de b\'usqueda necesita ampliarse (m\'as muestras,
+        otras plantillas)
+  \item O bien ese punto es matem\'aticamente imposible con polinomios
+        c\'ubicos de la forma explorada
+  \item O se requiere una familia diferente (grado~4, combinaciones no
+        lineales)
 \end{enumerate}
 
-El diagrama de Hasse convierte esa imposibilidad en algo visible: el ``vacío''
-en la cima del diagrama es el lugar donde debería estar el supremo pero no está.
+El diagrama de Hasse lo hace visible: el ``vac\'io'' en la cima es el lugar
+donde deber\'ia estar el supremo pero no est\'a.
 
 % =============================================================================
 \section{Resumen}
@@ -624,50 +509,50 @@ en la cima del diagrama es el lugar donde debería estar el supremo pero no est�
 \medskip
 \begin{center}
 \rowcolors{2}{white}{cTRalt}
-\begin{tabularx}{0.96\textwidth}{L{3.2cm}L{4.5cm}X}
-  \TH{Concepto} & \TH{Significado matemático} & \TH{Significado en Go} \\[1pt]
-  Frente 1
-    & Anticadena de elementos maximales del poset
-    & Los 4 Hamiltonianos con el mejor compromiso posible \\
+\begin{tabularx}{0.96\textwidth}{L{3cm}L{4.4cm}X}
+  \TH{Concepto} & \TH{Significado matem\'atico} & \TH{Significado en Go} \\[1pt]
+  Frente~1
+    & Anticadena de elementos maximales
+    & Los 4 mejores compromisos posibles \\
   Arista del Hasse
     & Cobertura directa: dominancia sin intermediario
     & Salto irreducible de calidad entre dos modelos \\
   148 frentes
-    & Estratificación del poset
-    & 148 niveles de calidad estratégica \\
+    & Estratificaci\'on del poset
+    & 148 niveles de calidad estrat\'egica \\
   4 cadenas (Dilworth)
-    & Descomposición mínima en cadenas totales
-    & 4 ``linajes'' de modelos --- 4 estilos de evaluación \\
+    & Descomposici\'on m\'inima en cadenas totales
+    & 4 linajes de modelos --- 4 estilos de evaluaci\'on \\
   Sin supremo
     & No existe elemento que domine a todos
-    & No existe el Hamiltoniano perfecto en el espacio explorado \\
-  Sin ínfimo
+    & No existe el Hamiltoniano perfecto explorado \\
+  Sin \'infimo
     & No existe elemento dominado por todos
     & No existe el peor Hamiltoniano absoluto \\
-  No es retícula
+  No es ret\'icula
     & Los joins no existen dentro del poset
-    & No siempre hay un ``mejor compromiso'' entre dos modelos incomparables \\
+    & No siempre hay un ``mejor compromiso'' entre incomparables \\
   Nodo $A_1$
-    & Punto de silla: $\det(\mathrm{Hess}\,H) < 0$
-    & Transición crítica donde la topología del tablero cambia \\
+    & $\det(\mathrm{Hess}\,H)<0$ en punto cr\'itico
+    & Cambio topol\'ogico cualitativo en la partida \\
   $H_1^{\max}$ alto
-    & Ciclos topológicos persistentes en la fibración
-    & Capacidad de detectar estructuras cíclicas de influencia \\
+    & Ciclos topol\'ogicos persistentes en la fibraci\'on
+    & Detecta estructuras c\'iclicas de influencia \\
   $\Delta E$ alto
     & Gran rango en $[-2,2]^2$
-    & Alto poder discriminativo entre posiciones fuertes y débiles \\
+    & Alto poder discriminativo entre posiciones \\
 \end{tabularx}
 \end{center}
 
 \vfill
-\noindent
-{\color{cRule}\hrule height 0.5pt}
-\vspace{4pt}
+\noindent{\color{cRule}\hrule height 0.5pt}\vspace{4pt}
 {\color{cMuted}\small\itshape
-  Pipeline: \texttt{experiments/06\_hamiltonian\_families/} \quad\textbullet\quad
-  Figuras: \texttt{output/figures/hasse\_diagram.png} (2D) \;\textbullet\;
-           \texttt{hasse\_diagram\_3d.png} (3D)\\
-  Catálogo: \texttt{output/catalog.json} \textbullet{} 305 entradas totales
+  Pipeline:~\texttt{experiments/06\_hamiltonian\_families/}
+  \quad\textbullet\quad
+  Figuras:~\texttt{output/figures/hasse\_diagram.png} (2D)
+  \;\textbullet\; \texttt{hasse\_diagram\_3d.png} (3D)\\
+  Cat\'alogo:~\texttt{output/catalog.json}
+  \enspace\textbullet\enspace 305 entradas totales
 }
 
 \end{document}
