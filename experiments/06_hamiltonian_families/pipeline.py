@@ -813,13 +813,22 @@ def _generate_atlas(catalog: Catalog, cfg: dict, id_to_rank: dict):
         try:
             h = _Ham(e["template"], e["coefficients"])
             Z = np.array(h(X, Y), dtype=float)
-            ax.contourf(X, Y, Z, levels=10, cmap="RdBu_r", alpha=0.9)
+            finite = np.isfinite(Z)
+            if not finite.any():
+                raise ValueError("all non-finite")
+            Z = np.where(finite, Z, np.nanmedian(Z[finite]))
+            vmin, vmax = np.percentile(Z, 1), np.percentile(Z, 99)
+            if vmax - vmin < 1e-9:
+                vmax = vmin + 1.0
+            ax.imshow(Z[::-1], origin="upper", extent=[-L, L, -L, L],
+                      cmap="RdBu_r", vmin=vmin, vmax=vmax,
+                      aspect="auto", interpolation="bilinear")
             for p in e["algebraic"].get("critical_points_summary", []):
                 if p.get("type") == "A1_node":
                     ax.scatter(p["x"], p["y"], s=10, c="#F59B0A",
                                marker="D", zorder=5, linewidths=0)
         except Exception:
-            pass
+            ax.set_facecolor("#0D0D20")
 
         rank = id_to_rank.get(e["id"], 99)
         bc   = border_col.get(rank, "#1A1A2A")
@@ -844,6 +853,148 @@ def _generate_atlas(catalog: Catalog, cfg: dict, id_to_rank: dict):
                 bbox_inches="tight")
     plt.close(fig)
     print(f"  Atlas → {out_path.name}  ({len(entries)} candidatos)")
+
+
+def _generate_atlas_3d(catalog: Catalog, cfg: dict, id_to_rank: dict):
+    """
+    Atlas 3D: renderiza Gamma(H)={z=H(x,y)} para cada candidato como thumbnail
+    independiente (FigureCanvasAgg) y los tilea en una cuadrícula compuesta.
+    Evita el desbordamiento de axes 3D usando una figura por thumbnail.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+    import numpy as np
+    from src.families import Hamiltonian as _Ham
+
+    out_dir = HERE / cfg["output"].get("figures_dir", "output/figures")
+    os.makedirs(out_dir, exist_ok=True)
+
+    entries = [e for e in catalog.entries if e["filter"].get("passes")]
+    entries = sorted(entries,
+                     key=lambda e: (id_to_rank.get(e["id"], 999),
+                                    -e["scores"].get("total", 0)))
+
+    L   = cfg["analysis"].get("box_L", 2.0)
+    N   = 22
+    xs  = np.linspace(-L, L, N)
+    ys  = np.linspace(-L, L, N)
+    X, Y = np.meshgrid(xs, ys)
+
+    PX  = 120
+    DPI = 80
+    TH  = PX / DPI
+    BORDER = 2
+    border_rgb = {
+        1: np.array([255, 215,   0], dtype=np.uint8),
+        2: np.array([192, 192, 192], dtype=np.uint8),
+        3: np.array([205, 127,  50], dtype=np.uint8),
+    }
+    bg_rgb = np.array([6, 6, 16], dtype=np.uint8)
+
+    def _render_thumbnail(e) -> np.ndarray:
+        fig3   = Figure(figsize=(TH, TH), dpi=DPI)
+        canvas = FigureCanvasAgg(fig3)
+        fig3.patch.set_facecolor("#060610")
+        ax3 = fig3.add_axes([0, 0, 1, 1], projection="3d")
+        ax3.set_facecolor("#0A0A18")
+        ax3.set_axis_off()
+        for pane in [ax3.xaxis.pane, ax3.yaxis.pane, ax3.zaxis.pane]:
+            pane.fill = False
+            pane.set_edgecolor("none")
+        try:
+            h  = _Ham(e["template"], e["coefficients"])
+            Z  = np.array(h(X, Y), dtype=float)
+            Z  = np.nan_to_num(Z, nan=0.0, posinf=0.0, neginf=0.0)
+            p2, p98 = np.percentile(Z, 2), np.percentile(Z, 98)
+            if p98 - p2 < 1e-9:
+                p98 = p2 + 1.0
+            Zc = np.clip(Z, p2, p98)
+            ax3.plot_surface(X, Y, Zc, cmap="RdBu_r",
+                             rcount=18, ccount=18,
+                             linewidth=0, alpha=0.92, antialiased=False)
+            for p in e["algebraic"].get("critical_points_summary", []):
+                if p.get("type") == "A1_node":
+                    try:
+                        pz = float(h(p["x"], p["y"]))
+                        ax3.scatter([p["x"]], [p["y"]], [pz],
+                                    s=28, c="#F59B0A", marker="*",
+                                    depthshade=False, zorder=10)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        ax3.view_init(elev=28, azim=-55)
+        canvas.draw()
+        buf = np.frombuffer(canvas.buffer_rgba(), dtype=np.uint8)
+        img = buf.reshape(canvas.get_width_height()[::-1] + (4,))
+        return img[:, :, :3]
+
+    ncols = 15
+    nrows = (len(entries) + ncols - 1) // ncols
+    print(f"  Renderizando {len(entries)} thumbnails 3D ({ncols}x{nrows})...")
+
+    thumbs = []
+    for i, e in enumerate(entries):
+        img = _render_thumbnail(e)
+        # Normalizar tamaño (redondeo DPI)
+        h_, w_ = img.shape[:2]
+        tile = np.full((PX, PX, 3), bg_rgb, dtype=np.uint8)
+        tile[:min(h_, PX), :min(w_, PX)] = img[:min(h_, PX), :min(w_, PX)]
+        # Borde de rango Pareto
+        rank = id_to_rank.get(e["id"], 99)
+        bc   = border_rgb.get(rank, np.array([26, 26, 42], dtype=np.uint8))
+        tile[:BORDER, :]  = bc
+        tile[-BORDER:, :] = bc
+        tile[:, :BORDER]  = bc
+        tile[:, -BORDER:] = bc
+        thumbs.append(tile)
+        if (i + 1) % 60 == 0:
+            print(f"    {i+1}/{len(entries)}")
+
+    # Rellenar celdas vacías
+    while len(thumbs) < nrows * ncols:
+        thumbs.append(np.full((PX, PX, 3), bg_rgb, dtype=np.uint8))
+
+    # Componer cuadrícula
+    rows_imgs = [np.concatenate(thumbs[r*ncols:(r+1)*ncols], axis=1)
+                 for r in range(nrows)]
+    grid = np.concatenate(rows_imgs, axis=0)
+
+    FIG_W = ncols * PX / DPI
+    FIG_H = nrows * PX / DPI + 0.65
+    fig, ax = plt.subplots(1, 1, figsize=(FIG_W, FIG_H))
+    fig.patch.set_facecolor("#060610")
+    fig.suptitle(
+        f"Atlas 3D — {len(entries)} candidatos   "
+        f"Gamma(H)={{z=H(x,y)}}   "
+        f"orden Pareto (izq→der, arriba=frente 1)   |   * = nodo A1",
+        color="white", fontsize=9, y=0.998)
+    ax.imshow(grid, origin="upper", interpolation="nearest",
+              extent=[0, ncols * PX, nrows * PX, 0])
+    ax.set_axis_off()
+
+    label_cols = {1: "#FFD700", 2: "#C0C0C0", 3: "#CD7F32"}
+    for idx, e in enumerate(entries):
+        r, c  = divmod(idx, ncols)
+        rank  = id_to_rank.get(e["id"], 99)
+        score = e["scores"].get("total", 0)
+        tcol  = label_cols.get(rank, "#404040")
+        cx    = (c + 0.5) * PX
+        ax.text(cx, r * PX + 3,        f"{e['id']}  #{rank}",
+                fontsize=3.2, color=tcol, ha="center", va="top")
+        ax.text(cx, (r + 1) * PX - 3,  f"{score:.3f}",
+                fontsize=3.0, color=tcol, ha="center", va="bottom")
+
+    fig.tight_layout(pad=0.05)
+    out_path = out_dir / "atlas_candidatos_3d.png"
+    fig.savefig(out_path, dpi=DPI, facecolor=fig.get_facecolor(),
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Atlas 3D → {out_path.name}  ({len(entries)} candidatos)")
 
 
 def main():
@@ -885,6 +1036,7 @@ def main():
         if args.pareto:
             id_to_rank = _generate_pareto_overview(catalog, cfg)
             _generate_atlas(catalog, cfg, id_to_rank)
+            _generate_atlas_3d(catalog, cfg, id_to_rank)
         if args.figures:
             # Figuras detalladas para frente 1 (o top 20 si front1 > 20)
             id_to_rank_f, _ = _compute_pareto_ranks(catalog)
