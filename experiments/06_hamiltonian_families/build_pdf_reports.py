@@ -50,15 +50,16 @@ TEXT_W = W - 2 * MARGIN
 
 
 # ── Fuentes ──────────────────────────────────────────────────────────────────
+# Segoe UI tiene cobertura Unicode completa: subíndices (₁₂), ∈, →, μ, Δ, etc.
 def register_fonts():
     win = "C:/Windows/Fonts"
     pairs = [
-        ("Arial",           "arial.ttf"),
-        ("Arial-Bold",      "arialbd.ttf"),
-        ("Arial-Italic",    "ariali.ttf"),
-        ("Arial-BoldItalic","arialbi.ttf"),
-        ("CourierNew",      "cour.ttf"),
-        ("CourierNew-Bold", "courbd.ttf"),
+        ("SegoeUI",            "segoeui.ttf"),
+        ("SegoeUI-Bold",       "segoeuib.ttf"),
+        ("SegoeUI-Italic",     "segoeuii.ttf"),
+        ("SegoeUI-BoldItalic", "segoeuiz.ttf"),
+        ("CourierNew",         "cour.ttf"),
+        ("CourierNew-Bold",    "courbd.ttf"),
     ]
     ok = set()
     for name, fname in pairs:
@@ -67,11 +68,11 @@ def register_fonts():
             pdfmetrics.registerFont(TTFont(name, path))
             ok.add(name)
 
-    if {"Arial","Arial-Bold","Arial-Italic","Arial-BoldItalic"} <= ok:
-        addMapping("Arial", 0, 0, "Arial")
-        addMapping("Arial", 1, 0, "Arial-Bold")
-        addMapping("Arial", 0, 1, "Arial-Italic")
-        addMapping("Arial", 1, 1, "Arial-BoldItalic")
+    if {"SegoeUI","SegoeUI-Bold","SegoeUI-Italic","SegoeUI-BoldItalic"} <= ok:
+        addMapping("SegoeUI", 0, 0, "SegoeUI")
+        addMapping("SegoeUI", 1, 0, "SegoeUI-Bold")
+        addMapping("SegoeUI", 0, 1, "SegoeUI-Italic")
+        addMapping("SegoeUI", 1, 1, "SegoeUI-BoldItalic")
 
     if {"CourierNew","CourierNew-Bold"} <= ok:
         addMapping("CourierNew", 0, 0, "CourierNew")
@@ -82,34 +83,34 @@ def register_fonts():
 def make_styles():
     return {
         "h1": ParagraphStyle("h1",
-            fontName="Arial-Bold", fontSize=20, textColor=C_NAVY,
+            fontName="SegoeUI-Bold", fontSize=20, textColor=C_NAVY,
             spaceBefore=10, spaceAfter=8, leading=26),
         "h2": ParagraphStyle("h2",
-            fontName="Arial-Bold", fontSize=14, textColor=C_NAVY,
+            fontName="SegoeUI-Bold", fontSize=14, textColor=C_NAVY,
             spaceBefore=14, spaceAfter=4, leading=19),
         "h3": ParagraphStyle("h3",
-            fontName="Arial-Bold", fontSize=11, textColor=C_BLUE,
+            fontName="SegoeUI-Bold", fontSize=11, textColor=C_BLUE,
             spaceBefore=10, spaceAfter=3, leading=15),
         "body": ParagraphStyle("body",
-            fontName="Arial", fontSize=10, textColor=C_BODY,
+            fontName="SegoeUI", fontSize=10, textColor=C_BODY,
             spaceAfter=5, leading=15),
         "meta": ParagraphStyle("meta",
-            fontName="Arial-Italic", fontSize=8.5, textColor=C_MUTED,
+            fontName="SegoeUI-Italic", fontSize=8.5, textColor=C_MUTED,
             spaceAfter=3, leading=13),
         "bullet": ParagraphStyle("bullet",
-            fontName="Arial", fontSize=10, textColor=C_BODY,
+            fontName="SegoeUI", fontSize=10, textColor=C_BODY,
             spaceAfter=3, leading=15, leftIndent=14),
         "bullet2": ParagraphStyle("bullet2",
-            fontName="Arial", fontSize=10, textColor=C_BODY,
+            fontName="SegoeUI", fontSize=10, textColor=C_BODY,
             spaceAfter=2, leading=14, leftIndent=28),
         "quote": ParagraphStyle("quote",
-            fontName="Arial-Italic", fontSize=9.5, textColor=C_CODE_FG,
+            fontName="SegoeUI-Italic", fontSize=9.5, textColor=C_CODE_FG,
             spaceAfter=4, leading=14, leftIndent=16, rightIndent=8),
         "th": ParagraphStyle("th",
-            fontName="Arial-Bold", fontSize=8.5, textColor=colors.white,
+            fontName="SegoeUI-Bold", fontSize=8.5, textColor=colors.white,
             leading=12, alignment=TA_CENTER),
         "td": ParagraphStyle("td",
-            fontName="Arial", fontSize=8.5, textColor=C_BODY,
+            fontName="SegoeUI", fontSize=8.5, textColor=C_BODY,
             leading=12),
         "td_mono": ParagraphStyle("td_mono",
             fontName="CourierNew", fontSize=7.5, textColor=C_CODE_FG,
@@ -320,12 +321,12 @@ def on_page(canvas, doc):
     canvas.setFillColor(C_ACCENT)
     canvas.rect(0, H - 9*mm, W * 0.30, 9*mm, fill=1, stroke=0)
     canvas.setFillColor(colors.white)
-    canvas.setFont("Arial-Italic", 7)
+    canvas.setFont("SegoeUI-Italic", 7)
     canvas.drawString(W * 0.30 + 8, H - 6*mm,
                       "Go Ising · Experimento 06 · Familia de Hamiltonianos cúbicos")
     # Footer
     canvas.setFillColor(C_MUTED)
-    canvas.setFont("Arial", 7.5)
+    canvas.setFont("SegoeUI", 7.5)
     canvas.drawString(MARGIN, 1.3*cm,
                       "Leonardo Jiménez Martínez · UNAM · 2026")
     canvas.drawRightString(W - MARGIN, 1.3*cm, f"Página {doc.page}")
