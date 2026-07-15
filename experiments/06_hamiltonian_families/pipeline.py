@@ -550,15 +550,44 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
                             textcoords="offset points",
                             fontsize=5, color="#FFD700", alpha=0.95)
 
+    def _explain(ax, lines, loc="lower left"):
+        """Añade una caja de explicación dentro del subplot."""
+        va = "bottom" if "lower" in loc else "top"
+        ha = "left"   if "left"  in loc else "right"
+        x  = 0.02 if "left" in loc else 0.98
+        y  = 0.03 if "lower" in loc else 0.97
+        ax.text(x, y, "\n".join(lines),
+                transform=ax.transAxes,
+                fontsize=6.4, color="#C8C8DC", va=va, ha=ha,
+                linespacing=1.45,
+                bbox=dict(boxstyle="round,pad=0.35",
+                          fc="#080818", ec="#2A2A4A", alpha=0.82))
+
     # — Plot 1: H₁ vs Δc ——————————————————————————————————————————————————————
     ax1 = _ax((0,0), "Δc (sep. entre c*)", "H₁_max",
                "H₁_max vs Δc  [★ frente 1]")
     _scatter(ax1, dcs, h1s)
+    _explain(ax1, [
+        "H₁_max: vida máxima del generador H₁ en la",
+        "  fibración de Milnor (ciclos topológicos).",
+        "Δc: separación mínima entre valores críticos c*",
+        "  (resolución entre regímenes de juego).",
+        "★ Frente 1: candidatos no dominados por ningún otro",
+        "  en los 4 criterios simultáneamente.",
+    ], loc="lower right")
 
     # — Plot 2: H₁ vs Robustez ————————————————————————————————————————————————
     ax2 = _ax((0,1), "Robustez", "H₁_max",
                "H₁_max vs Robustez")
     _scatter(ax2, robs, h1s, annotate_f1=False)
+    _explain(ax2, [
+        "Robustez: fracción de 20 perturbaciones ±5%",
+        "  en coeficientes que mantienen al candidato",
+        "  dentro del filtro (estabilidad estructural).",
+        "H₁_max: topología de los subniveles de H.",
+        "Ideal: ambos valores altos → candidato robusto",
+        "  y topológicamente rico.",
+    ], loc="lower left")
 
     # — Plot 3: ΔE vs nodos A₁ (jitter en x) ———————————————————————————————
     ax3 = _ax((0,2), "Nodos A₁", "ΔE (well depth)",
@@ -566,11 +595,28 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
     jitter = np.random.default_rng(0).uniform(-0.12, 0.12, len(na1s))
     _scatter(ax3, na1s + jitter, wds, annotate_f1=False)
     ax3.set_xticks([0, 1, 2, 3, 4])
+    _explain(ax3, [
+        "Nodos A₁: puntos críticos con det(Hess H) < 0",
+        "  (sillas). Cada A₁ marca una transición donde",
+        "  la fibra de Milnor H⁻¹(c) cambia de topología.",
+        "ΔE: rango H(máx)−H(mín) en [−2,2]².",
+        "  Mayor ΔE → mayor separación energética entre",
+        "  posiciones de Go (contraste de evaluación).",
+    ], loc="lower right")
 
     # — Plot 4: Score total vs H₁ ——————————————————————————————————————————————
     ax4 = _ax((1,0), "Score total", "H₁_max",
                "Score vs H₁  (color = rango Pareto)")
     _scatter(ax4, tots, h1s, annotate_f1=False)
+    _explain(ax4, [
+        "Score total = 0.45·TDA + 0.30·Robustez",
+        "            + 0.25·Mejora estratégica.",
+        "Color: rango Pareto (amarillo=frente 1,",
+        "  violeta=frentes tardíos).",
+        "Un candidato puede tener score alto pero no",
+        "  estar en frente 1 si otro lo domina en todos",
+        "  los criterios Pareto simultáneamente.",
+    ], loc="lower right")
 
     # — Plot 5: distribución de candidatos por frente —————————————————————————
     ax5 = _ax((1,1), "Rango Pareto (frente)", "# candidatos",
@@ -586,6 +632,13 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
         ax5.text(bar.get_x() + bar.get_width()/2, cnt + 0.4, str(cnt),
                  ha="center", va="bottom", color="white", fontsize=7)
     ax5.tick_params(colors="#777", labelsize=8)
+    _explain(ax5, [
+        "Frente 1: candidatos no dominados (óptimos Pareto).",
+        "Frente k: no dominados tras eliminar frentes 1…k−1.",
+        "Algoritmo iterativo O(n³); 148 frentes indican",
+        "  alta diversidad: pocos candidatos comparten el",
+        "  mismo perfil en los 4 criterios a la vez.",
+    ], loc="upper right")
 
     # — Plot 6: coordenadas paralelas (front 1 + muestra del resto) ————————
     ax6 = _ax((1,2), "", "Valor normalizado [0,1]",
@@ -611,6 +664,13 @@ def _generate_pareto_overview(catalog: Catalog, cfg: dict):
     ax6.set_xlim(-0.15, 3.15); ax6.set_ylim(-0.05, 1.05)
     for xi in range(4):
         ax6.axvline(xi, color="#2A2A3A", lw=0.8)
+    _explain(ax6, [
+        "Cada línea = un candidato; ejes = criterios Pareto.",
+        "Valores normalizados: 0=mín, 1=máx observado.",
+        "Líneas brillantes: frente 1 (no dominadas).",
+        "Líneas tenues: muestra de 50 candidatos del resto.",
+        "El frente 1 ideal aparece alto en todos los ejes.",
+    ], loc="lower left")
 
     # Colorbar compartida
     sm = ScalarMappable(norm=norm, cmap=cmap)
