@@ -855,6 +855,180 @@ def _generate_atlas(catalog: Catalog, cfg: dict, id_to_rank: dict):
     print(f"  Atlas → {out_path.name}  ({len(entries)} candidatos)")
 
 
+def _generate_hasse_diagram(catalog: Catalog, cfg: dict, id_to_rank: dict):
+    """
+    Diagrama de Hasse del orden parcial Pareto.
+    Nodos = candidatos (mini heatmap 2D). Aristas = cobertura:
+      i → j  iff  i domina a j  y  no existe k tal que i dom k dom j.
+    Layout jerárquico: y = frente Pareto, x = baricéntrico para minimizar cruces.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+    import numpy as np
+    from src.families import Hamiltonian as _Ham
+
+    out_dir = HERE / cfg["output"].get("figures_dir", "output/figures")
+    os.makedirs(out_dir, exist_ok=True)
+
+    entries = [e for e in catalog.entries if e["filter"].get("passes")]
+    entries = sorted(entries,
+                     key=lambda e: (id_to_rank.get(e["id"], 999),
+                                    -e["scores"].get("total", 0)))
+
+    def vals(e):
+        return np.array([
+            float(e["tda"].get("max_h1_lifetime", 0) or 0),
+            float(e["scores"].get("robustness",   0) or 0),
+            float(e["tda"].get("well_depth",       0) or 0),
+            float(e["algebraic"].get("n_nodes_A1", 0) or 0),
+        ])
+
+    n   = len(entries)
+    V   = np.array([vals(e) for e in entries])   # (n, 4)
+    rnk = np.array([id_to_rank.get(e["id"], 999) for e in entries])
+
+    # ── Dominancia con broadcasting + reducción transitiva (Hasse) ─────────────
+    print("  Calculando dominancia y reduccion transitiva...")
+    Vx  = V[:, np.newaxis, :]              # (n,1,4)
+    Vy  = V[np.newaxis, :, :]              # (1,n,4)
+    dom = ((Vx >= Vy).all(2) & (Vx > Vy).any(2)
+           & ~np.eye(n, dtype=bool))       # (n,n)
+    dom2   = (dom.astype(np.int16) @ dom.astype(np.int16)).astype(bool)
+    hasse  = dom & ~dom2                   # cobertura directa
+    I_e, J_e = np.where(hasse)
+    print(f"  {len(I_e)} relaciones de cobertura")
+
+    # ── Layout jerárquico con heurística baricéntrica ─────────────────────────
+    max_rank = int(rnk.max())
+    front_groups = {}
+    for idx in range(n):
+        front_groups.setdefault(int(rnk[idx]), []).append(idx)
+    max_per_front = max(len(v) for v in front_groups.values())
+
+    pos = np.zeros((n, 2))
+    # Primera pasada: x uniforme dentro de cada frente
+    for r, idxs in sorted(front_groups.items()):
+        nf = len(idxs)
+        for k, idx in enumerate(idxs):
+            pos[idx, 0] = (k + 0.5) / nf
+            pos[idx, 1] = -(r - 1)
+
+    # Pasada baricéntrica top-down: alinear con predecesores
+    for r in sorted(front_groups.keys())[1:]:
+        idxs = front_groups[r]
+        bary = {}
+        for idx in idxs:
+            preds = np.where(hasse[:, idx])[0]
+            bary[idx] = float(pos[preds, 0].mean()) if len(preds) > 0 else 0.5
+        sorted_idxs = sorted(idxs, key=lambda i: bary[i])
+        nf = len(sorted_idxs)
+        for k, idx in enumerate(sorted_idxs):
+            pos[idx, 0] = (k + 0.5) / nf
+
+    # ── Thumbnails ────────────────────────────────────────────────────────────
+    L   = cfg["analysis"].get("box_L", 2.0)
+    Ng  = 32
+    Xg, Yg = np.meshgrid(np.linspace(-L, L, Ng), np.linspace(-L, L, Ng))
+    PX_T = 64; DPI_T = 72; TH_T = PX_T / DPI_T
+
+    print(f"  Renderizando {n} thumbnails...")
+    thumbs = []
+    for e in entries:
+        fig_t  = Figure(figsize=(TH_T, TH_T), dpi=DPI_T)
+        cv_t   = FigureCanvasAgg(fig_t)
+        fig_t.patch.set_facecolor("#0A0A18")
+        ax_t   = fig_t.add_axes([0, 0, 1, 1])
+        ax_t.set_facecolor("#0A0A18")
+        ax_t.set_xticks([]); ax_t.set_yticks([])
+        for sp in ax_t.spines.values(): sp.set_visible(False)
+        try:
+            h = _Ham(e["template"], e["coefficients"])
+            Z = np.nan_to_num(np.array(h(Xg, Yg), dtype=float))
+            v1, v99 = np.percentile(Z, 1), np.percentile(Z, 99)
+            if v99 - v1 < 1e-9: v99 = v1 + 1
+            ax_t.imshow(Z[::-1], origin="upper", extent=[-L, L, -L, L],
+                       cmap="RdBu_r", vmin=v1, vmax=v99,
+                       aspect="auto", interpolation="bilinear")
+        except Exception:
+            pass
+        cv_t.draw()
+        buf = np.frombuffer(cv_t.buffer_rgba(), dtype=np.uint8)
+        thumbs.append(buf.reshape(cv_t.get_width_height()[::-1] + (4,))[:, :, :3])
+
+    # ── Figura ────────────────────────────────────────────────────────────────
+    FIG_W  = max(18, max_per_front * 1.6)
+    Y_STEP = 0.26           # pulgadas por nivel
+    FIG_H  = max_rank * Y_STEP + 1.8
+
+    fig = plt.figure(figsize=(FIG_W, FIG_H), facecolor="#060610")
+    ax  = fig.add_axes([0.04, 0.005, 0.95, 0.970])
+    ax.set_facecolor("#060610")
+    ax.set_xlim(-0.03, 1.03)
+    ax.set_ylim(-(max_rank - 1) - 0.5, 0.55)
+    ax.set_axis_off()
+
+    fig.text(0.5, 0.998,
+        f"Diagrama de Hasse — Orden Parcial Pareto   |   "
+        f"{n} candidatos  ·  {max_rank} frentes  ·  {len(I_e)} coberturas   |   "
+        f"i → j : i domina a j sin intermediarios",
+        color="white", fontsize=9, ha="center", va="top")
+
+    # Guías horizontales por frente
+    for r in range(1, max_rank + 1):
+        ax.axhline(-(r - 1), color="#0E0E22", lw=0.5, zorder=0)
+        if r <= 25 or r % 10 == 0:
+            ax.text(-0.025, -(r - 1), f"F{r}",
+                    color="#44446A", fontsize=4.5, ha="right", va="center")
+
+    # Aristas
+    border_col = {1: "#FFD700", 2: "#AAAAAA", 3: "#CD7F32"}
+    edge_params = {
+        1: dict(color="#FFD700", alpha=0.90, lw=1.1),
+        2: dict(color="#888888", alpha=0.30, lw=0.40),
+        3: dict(color="#996633", alpha=0.20, lw=0.30),
+    }
+    default_ep = dict(color="#22224A", alpha=0.09, lw=0.15)
+    for ii, jj in zip(I_e, J_e):
+        ri  = int(rnk[ii])
+        ep  = edge_params.get(ri, default_ep)
+        ax.plot([pos[ii,0], pos[jj,0]], [pos[ii,1], pos[jj,1]],
+                zorder=1, solid_capstyle="round", **ep)
+
+    # Nodos con AnnotationBbox
+    ZOOM = 0.38
+    for idx, (e, img) in enumerate(zip(entries, thumbs)):
+        cx, cy = pos[idx]
+        rank   = int(rnk[idx])
+        bc     = border_col.get(rank, "#1A1A3A")
+        blw    = 1.8 if rank <= 3 else 0.4
+
+        oi = OffsetImage(img, zoom=ZOOM)
+        oi.image.axes = ax
+        ab = AnnotationBbox(
+            oi, (cx, cy), frameon=True,
+            bboxprops=dict(edgecolor=bc, linewidth=blw,
+                           facecolor="#080814",
+                           boxstyle="square,pad=0.03"),
+            zorder=3)
+        ax.add_artist(ab)
+
+        if rank == 1:
+            score = e["scores"].get("total", 0)
+            ax.text(cx, cy + 0.28, f"{e['id']}\n{score:.3f}",
+                    color="#FFD700", fontsize=5.5, ha="center", va="bottom",
+                    fontweight="bold", zorder=5)
+
+    out_path = out_dir / "hasse_diagram.png"
+    fig.savefig(out_path, dpi=130, facecolor=fig.get_facecolor(),
+               bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Hasse → {out_path.name}")
+
+
 def _generate_atlas_3d(catalog: Catalog, cfg: dict, id_to_rank: dict):
     """
     Atlas 3D: renderiza Gamma(H)={z=H(x,y)} para cada candidato como thumbnail
@@ -1037,6 +1211,7 @@ def main():
             id_to_rank = _generate_pareto_overview(catalog, cfg)
             _generate_atlas(catalog, cfg, id_to_rank)
             _generate_atlas_3d(catalog, cfg, id_to_rank)
+            _generate_hasse_diagram(catalog, cfg, id_to_rank)
         if args.figures:
             # Figuras detalladas para frente 1 (o top 20 si front1 > 20)
             id_to_rank_f, _ = _compute_pareto_ranks(catalog)
