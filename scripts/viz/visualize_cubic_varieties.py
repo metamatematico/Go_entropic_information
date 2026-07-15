@@ -54,6 +54,11 @@ BCOLORS = ['#C0392B', '#E67E22', '#D4AC0D', '#27AE60', '#2980B9', '#8E44AD']
 # Pares físicos válidos: s0 ∈ {-1,+1}, s1 ∈ {-1,0,+1}
 VALID_PAIRS = [(-1,-1),(-1,0),(-1,1),(1,-1),(1,0),(1,1)]
 
+# Valores críticos reales de H_M1: donde ∇H_M1 = 0 y la fibra adquiere un nodo A₁
+# Del sistema ∂H/∂x = ∂H/∂y = 0: 3y⁴+6y²-1=0 → y²=(-3+2√3)/3 ≈ 0.1547
+CRIT_POS =  1.2408   # c_+*
+CRIT_NEG = -1.2408   # c_-*
+
 # ── SGF parser ──────────────────────────────────────────────────────────────────
 _MOVE_RE = re.compile(r'(?<![A-Z]);([BW])\[([a-s]{2})\]')
 
@@ -125,136 +130,139 @@ def compute_stats(bond_counts):
     return stats
 
 
-# ── FIGURA 1: Panel 2×3 — variedades cúbicas por bloque ───────────────────────
+# ── FIGURA 1: Panel 2×3 — familia de variedades por bloque ────────────────────
 def fig_2d_blocks(stats, out_path):
-    # Malla continua
     N = 600
-    x = np.linspace(-1.45, 1.45, N)
-    y = np.linspace(-1.45, 1.45, N)
+    x = np.linspace(-1.55, 1.55, N)
+    y = np.linspace(-1.55, 1.55, N)
     X, Y = np.meshgrid(x, y)
     Z = H_M1(X, Y)
 
-    # Colormap para el fondo: azul (negativo) → blanco → rojo (positivo)
-    cmap_bg = plt.cm.RdBu_r
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10.5),
-                             facecolor='#F8F5EE')
-    fig.suptitle(
-        'Variedades cúbicas de $H_{M1}(x,y) = x + 2y - xy^2 - x^2y$\n'
-        'y distribución de enlaces en partidas de Go profesional',
-        fontsize=14, fontweight='bold', color='#1A1A2E', y=0.98
-    )
+    cmap_f = plt.cm.RdBu_r
+    norm_f = mcolors.Normalize(-2.3, 2.3)
 
-    # Niveles de las curvas de nivel
-    levels_ghost  = [-2.0, 0.0, 2.0]     # matemáticamente válidos, no físicos
-    levels_active = [-1.0, 1.0]           # únicos valores realizados en juego
+    # Curvas de fondo de la familia (excluyendo valores especiales)
+    _all_c    = np.linspace(-2.2, 2.2, 25)
+    _special  = [-2., CRIT_NEG, -1., 0., 1., CRIT_POS, 2.]
+    _bg_c     = [c for c in _all_c if not any(abs(c - s) < 0.09 for s in _special)]
 
-    # Etiquetas de los pares físicos
     pair_labels = {
         (-1,-1): 'B–B', (-1, 0): 'B–∅', (-1, 1): 'B–W',
         ( 1,-1): 'W–B', ( 1, 0): 'W–∅', ( 1, 1): 'W–W',
     }
 
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10.5), facecolor='#0A0A1A')
+    fig.suptitle(
+        'Familia $\\{H_{M1}(x,y)=c\\}_{c\\in\\mathbb{R}}$ — Fibración de Milnor\n'
+        'Distribución de pares de enlace en partidas de Go profesional por fase',
+        fontsize=13, fontweight='bold', color='#EEEEEE', y=0.99
+    )
+
     for bi, (ax, st, label) in enumerate(zip(axes.flat, stats, LABELS)):
-        ax.set_facecolor('#F0EDE6')
+        ax.set_facecolor('#0A0A1A')
 
-        # Fondo: mapa de calor continuo de H_M1
-        im = ax.contourf(X, Y, Z, levels=40, cmap=cmap_bg, alpha=0.55,
-                         vmin=-2.2, vmax=2.2)
+        # — Familia de fondo: arco iris de curvas delgadas —
+        for c_val in _bg_c:
+            col = cmap_f(norm_f(c_val))
+            ax.contour(X, Y, Z, levels=[c_val], colors=[col],
+                       linewidths=0.5, alpha=0.38)
 
-        # Curvas "fantasma" (c ∈ {-2,0,2}): físicamente inaccesibles
-        cs_ghost = ax.contour(X, Y, Z, levels=levels_ghost,
-                              colors=['#888888'], linewidths=0.8,
-                              linestyles='--', alpha=0.5)
-        ax.clabel(cs_ghost, fmt={-2.0: 'c=−2', 0.0: 'c=0', 2.0: 'c=+2'},
-                  fontsize=6.5, colors='#888888')
+        # — Fibras físicas no activas: c ∈ {-2, 0, +2} (grosor medio) —
+        for c_val in [-2., 0., 2.]:
+            col = cmap_f(norm_f(c_val))
+            ax.contour(X, Y, Z, levels=[c_val], colors=[col],
+                       linewidths=1.1, alpha=0.70)
 
-        # Curvas activas (c ∈ {-1,+1}): realizadas en el juego
-        cs_neg = ax.contour(X, Y, Z, levels=[-1.0],
-                            colors=['#1A5276'], linewidths=2.2)
-        cs_pos = ax.contour(X, Y, Z, levels=[1.0],
-                            colors=['#C0392B'], linewidths=2.2)
-        ax.clabel(cs_neg, fmt={-1.0: '$V_{-1}$'}, fontsize=9, colors='#1A5276')
-        ax.clabel(cs_pos, fmt={ 1.0: '$V_{+1}$'}, fontsize=9, colors='#C0392B')
+        # — Fibras críticas (nodo A₁): naranja punteado —
+        for c_val in [CRIT_NEG, CRIT_POS]:
+            ax.contour(X, Y, Z, levels=[c_val], colors=['#F39C12'],
+                       linewidths=1.4, linestyles='--', alpha=0.82)
 
-        # Puntos discretos: 6 pares físicos
+        # — Fibras activas del juego: c = ±1 (gruesas, con etiqueta) —
+        col_neg = mcolors.to_hex(cmap_f(norm_f(-1.)))
+        col_pos = mcolors.to_hex(cmap_f(norm_f( 1.)))
+        cs_neg = ax.contour(X, Y, Z, levels=[-1.], colors=[col_neg], linewidths=2.5)
+        cs_pos = ax.contour(X, Y, Z, levels=[ 1.], colors=[col_pos], linewidths=2.5)
+        ax.clabel(cs_neg, fmt=lambda v: '$V_{-1}$', fontsize=8, colors=col_neg)
+        ax.clabel(cs_pos, fmt=lambda v: '$V_{+1}$', fontsize=8, colors=col_pos)
+
+        # — Puntos discretos: 6 pares físicos —
         for (s0, s1) in VALID_PAIRS:
             p = st['prob'][(s0, s1)]
-            h = H_M1(s0, s1)
-            color  = '#C0392B' if h > 0 else '#1A5276'
-            size   = 60 + p * 3500
-            ax.scatter(s0, s1, s=size, c=color, zorder=8,
-                       edgecolors='white', linewidths=1.2, alpha=0.88)
+            c_val = H_M1(s0, s1)
+            col = mcolors.to_hex(cmap_f(norm_f(c_val)))
+            size = 55 + p * 3200
+            ax.scatter(s0, s1, s=size, c=col, zorder=8,
+                       edgecolors='white', linewidths=1.2, alpha=0.92)
             if p > 0.015:
-                lbl = f'{pair_labels[(s0,s1)]}\n{p:.2f}'
-                ax.annotate(lbl, (s0, s1),
+                ax.annotate(f'{pair_labels[(s0,s1)]}\n{p:.2f}', (s0, s1),
                             textcoords='offset points', xytext=(6, 4),
-                            fontsize=6.5, color='#1A1A2E', zorder=9,
-                            bbox=dict(boxstyle='round,pad=0.15', fc='white',
-                                      alpha=0.6, ec='none'))
+                            fontsize=6.5, color='#EEEEEE', zorder=9,
+                            bbox=dict(boxstyle='round,pad=0.15',
+                                      fc='#00000099', alpha=0.75, ec='none'))
 
         # Marco con el color del bloque
         for sp in ax.spines.values():
-            sp.set_color(BCOLORS[bi])
-            sp.set_linewidth(2.5)
+            sp.set_color(BCOLORS[bi]); sp.set_linewidth(2.5)
 
-        # Barra horizontal: distribución campo vs acoplamiento
-        ax_bar = ax.inset_axes([0.0, -0.10, 1.0, 0.07],
-                                transform=ax.transAxes)
-        ax_bar.barh(0, st['p_field'],    height=0.8, color='#F0B27A',
-                    label='campo (s₁=0)')
-        ax_bar.barh(0, st['p_coupling'], height=0.8, left=st['p_field'],
-                    color='#7FB3D3', label='acopl. (s₁≠0)')
-        ax_bar.set_xlim(0, 1)
-        ax_bar.axis('off')
+        # Barra campo/acoplamiento
+        ax_bar = ax.inset_axes([0.0, -0.10, 1.0, 0.07], transform=ax.transAxes)
+        ax_bar.barh(0, st['p_field'],    height=0.8, color='#F0B27A')
+        ax_bar.barh(0, st['p_coupling'], height=0.8, left=st['p_field'], color='#7FB3D3')
+        ax_bar.set_xlim(0, 1); ax_bar.axis('off')
         ax_bar.text(st['p_field']/2, 0, f"{st['p_field']:.0%}",
                     ha='center', va='center', fontsize=7, color='#784212')
         ax_bar.text(st['p_field'] + st['p_coupling']/2, 0,
                     f"{st['p_coupling']:.0%}",
                     ha='center', va='center', fontsize=7, color='#1A5276')
 
-        ax.set_xlim(-1.45, 1.45)
-        ax.set_ylim(-1.45, 1.45)
-        ax.set_xlabel('$s_0$ (piedra colocada)', fontsize=8.5)
-        ax.set_ylabel('$s_1$ (vecino)', fontsize=8.5)
-        ax.set_xticks([-1, 0, 1])
-        ax.set_yticks([-1, 0, 1])
-        ax.set_xticklabels(['B', '∅', 'W'], fontsize=8)
-        ax.set_yticklabels(['B', '∅', 'W'], fontsize=8)
-        ax.tick_params(length=3)
-        ax.set_title(label + f'\n⟨H_M1⟩={st["mean_M1"]:+.3f}  '
-                              f'⟨H_AL⟩={st["mean_AL"]:+.3f}',
+        ax.set_xlim(-1.50, 1.50); ax.set_ylim(-1.50, 1.50)
+        ax.set_xlabel('$s_0$ (piedra colocada)', fontsize=8.5, color='#BBBBBB')
+        ax.set_ylabel('$s_1$ (vecino)', fontsize=8.5, color='#BBBBBB')
+        ax.set_xticks([-1, 0, 1]); ax.set_xticklabels(['B', '∅', 'W'], fontsize=8, color='#CCCCCC')
+        ax.set_yticks([-1, 0, 1]); ax.set_yticklabels(['B', '∅', 'W'], fontsize=8, color='#CCCCCC')
+        ax.tick_params(length=3, colors='#777777')
+        ax.set_title(label + f'\n$\\langle H_{{M1}}\\rangle$={st["mean_M1"]:+.3f}  '
+                              f'$\\langle H_{{AL}}\\rangle$={st["mean_AL"]:+.3f}',
                      fontsize=9, color=BCOLORS[bi], fontweight='bold', pad=4)
-        ax.axhline(0, color='gray', lw=0.4, ls=':')
-        ax.axvline(0, color='gray', lw=0.4, ls=':')
+        ax.axhline(0, color='#333355', lw=0.5, ls=':')
+        ax.axvline(0, color='#333355', lw=0.5, ls=':')
 
     # Colorbar compartida
     cbar_ax = fig.add_axes([0.92, 0.15, 0.015, 0.70])
-    sm = plt.cm.ScalarMappable(cmap=cmap_bg, norm=mcolors.Normalize(-2.2, 2.2))
+    sm = plt.cm.ScalarMappable(cmap=cmap_f, norm=norm_f)
     sm.set_array([])
     cb = fig.colorbar(sm, cax=cbar_ax)
-    cb.set_label('$H_{M1}(x,y)$', fontsize=9)
-    cb.set_ticks([-2, -1, 0, 1, 2])
+    cb.set_label('$c$ — fibra de la familia', fontsize=9, color='#DDDDDD')
+    cb.ax.tick_params(colors='#AAAAAA')
+    cb.set_ticks([-2, CRIT_NEG, -1, 0, 1, CRIT_POS, 2])
+    cb.set_ticklabels(['-2', '$c_-^*$', '-1', '0', '+1', '$c_+^*$', '+2'])
 
-    # Leyenda global
-    from matplotlib.lines import Line2D
-    from matplotlib.patches import Patch
     handles = [
-        Line2D([0],[0], color='#C0392B', lw=2.2, label='$V_{+1}$: variedad activa H=+1'),
-        Line2D([0],[0], color='#1A5276', lw=2.2, label='$V_{-1}$: variedad activa H=−1'),
-        Line2D([0],[0], color='#888888', lw=0.8, ls='--', label='variedades no físicas (c=−2,0,+2)'),
-        Patch(color='#F0B27A', label='enlace de campo: s₁=0'),
-        Patch(color='#7FB3D3', label='enlace de acoplamiento: s₁≠0'),
+        Line2D([0],[0], color=mcolors.to_hex(cmap_f(norm_f(1.))),  lw=2.5,
+               label='$V_{+1}$: fibra activa del juego (c=+1)'),
+        Line2D([0],[0], color=mcolors.to_hex(cmap_f(norm_f(-1.))), lw=2.5,
+               label='$V_{-1}$: fibra activa del juego (c=−1)'),
+        Line2D([0],[0], color='#F39C12', lw=1.4, ls='--',
+               label=f'fibras críticas — nodo A₁ ($c^*\\approx\\pm{CRIT_POS:.2f}$)'),
+        Line2D([0],[0], color='#888888', lw=0.5,
+               label='familia completa $\\{{H_{{M1}}=c\\}}$'),
+        Patch(color='#F0B27A', label='campo (s₁=0)'),
+        Patch(color='#7FB3D3', label='acoplamiento (s₁≠0)'),
     ]
-    fig.legend(handles=handles, loc='lower center', ncol=5,
-               fontsize=8, bbox_to_anchor=(0.45, 0.01),
-               framealpha=0.9, edgecolor='#CCCCCC')
+    fig.legend(handles=handles, loc='lower center', ncol=3,
+               fontsize=7.5, bbox_to_anchor=(0.45, 0.01),
+               framealpha=0.85, edgecolor='#333355',
+               facecolor='#111122', labelcolor='#DDDDDD')
 
     plt.subplots_adjust(left=0.06, right=0.91, top=0.93, bottom=0.12,
                         hspace=0.45, wspace=0.30)
     fig.savefig(out_path, dpi=160, bbox_inches='tight')
     plt.close(fig)
-    print(f'  2D blocks: {out_path}')
+    print(f'  2D family: {out_path}')
 
 
 # ── FIGURA 2: Superficie 3D con planos activos ─────────────────────────────────
@@ -577,6 +585,208 @@ def fig_bond_evolution(stats, out_path):
     print(f'  Bond evolution: {out_path}')
 
 
+# ── FIGURA 4: Fibración de Milnor — estructura comparativa M1 vs Alvarado ─────
+def fig_milnor_family(out_path):
+    """
+    Figura dedicada a la estructura de fibración de Milnor.
+    Muestra la familia completa {H=c} para M1 y para Alvarado,
+    con los valores críticos y un diagrama topológico esquemático.
+    """
+    N = 500
+    x = np.linspace(-2.0, 2.0, N)
+    y = np.linspace(-2.0, 2.0, N)
+    X, Y = np.meshgrid(x, y)
+    Z_M1 = H_M1(X, Y)
+    Z_AL = H_AL(X, Y)
+
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import FancyArrowPatch
+
+    cmap_f = plt.cm.RdBu_r
+    norm_f = mcolors.Normalize(-2.3, 2.3)
+
+    _all_c   = np.linspace(-2.2, 2.2, 31)
+    _spec_M1 = [-2., CRIT_NEG, -1., 0., 1., CRIT_POS, 2.]
+    _spec_AL = [-2., -1., 0., 1., 2.]
+    _bg_M1   = [c for c in _all_c if not any(abs(c - s) < 0.09 for s in _spec_M1)]
+    _bg_AL   = [c for c in _all_c if not any(abs(c - s) < 0.09 for s in _spec_AL)]
+
+    fig = plt.figure(figsize=(18, 7.0), facecolor='#0A0A1A')
+    fig.suptitle(
+        'Fibración de Milnor: $H: \\mathbb{R}^2 \\to \\mathbb{R}$ y la familia de fibras $\\{H=c\\}_{c\\in\\mathbb{R}}$',
+        fontsize=13, fontweight='bold', color='#EEEEEE', y=1.01
+    )
+
+    # ── Panel 1: Familia cúbica de M1 ──────────────────────────────────────────
+    ax1 = fig.add_axes([0.03, 0.08, 0.29, 0.84])
+    ax1.set_facecolor('#0A0A1A')
+
+    for c_val in _bg_M1:
+        col = cmap_f(norm_f(c_val))
+        ax1.contour(X, Y, Z_M1, levels=[c_val], colors=[col], linewidths=0.5, alpha=0.38)
+
+    for c_val in [-2., 0., 2.]:
+        col = cmap_f(norm_f(c_val))
+        ax1.contour(X, Y, Z_M1, levels=[c_val], colors=[col], linewidths=1.1, alpha=0.72)
+
+    for c_val in [CRIT_NEG, CRIT_POS]:
+        cs = ax1.contour(X, Y, Z_M1, levels=[c_val], colors=['#F39C12'],
+                         linewidths=1.8, linestyles='--', alpha=0.90)
+        ax1.clabel(cs, fmt=lambda v: f'$c^*\\approx{v:+.2f}$\nnodo A₁', fontsize=7,
+                   colors='#F39C12')
+
+    col_neg = mcolors.to_hex(cmap_f(norm_f(-1.)))
+    col_pos = mcolors.to_hex(cmap_f(norm_f( 1.)))
+    cs_neg = ax1.contour(X, Y, Z_M1, levels=[-1.], colors=[col_neg], linewidths=2.3)
+    cs_pos = ax1.contour(X, Y, Z_M1, levels=[ 1.], colors=[col_pos], linewidths=2.3)
+    ax1.clabel(cs_neg, fmt=lambda v: '$V_{-1}$\n(juego)', fontsize=8, colors=col_neg)
+    ax1.clabel(cs_pos, fmt=lambda v: '$V_{+1}$\n(juego)', fontsize=8, colors=col_pos)
+
+    for s0, s1 in VALID_PAIRS:
+        c_val = H_M1(s0, s1)
+        col = mcolors.to_hex(cmap_f(norm_f(c_val)))
+        ax1.scatter(s0, s1, s=90, c=col, zorder=10, edgecolors='white', linewidths=1.5)
+
+    ax1.set_xlim(-1.9, 1.9); ax1.set_ylim(-1.9, 1.9)
+    ax1.set_xticks([-1, 0, 1]); ax1.set_xticklabels(['B', '∅', 'W'], color='#CCCCCC', fontsize=9)
+    ax1.set_yticks([-1, 0, 1]); ax1.set_yticklabels(['B', '∅', 'W'], color='#CCCCCC', fontsize=9)
+    ax1.tick_params(colors='#777777')
+    ax1.set_xlabel('$s_0$', color='#AAAAAA', fontsize=10)
+    ax1.set_ylabel('$s_1$', color='#AAAAAA', fontsize=10)
+    ax1.set_title('Familia cúbica $\\{H_{M1}=c\\}$\nfibras genéricas: curva elíptica (género 1)',
+                  color='#DDDDDD', fontsize=10, pad=6)
+    ax1.axhline(0, color='#222244', lw=0.5, ls=':')
+    ax1.axvline(0, color='#222244', lw=0.5, ls=':')
+    for sp in ax1.spines.values(): sp.set_color('#333355')
+
+    # ── Panel 2: Familia hiperbólica de Alvarado ────────────────────────────────
+    ax2 = fig.add_axes([0.36, 0.08, 0.29, 0.84])
+    ax2.set_facecolor('#0A0A1A')
+
+    for c_val in _bg_AL:
+        if abs(c_val) < 0.04:
+            continue
+        col = cmap_f(norm_f(c_val))
+        ax2.contour(X, Y, Z_AL, levels=[c_val], colors=[col], linewidths=0.5, alpha=0.38)
+
+    for c_val in [-2., -1., 1., 2.]:
+        col = cmap_f(norm_f(c_val))
+        lw = 2.3 if abs(c_val) == 1. else 1.1
+        cs = ax2.contour(X, Y, Z_AL, levels=[c_val], colors=[col], linewidths=lw, alpha=0.92)
+        lbl = {-1.: '$V_{-1}$', 1.: '$V_{+1}$'}.get(c_val)
+        if lbl:
+            ax2.clabel(cs, fmt=lambda v, l=lbl: l, fontsize=8, colors=mcolors.to_hex(cmap_f(norm_f(c_val))))
+
+    # c=0 → fibra singular: dos rectas
+    ax2.axhline(0, color='#F39C12', lw=1.8, ls='--', alpha=0.88, zorder=5)
+    ax2.axvline(0, color='#F39C12', lw=1.8, ls='--', alpha=0.88, zorder=5)
+    ax2.text(0.07, 1.7, '$c=0$: fibra singular\n(dos rectas)', fontsize=7.5,
+             color='#F39C12', zorder=6)
+
+    for s0 in [-1., 0., 1.]:
+        for s1 in [-1., 0., 1.]:
+            c_val = H_AL(s0, s1)
+            col = mcolors.to_hex(cmap_f(norm_f(c_val)))
+            ax2.scatter(s0, s1, s=90, c=col, zorder=10, edgecolors='white', linewidths=1.5)
+
+    ax2.set_xlim(-1.9, 1.9); ax2.set_ylim(-1.9, 1.9)
+    ax2.set_xticks([-1, 0, 1]); ax2.set_xticklabels(['B', '∅', 'W'], color='#CCCCCC', fontsize=9)
+    ax2.set_yticks([-1, 0, 1]); ax2.set_yticklabels(['B', '∅', 'W'], color='#CCCCCC', fontsize=9)
+    ax2.tick_params(colors='#777777')
+    ax2.set_xlabel('$s_0$', color='#AAAAAA', fontsize=10)
+    ax2.set_ylabel('$s_1$', color='#AAAAAA', fontsize=10)
+    ax2.set_title('Familia de hipérbolas $\\{H_{AL}=c\\}$\nfibras genéricas: hipérbola (género 0)',
+                  color='#DDDDDD', fontsize=10, pad=6)
+    for sp in ax2.spines.values(): sp.set_color('#333355')
+
+    # ── Panel 3: Diagrama topológico de la fibración ────────────────────────────
+    ax3 = fig.add_axes([0.69, 0.05, 0.29, 0.90])
+    ax3.set_facecolor('#0A0A1A')
+    ax3.set_xlim(-0.5, 7.5); ax3.set_ylim(-0.3, 5.5)
+    ax3.axis('off')
+    ax3.set_title('Diagrama topológico de $H_{M1}: \\mathbb{R}^2 \\to \\mathbb{R}$',
+                  color='#DDDDDD', fontsize=10, pad=6)
+
+    # Eje base c ∈ ℝ
+    ax3.annotate('', xy=(7.3, 0.5), xytext=(0.0, 0.5),
+                 arrowprops=dict(arrowstyle='->', color='#AAAAAA', lw=1.5))
+    ax3.text(7.4, 0.5, '$c$', color='#AAAAAA', fontsize=11, va='center')
+    ax3.text(-0.4, 0.5, '$\\mathbb{R}$', color='#888888', fontsize=9, va='center')
+
+    fibers = [
+        (0.6,  -2.,    False, '#4A90D9',  'c=−2'),
+        (1.7,  CRIT_NEG, True, '#F39C12', '$c_-^*$'),
+        (2.8,  -1.,    False, '#7FB3D3',  'c=−1'),
+        (3.6,   0.,    False, '#AAAAAA',  'c=0'),
+        (4.4,   1.,    False, '#E67E7E',  'c=+1'),
+        (5.5,  CRIT_POS, True, '#F39C12', '$c_+^*$'),
+        (6.6,   2.,    False, '#C0392B',  'c=+2'),
+    ]
+
+    def draw_torus_schematic(ax, xc, yc, color, scale=0.38):
+        theta = np.linspace(0, 2*np.pi, 120)
+        rx, ry = scale, scale * 0.55
+        # outer oval
+        ex = xc + rx * np.cos(theta) + rx * 0.28 * np.cos(2*theta)
+        ey = yc + ry * np.sin(theta)
+        ax.plot(ex, ey, color=color, lw=1.4, alpha=0.88)
+        # inner hole hint
+        ax.plot(xc + rx*0.22*np.cos(theta), yc + ry*0.32*np.sin(theta),
+                color=color, lw=0.7, ls='--', alpha=0.45)
+
+    def draw_node_schematic(ax, xc, yc, scale=0.38):
+        t = np.linspace(-scale, scale, 80)
+        ax.plot(xc + t, yc + (t/scale)**2 * scale * 0.7, color='#F39C12', lw=1.5)
+        ax.plot(xc + t, yc - (t/scale)**2 * scale * 0.7, color='#F39C12', lw=1.5)
+        ax.plot(xc, yc, 'o', ms=5, color='#F39C12', zorder=8)
+
+    y_fib = 2.8
+    for xpos, cval, singular, col, lbl in fibers:
+        if singular:
+            draw_node_schematic(ax3, xpos, y_fib)
+        else:
+            draw_torus_schematic(ax3, xpos, y_fib, color=col)
+        # línea vertical al eje
+        ax3.plot([xpos, xpos], [0.62, y_fib - 0.55], color=col,
+                 lw=0.7, ls=':', alpha=0.50)
+        ax3.plot(xpos, 0.5, 'o', color=col, ms=7, zorder=5)
+        ax3.text(xpos, 0.12, lbl, ha='center', fontsize=7.5,
+                 color=col, rotation=30)
+
+    # Etiquetas de género
+    for xpos, cval, singular, col, _ in fibers:
+        gtxt = 'nodo A₁\n(g→0)' if singular else 'g = 1'
+        ax3.text(xpos, y_fib + 0.58, gtxt, ha='center', fontsize=7,
+                 color=col, alpha=0.90)
+
+    # Nota sobre el espacio total
+    ax3.text(3.6, 5.0,
+             'Espacio total: $\\Gamma(H_{M1}) = \\{z = H_{M1}(x,y)\\} \\subset \\mathbb{A}^3$',
+             ha='center', fontsize=8.5, color='#CCCCCC',
+             bbox=dict(boxstyle='round,pad=0.35', fc='#12122A', ec='#334466', alpha=0.90))
+
+    ax3.text(3.6, 1.55,
+             'Fibra genérica: curva elíptica (g=1, toro)\n'
+             f'Fibras singulares: nodo A₁  ($c^*\\approx\\pm{CRIT_POS:.2f}$)\n'
+             'Fibras del juego: c=+1 y c=−1 (ambas lisas)',
+             ha='center', fontsize=8.2, color='#BBBBBB',
+             bbox=dict(boxstyle='round,pad=0.35', fc='#0A0A1A', ec='#333355', alpha=0.88))
+
+    # Colorbar
+    cbar_ax = fig.add_axes([0.965, 0.10, 0.012, 0.78])
+    sm = plt.cm.ScalarMappable(cmap=cmap_f, norm=norm_f)
+    sm.set_array([])
+    cb = fig.colorbar(sm, cax=cbar_ax)
+    cb.set_label('$c$', fontsize=10, color='#DDDDDD')
+    cb.ax.tick_params(colors='#AAAAAA')
+    cb.set_ticks([-2, CRIT_NEG, -1, 0, 1, CRIT_POS, 2])
+    cb.set_ticklabels(['-2', '$c_-^*$', '-1', '0', '+1', '$c_+^*$', '+2'])
+
+    fig.savefig(out_path, dpi=155, bbox_inches='tight')
+    plt.close(fig)
+    print(f'  Milnor family: {out_path}')
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main():
     os.makedirs(RES, exist_ok=True)
@@ -598,6 +808,7 @@ def main():
     fig_2d_blocks(stats, os.path.join(RES, 'varieties_2d_blocks.png'))
     fig_3d_surface(stats, os.path.join(RES, 'varieties_3d_surface.png'))
     fig_bond_evolution(stats, os.path.join(RES, 'varieties_bond_evolution.png'))
+    fig_milnor_family(os.path.join(RES, 'varieties_milnor_family.png'))
 
     print('\n  Listo.')
 
