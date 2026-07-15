@@ -33,12 +33,17 @@ def _support(expr: sp.Expr) -> List[str]:
 
 
 def _symmetries(expr: sp.Expr) -> List[str]:
+    _t = sp.Symbol('_tmp_')
+    # Negación simultánea: (x,y) → (-x,-y)
+    neg = expr.subs(_x, _t).subs(_y, -_y).subs(_t, -_x)
+    # Intercambio simultáneo: (x,y) → (y,x)
+    swp = expr.subs(_x, _t).subs(_y, _x).subs(_t, _y)
     syms = []
-    if sp.simplify(expr.subs([(_x,-_x),(_y,-_y)]) + expr) == 0:
+    if sp.simplify(neg + expr) == 0:
         syms.append("odd: H(-x,-y)=-H(x,y)")
-    if sp.simplify(expr.subs([(_x,-_x),(_y,-_y)]) - expr) == 0:
+    if sp.simplify(neg - expr) == 0:
         syms.append("even: H(-x,-y)=H(x,y)")
-    if sp.simplify(expr.subs([(_x,_y),(_y,_x)]) - expr) == 0:
+    if sp.simplify(swp - expr) == 0:
         syms.append("symmetric: H(x,y)=H(y,x)")
     return syms
 

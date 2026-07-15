@@ -10,6 +10,8 @@ quadratic    : a1*x + a2*y + b11*x² + b12*xy + b22*y²
 sparse_cubic : subconjunto aleatorio de monomios cúbicos
 odd_cubic    : H(-x,-y)=-H(x,y)  →  a1*x + a2*y + c112*x²y + c122*xy²
 h_m1         : H_M1 = x + 2y - xy² - x²y  (referencia Mercado & Jiménez)
+sym_cubic    : f(x,y)=f(y,x)  →  d*(x³+y³) + c*xy + e*(x²y+xy²)
+               Base armónica: Δf=0 ∀(x,y); referencia: d=1, c=-3, e=-3
 """
 
 import numpy as np
@@ -20,12 +22,16 @@ from typing import Dict, List, Tuple
 _x, _y = sp.symbols('x y', real=True)
 
 # ── Templates ──────────────────────────────────────────────────────────────────
+# sym_cubic usa combinaciones simétricas como monomios base:
+#   (x³+y³), xy, (x²y+xy²) → fuerza f(x,y)=f(y,x)
+#   La referencia d=1,c=-3,e=-3 además es armónica: Δf=0
 TEMPLATES = {
     "cubic_mixed": [_x, _y, _x**2, _x*_y, _y**2, _x**2*_y, _x*_y**2],
     "quadratic":   [_x, _y, _x**2, _x*_y, _y**2],
     "sparse_cubic":[_x, _y, _x**2*_y, _x*_y**2],
     "odd_cubic":   [_x, _y, _x**2*_y, _x*_y**2],   # paridad forzada
     "h_m1":        [_x, _y, _x**2*_y, _x*_y**2],   # coeficientes fijos
+    "sym_cubic":   [_x**3 + _y**3, _x*_y, _x**2*_y + _x*_y**2],  # simétrico
 }
 
 COEF_NAMES = {
@@ -34,6 +40,7 @@ COEF_NAMES = {
     "sparse_cubic":["a1","a2","c112","c122"],
     "odd_cubic":   ["a1","a2","c112","c122"],
     "h_m1":        ["a1","a2","c112","c122"],
+    "sym_cubic":   ["d","c","e"],
 }
 
 COEF_RANGES = {
@@ -42,9 +49,12 @@ COEF_RANGES = {
     "sparse_cubic":[(-3,3),(-3,3),(-1,1),(-1,1)],
     "odd_cubic":   [(-3,3),(-3,3),(-1,1),(-1,1)],
     "h_m1":        None,
+    "sym_cubic":   [(-2,2),(-4,4),(-4,4)],
 }
 
-H_M1_COEFS = {"a1": 1.0, "a2": 2.0, "c112": -1.0, "c122": -1.0}
+H_M1_COEFS         = {"a1": 1.0, "a2": 2.0, "c112": -1.0, "c122": -1.0}
+# Referencia armónica: Δf=0, f(x,y)=f(y,x), 2 nodos A₁ en (0,0) y (-½,-½)
+HARMONIC_CUBIC_COEFS = {"d": 1.0, "c": -3.0, "e": -3.0}
 
 
 class Hamiltonian:
@@ -83,6 +93,9 @@ def _sample_coefs(template: str, rng: np.random.Generator,
     """Muestrea coeficientes para una plantilla dada."""
     if template == "h_m1":
         return dict(H_M1_COEFS)
+    if template == "sym_cubic":
+        # Referencia fija si se pide explícitamente, aleatorio en otro caso
+        pass  # cae al código general abajo
 
     names  = COEF_NAMES[template]
     ranges = COEF_RANGES[template]
@@ -133,6 +146,8 @@ def generate_grid(template: str, steps: int, cfg: dict) -> List[Hamiltonian]:
 def reference_hamiltonians() -> List[Hamiltonian]:
     """Devuelve los Hamiltonianos de referencia del proyecto."""
     h_m1 = Hamiltonian("h_m1", H_M1_COEFS)
-    # Alvarado: H = xy  (grado 2, genus 0)
+    # Alvarado: H = xy  (grado 2, 1 nodo A₁ en origen)
     h_al = Hamiltonian("quadratic", {"a1":0,"a2":0,"b11":0,"b12":1,"b22":0})
-    return [h_m1, h_al]
+    # Armónico simétrico: x³+y³-3xy-3x²y-3xy²  (Δf=0, 2 nodos A₁, simétrico)
+    h_harm = Hamiltonian("sym_cubic", HARMONIC_CUBIC_COEFS)
+    return [h_m1, h_al, h_harm]
