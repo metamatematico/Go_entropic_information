@@ -258,57 +258,455 @@ def _write_summary_md(catalog: Catalog, cfg: dict, path: str):
         f.write("\n".join(lines))
 
 
-def _generate_figures(catalog: Catalog, cfg: dict):
-    """Genera visualizaciones para los top candidatos."""
+def _generate_figures(catalog: Catalog, cfg: dict, id_to_rank: dict = None):
+    """
+    Genera figuras detalladas (3 paneles) para los candidatos del frente Pareto 1.
+    Si id_to_rank es None, calcula el frente internamente.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D          # noqa: F401
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     from src.topology import plot_persistence_diagram
     import numpy as np
 
-    out_fig = HERE / cfg["output"].get("figures_dir","output/figures")
-    os.makedirs(out_fig, exist_ok=True)
-    top = catalog.top_n(cfg.get("output",{}).get("top_n",10))
+    out_fig = HERE / cfg["output"].get("figures_dir", "output/figures")
+    os.makedirs(out_fig / "frente_1", exist_ok=True)
 
-    for e in top[:5]:   # figuras solo para top 5
+    if id_to_rank is None:
+        id_to_rank, _ = _compute_pareto_ranks(catalog)
+
+    # Candidatos del frente 1 ordenados por score, máx 30
+    front1 = [e for e in catalog.entries
+               if e["filter"].get("passes") and id_to_rank.get(e["id"]) == 1]
+    front1 = sorted(front1, key=lambda e: -e["scores"].get("total", 0))[:30]
+    print(f"  Generando {len(front1)} figuras (frente Pareto 1)…")
+
+    L = cfg["analysis"].get("box_L", 2.0)
+    N = cfg["analysis"].get("grid_size", 150)
+
+    for e in front1:
         from src.families import Hamiltonian
-        h   = Hamiltonian(e["template"], e["coefficients"])
-        tda_r = compute_persistence(h, L=cfg["analysis"].get("box_L",2.0),
-                                    N=cfg["analysis"].get("grid_size",150))
+        h     = Hamiltonian(e["template"], e["coefficients"])
+        cpts  = e["algebraic"].get("critical_points_summary", [])
+        cvals = sorted(set(
+            p["c_val"] for p in cpts if p.get("c_val") is not None
+        ))
+        a1pts = [p for p in cpts if p.get("type") == "A1_node"]
 
-        fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
-        fig.suptitle(f"{e['id']}  —  {e['expression'][:55]}", fontsize=9)
-
-        # Mapa de calor H(x,y)
-        L  = cfg["analysis"].get("box_L", 2.0)
-        N  = cfg["analysis"].get("grid_size", 150)
         xs = np.linspace(-L, L, N)
         ys = np.linspace(-L, L, N)
         X, Y = np.meshgrid(xs, ys)
         Z = np.array(h(X, Y), dtype=float)
-        im = axes[0].contourf(X, Y, Z, levels=30, cmap="RdBu_r")
-        plt.colorbar(im, ax=axes[0])
-        axes[0].contour(X, Y, Z,
-                        levels=[p["c_val"] for p in
-                                e["algebraic"].get("critical_points_summary",[])
-                                if p.get("c_val") is not None],
-                        colors="orange", linewidths=1.2, linestyles="--")
-        cpts = e["algebraic"].get("critical_points_summary", [])
-        if cpts:
-            axes[0].scatter([p["x"] for p in cpts],
-                            [p["y"] for p in cpts],
-                            c="orange", s=60, zorder=5, marker="D")
-        axes[0].set_title("H(x,y) — mapa de energía", fontsize=8)
-        axes[0].set_xlabel("s₀"); axes[0].set_ylabel("s₁")
+        tda_r = compute_persistence(h, L=L, N=N,
+                                    tau=cfg["tda"].get("tau", 0.15),
+                                    n_thresh=cfg["tda"].get("n_thresholds", 80))
 
-        # Diagrama de persistencia
-        plot_persistence_diagram(tda_r,
-                                 title=f"Persistencia — score={e['scores']['total']:.3f}",
-                                 ax=axes[1])
+        fig = plt.figure(figsize=(17, 5))
+        fig.patch.set_facecolor("#0A0A14")
+        expr_str = e["expression"][:60]
+        fig.suptitle(
+            f"{e['id']}  ·  score={e['scores']['total']:.4f}  ·  {expr_str}",
+            fontsize=8.5, color="white", y=1.01
+        )
 
-        plt.tight_layout()
-        fig.savefig(out_fig / f"{e['id']}.png", dpi=110)
+        # ── Panel 1: mapa 2D de energía + fibras críticas ──────────────────────
+        ax2d = fig.add_subplot(1, 3, 1)
+        ax2d.set_facecolor("#0A0A14")
+        im = ax2d.contourf(X, Y, Z, levels=40, cmap="RdBu_r", alpha=0.85)
+        cb = plt.colorbar(im, ax=ax2d, pad=0.02)
+        cb.ax.yaxis.set_tick_params(color="white", labelcolor="white")
+
+        # fibras críticas (líneas de nivel en c*)
+        if cvals:
+            ax2d.contour(X, Y, Z, levels=cvals,
+                         colors="#F59B0A", linewidths=1.5, linestyles="--")
+        # fibras de juego c = ±1
+        for cv, col in [(-1., "#4488FF"), (1., "#FF6644")]:
+            ax2d.contour(X, Y, Z, levels=[cv], colors=[col],
+                         linewidths=1.2, linestyles="-")
+
+        # puntos críticos: A₁ como diamantes naranjas, resto como círculos
+        for p in cpts:
+            mk = "D" if p.get("type") == "A1_node" else "o"
+            ax2d.scatter(p["x"], p["y"], s=90, c="#F59B0A",
+                         marker=mk, edgecolors="white", linewidths=0.8,
+                         zorder=10)
+            ax2d.annotate(
+                f"c*={p.get('c_val',0):.3f}",
+                (p["x"], p["y"]),
+                textcoords="offset points", xytext=(6, 4),
+                fontsize=6, color="#F59B0A"
+            )
+
+        # pares Go válidos
+        GO_PAIRS = [(-1,-1),(-1,0),(-1,1),(1,-1),(1,0),(1,1)]
+        gx = [p[0] for p in GO_PAIRS]
+        gy = [p[1] for p in GO_PAIRS]
+        ax2d.scatter(gx, gy, s=55, c="white", marker="^",
+                     edgecolors="#AAAAAA", linewidths=0.6, zorder=9, alpha=0.8)
+
+        ax2d.set_xlim(-L, L); ax2d.set_ylim(-L, L)
+        ax2d.set_title("H(x,y)  —  fibras y puntos críticos", fontsize=8,
+                        color="white", pad=4)
+        ax2d.set_xlabel("s₀", color="white", fontsize=8)
+        ax2d.set_ylabel("s₁", color="white", fontsize=8)
+        ax2d.tick_params(colors="white", labelsize=7)
+        for spine in ax2d.spines.values():
+            spine.set_edgecolor("#444")
+
+        # ── Panel 2: variedad 3D Γ(H) con puntos críticos A₁ ──────────────────
+        ax3d = fig.add_subplot(1, 3, 2, projection="3d")
+        ax3d.set_facecolor("#0A0A14")
+        ax3d.xaxis.pane.fill = False
+        ax3d.yaxis.pane.fill = False
+        ax3d.zaxis.pane.fill = False
+        for pane in [ax3d.xaxis.pane, ax3d.yaxis.pane, ax3d.zaxis.pane]:
+            pane.set_edgecolor("#222")
+
+        zmin, zmax = float(Z.min()), float(Z.max())
+        zc = np.clip(Z, zmin, zmax)
+        # superficie
+        ax3d.plot_surface(X, Y, zc, cmap="RdBu_r",
+                          alpha=0.82, linewidth=0, antialiased=True,
+                          rcount=60, ccount=60)
+
+        # fibras críticas sobre la variedad
+        for cv in cvals:
+            ax3d.contour(X, Y, zc, levels=[cv], offset=cv,
+                         colors="#F59B0A", linewidths=1.8, zdir="z")
+
+        # fibras de juego
+        for cv, col in [(-1., "#4488FF"), (1., "#FF6644")]:
+            if zmin < cv < zmax:
+                ax3d.contour(X, Y, zc, levels=[cv], offset=cv,
+                             colors=[col], linewidths=1.4, zdir="z")
+
+        # puntos críticos A₁ sobre la variedad
+        for p in a1pts:
+            px, py = p["x"], p["y"]
+            pz = float(h(px, py))
+            ax3d.scatter([px], [py], [pz], s=200, c="#F59B0A",
+                         marker="*", edgecolors="white", linewidths=0.8,
+                         depthshade=False, zorder=20)
+            ax3d.text(px, py, pz + (zmax - zmin) * 0.04,
+                      f"A₁\nc*={pz:.3f}",
+                      fontsize=6, color="#F59B0A", ha="center")
+
+        ax3d.set_title("Γ(H) = {z=H(x,y)}  —  nodos A₁", fontsize=8,
+                        color="white", pad=2)
+        ax3d.set_xlabel("s₀", fontsize=7, color="white")
+        ax3d.set_ylabel("s₁", fontsize=7, color="white")
+        ax3d.set_zlabel("H", fontsize=7, color="white")
+        ax3d.tick_params(colors="white", labelsize=6)
+        ax3d.view_init(elev=28, azim=-55)
+
+        # ── Panel 3: diagrama de persistencia ──────────────────────────────────
+        ax_pd = fig.add_subplot(1, 3, 3)
+        ax_pd.set_facecolor("#0A0A14")
+        plot_persistence_diagram(
+            tda_r,
+            title=f"Persistencia  H₁_max={tda_r['max_h1_lifetime']:.3f}",
+            ax=ax_pd
+        )
+        ax_pd.set_facecolor("#0A0A14")
+        ax_pd.tick_params(colors="white", labelsize=7)
+        ax_pd.xaxis.label.set_color("white")
+        ax_pd.yaxis.label.set_color("white")
+        ax_pd.title.set_color("white")
+        for spine in ax_pd.spines.values():
+            spine.set_edgecolor("#444")
+        ax_pd.plot([zmin, zmax], [zmin, zmax], color="#555", lw=0.6)
+
+        fig.tight_layout(pad=1.2)
+        out_path = out_fig / "frente_1" / f"{e['id']}.png"
+        fig.savefig(out_path, dpi=130, facecolor=fig.get_facecolor(),
+                    bbox_inches="tight")
         plt.close(fig)
+        print(f"  {out_path.parent.name}/{out_path.name}")
+
+
+# ── Análisis de orden parcial (Pareto) ────────────────────────────────────────
+
+def _compute_pareto_ranks(catalog: Catalog):
+    """
+    Calcula rangos Pareto sobre candidatos que pasan el filtro.
+    Criterios (todos higher-is-better):
+      H₁_max, robustez, well_depth, n_nodes_A1
+    Devuelve: (dict id→rank, list entries_que_pasan)
+    """
+    entries = [e for e in catalog.entries if e["filter"].get("passes")]
+
+    def vals(e):
+        dc = e["algebraic"].get("min_crit_separation", 0) or 0
+        return [
+            float(e["tda"].get("max_h1_lifetime", 0) or 0),
+            float(e["scores"].get("robustness", 0) or 0),
+            float(e["tda"].get("well_depth", 0) or 0),
+            int(e["algebraic"].get("n_nodes_A1", 0) or 0),
+        ]
+
+    V = [vals(e) for e in entries]
+    n = len(entries)
+
+    def dominates(i, j):
+        return all(V[i][k] >= V[j][k] for k in range(4)) and \
+               any(V[i][k] >  V[j][k] for k in range(4))
+
+    id_to_rank = {}
+    remaining  = list(range(n))
+    rank = 1
+    while remaining:
+        front = [i for i in remaining
+                 if not any(dominates(j, i) for j in remaining if j != i)]
+        for i in front:
+            id_to_rank[entries[i]["id"]] = rank
+        remaining = [i for i in remaining if i not in set(front)]
+        rank += 1
+
+    return id_to_rank, entries
+
+
+def _generate_pareto_overview(catalog: Catalog, cfg: dict):
+    """
+    Figura panorámica: 6 subplots que muestran los 300 candidatos
+    ordenados por rango Pareto (frente 1 = no dominado por nadie).
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec as mgridspec
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
+    import numpy as np
+
+    out_dir = HERE / cfg["output"].get("figures_dir", "output/figures")
+    os.makedirs(out_dir, exist_ok=True)
+
+    id_to_rank, entries = _compute_pareto_ranks(catalog)
+    if not entries:
+        print("  Sin candidatos para Pareto.")
+        return id_to_rank
+
+    # Guardar frentes en JSON
+    fronts_by_rank = {}
+    for eid, r in id_to_rank.items():
+        fronts_by_rank.setdefault(str(r), []).append(eid)
+    with open(out_dir / "pareto_fronts.json", "w") as f:
+        json.dump(fronts_by_rank, f, indent=2)
+    n_fronts = max(id_to_rank.values())
+    n_front1 = sum(1 for r in id_to_rank.values() if r == 1)
+    print(f"  Pareto: {n_fronts} frentes · {n_front1} en frente 1")
+
+    # Arrays de métricas
+    h1s  = np.array([e["tda"].get("max_h1_lifetime", 0) or 0  for e in entries])
+    robs = np.array([e["scores"].get("robustness", 0) or 0     for e in entries])
+    wds  = np.array([e["tda"].get("well_depth", 0) or 0        for e in entries])
+    na1s = np.array([e["algebraic"].get("n_nodes_A1", 0) or 0  for e in entries], dtype=float)
+    dcs_raw = [e["algebraic"].get("min_crit_separation", 0) or 0 for e in entries]
+    dcs  = np.array([min(float(v), 80.) for v in dcs_raw])
+    tots = np.array([e["scores"].get("total", 0) or 0          for e in entries])
+    ids  = [e["id"] for e in entries]
+    rnks = np.array([id_to_rank[e["id"]] for e in entries])
+
+    norm  = Normalize(vmin=1, vmax=n_fronts)
+    cmap  = plt.cm.plasma_r
+    cols  = cmap(norm(rnks))
+    sizes = 18 + h1s * 180
+
+    f1_mask = rnks == 1
+
+    fig = plt.figure(figsize=(22, 14), facecolor="#080810")
+    fig.suptitle(
+        f"Orden parcial Pareto  ·  {len(entries)} candidatos  ·  "
+        f"{n_front1} en frente 1  ·  {n_fronts} frentes",
+        color="white", fontsize=13, y=0.995)
+
+    gs = mgridspec.GridSpec(2, 3, figure=fig,
+                            hspace=0.38, wspace=0.30,
+                            left=0.06, right=0.91, top=0.93, bottom=0.06)
+
+    def _ax(pos, xlabel, ylabel, title):
+        ax = fig.add_subplot(gs[pos])
+        ax.set_facecolor("#0D0D1A")
+        ax.set_xlabel(xlabel, color="#AAA", fontsize=9)
+        ax.set_ylabel(ylabel, color="#AAA", fontsize=9)
+        ax.set_title(title, color="white", fontsize=10, pad=5)
+        ax.tick_params(colors="#777", labelsize=8)
+        for sp in ax.spines.values(): sp.set_edgecolor("#2A2A3A")
+        return ax
+
+    def _scatter(ax, x, y, annotate_f1=True):
+        ax.scatter(x[~f1_mask], y[~f1_mask], c=cols[~f1_mask],
+                   s=sizes[~f1_mask], alpha=0.55, edgecolors="none", zorder=2)
+        ax.scatter(x[f1_mask], y[f1_mask], c=cols[f1_mask],
+                   s=sizes[f1_mask] * 2.2, edgecolors="white",
+                   linewidths=0.7, zorder=5)
+        if annotate_f1:
+            for xi, yi, eid in zip(x[f1_mask], y[f1_mask],
+                                   np.array(ids)[f1_mask]):
+                ax.annotate(eid, (xi, yi), xytext=(3, 3),
+                            textcoords="offset points",
+                            fontsize=5, color="#FFD700", alpha=0.95)
+
+    # — Plot 1: H₁ vs Δc ——————————————————————————————————————————————————————
+    ax1 = _ax((0,0), "Δc (sep. entre c*)", "H₁_max",
+               "H₁_max vs Δc  [★ frente 1]")
+    _scatter(ax1, dcs, h1s)
+
+    # — Plot 2: H₁ vs Robustez ————————————————————————————————————————————————
+    ax2 = _ax((0,1), "Robustez", "H₁_max",
+               "H₁_max vs Robustez")
+    _scatter(ax2, robs, h1s, annotate_f1=False)
+
+    # — Plot 3: ΔE vs nodos A₁ (jitter en x) ———————————————————————————————
+    ax3 = _ax((0,2), "Nodos A₁", "ΔE (well depth)",
+               "ΔE vs Nodos A₁")
+    jitter = np.random.default_rng(0).uniform(-0.12, 0.12, len(na1s))
+    _scatter(ax3, na1s + jitter, wds, annotate_f1=False)
+    ax3.set_xticks([0, 1, 2, 3, 4])
+
+    # — Plot 4: Score total vs H₁ ——————————————————————————————————————————————
+    ax4 = _ax((1,0), "Score total", "H₁_max",
+               "Score vs H₁  (color = rango Pareto)")
+    _scatter(ax4, tots, h1s, annotate_f1=False)
+
+    # — Plot 5: distribución de candidatos por frente —————————————————————————
+    ax5 = _ax((1,1), "Rango Pareto (frente)", "# candidatos",
+               "Distribución por frente Pareto")
+    counts = {}
+    for r in rnks:
+        counts[int(r)] = counts.get(int(r), 0) + 1
+    xs_b = sorted(counts.keys())
+    ys_b = [counts[x] for x in xs_b]
+    bc   = [cmap(norm(x)) for x in xs_b]
+    bars = ax5.bar(xs_b, ys_b, color=bc, edgecolor="#1A1A2A", linewidth=0.5)
+    for bar, cnt in zip(bars, ys_b):
+        ax5.text(bar.get_x() + bar.get_width()/2, cnt + 0.4, str(cnt),
+                 ha="center", va="bottom", color="white", fontsize=7)
+    ax5.tick_params(colors="#777", labelsize=8)
+
+    # — Plot 6: coordenadas paralelas (front 1 + muestra del resto) ————————
+    ax6 = _ax((1,2), "", "Valor normalizado [0,1]",
+               "Coordenadas paralelas  (frente 1 brillante)")
+    crit_labels = ["H₁_max", "Robustez", "ΔE", "Nodos A₁"]
+    raw = np.column_stack([h1s, robs, wds, na1s])
+    lo, hi = raw.min(0), raw.max(0)
+    hi = np.where(hi == lo, lo + 1e-9, hi)
+    norm_data = (raw - lo) / (hi - lo)
+
+    sample_rest = np.where(~f1_mask)[0]
+    rng = np.random.default_rng(7)
+    if len(sample_rest) > 50:
+        sample_rest = rng.choice(sample_rest, 50, replace=False)
+    for idx in sample_rest:
+        ax6.plot(range(4), norm_data[idx], color=cols[idx], alpha=0.20, lw=0.6)
+    for idx in np.where(f1_mask)[0]:
+        ax6.plot(range(4), norm_data[idx], color=cols[idx], alpha=0.90, lw=1.6)
+    ax6.set_xticks(range(4))
+    ax6.set_xticklabels(crit_labels, color="white", fontsize=8)
+    ax6.set_yticks([0, 0.5, 1.0])
+    ax6.set_yticklabels(["mín", "med", "máx"], color="#777", fontsize=7)
+    ax6.set_xlim(-0.15, 3.15); ax6.set_ylim(-0.05, 1.05)
+    for xi in range(4):
+        ax6.axvline(xi, color="#2A2A3A", lw=0.8)
+
+    # Colorbar compartida
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cax = fig.add_axes([0.925, 0.12, 0.018, 0.76])
+    cb  = fig.colorbar(sm, cax=cax)
+    cb.set_label("Rango Pareto", color="white", fontsize=9)
+    cb.ax.yaxis.set_tick_params(color="white", labelcolor="white")
+
+    out_path = out_dir / "pareto_overview.png"
+    fig.savefig(out_path, dpi=130, facecolor=fig.get_facecolor(),
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Panorámica Pareto → {out_path.name}")
+    return id_to_rank
+
+
+def _generate_atlas(catalog: Catalog, cfg: dict, id_to_rank: dict):
+    """
+    Atlas: grid de todos los candidatos como mini-heatmaps,
+    ordenados por rango Pareto y luego por score total.
+    Borde dorado = frente 1, plateado = frente 2, bronce = frente 3.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from src.families import Hamiltonian as _Ham
+
+    out_dir = HERE / cfg["output"].get("figures_dir", "output/figures")
+    os.makedirs(out_dir, exist_ok=True)
+
+    entries = [e for e in catalog.entries if e["filter"].get("passes")]
+    entries = sorted(entries,
+                     key=lambda e: (id_to_rank.get(e["id"], 999),
+                                    -e["scores"].get("total", 0)))
+
+    L  = cfg["analysis"].get("box_L", 2.0)
+    N  = 48
+    xs = np.linspace(-L, L, N)
+    ys = np.linspace(-L, L, N)
+    X, Y = np.meshgrid(xs, ys)
+
+    ncols   = 20
+    nrows   = (len(entries) + ncols - 1) // ncols
+    ts      = 1.15   # pulgadas por thumbnail
+    fig, axes = plt.subplots(nrows, ncols,
+                              figsize=(ncols * ts, nrows * ts + 0.8))
+    fig.patch.set_facecolor("#060610")
+    fig.suptitle(
+        f"Atlas — {len(entries)} candidatos · orden Pareto (izq→der, arriba=frente 1)",
+        color="white", fontsize=11, y=1.002)
+
+    border_col  = {1: "#FFD700", 2: "#C0C0C0", 3: "#CD7F32"}
+    border_lw   = {1: 2.2,       2: 1.6,       3: 1.2}
+
+    for idx, e in enumerate(entries):
+        row, col = divmod(idx, ncols)
+        ax = axes[row, col] if nrows > 1 else axes[col]
+        ax.set_facecolor("#0A0A14")
+        ax.set_xticks([]); ax.set_yticks([])
+
+        try:
+            h = _Ham(e["template"], e["coefficients"])
+            Z = np.array(h(X, Y), dtype=float)
+            ax.contourf(X, Y, Z, levels=10, cmap="RdBu_r", alpha=0.9)
+            for p in e["algebraic"].get("critical_points_summary", []):
+                if p.get("type") == "A1_node":
+                    ax.scatter(p["x"], p["y"], s=10, c="#F59B0A",
+                               marker="D", zorder=5, linewidths=0)
+        except Exception:
+            pass
+
+        rank = id_to_rank.get(e["id"], 99)
+        bc   = border_col.get(rank, "#1A1A2A")
+        blw  = border_lw.get(rank, 0.4)
+        for sp in ax.spines.values():
+            sp.set_edgecolor(bc); sp.set_linewidth(blw)
+
+        score  = e["scores"].get("total", 0)
+        tcol   = "white" if rank <= 3 else "#555"
+        tfsize = 4.2 if rank <= 3 else 3.8
+        ax.set_title(f"{e['id']}  #{rank}\n{score:.3f}",
+                     fontsize=tfsize, color=tcol, pad=1.2)
+
+    for idx in range(len(entries), nrows * ncols):
+        row, col = divmod(idx, ncols)
+        ax = axes[row, col] if nrows > 1 else axes[col]
+        ax.set_visible(False)
+
+    fig.tight_layout(pad=0.25, h_pad=0.6, w_pad=0.3)
+    out_path = out_dir / "atlas_candidatos.png"
+    fig.savefig(out_path, dpi=115, facecolor=fig.get_facecolor(),
+                bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Atlas → {out_path.name}  ({len(entries)} candidatos)")
 
 
 def main():
@@ -328,44 +726,52 @@ def main():
     parser.add_argument("--top",      type=int, default=None,
                         help="Solo imprime resumen de los mejores N")
     parser.add_argument("--figures",  action="store_true",
-                        help="Genera figuras para el top N")
+                        help="Genera figuras detalladas (3 paneles) para frente Pareto 1")
+    parser.add_argument("--pareto",   action="store_true",
+                        help="Genera panorámica Pareto y atlas de todos los candidatos")
     args = parser.parse_args()
 
     cfg = load_cfg(args.config)
 
-    # Overrides desde CLI
     fam_cfg = cfg.setdefault("family", {})
-    if args.template: fam_cfg["template"]   = args.template
-    if args.n:        fam_cfg["n_samples"]  = args.n
+    if args.template: fam_cfg["template"]    = args.template
+    if args.n:        fam_cfg["n_samples"]   = args.n
     if args.mode:     fam_cfg["sample_mode"] = args.mode
 
-    cat_path = str(HERE / cfg["output"].get("catalog_path","output/catalog.json"))
+    cat_path = str(HERE / cfg["output"].get("catalog_path", "output/catalog.json"))
 
-    if args.top:
+    if args.top or args.pareto or args.figures:
         catalog = Catalog(cat_path)
-        cfg["output"]["top_n"] = args.top
-        _print_summary(catalog, cfg)
+        if args.top:
+            cfg["output"]["top_n"] = args.top
+            _print_summary(catalog, cfg)
+        if args.pareto:
+            id_to_rank = _generate_pareto_overview(catalog, cfg)
+            _generate_atlas(catalog, cfg, id_to_rank)
         if args.figures:
-            _generate_figures(catalog, cfg)
+            # Figuras detalladas para frente 1 (o top 20 si front1 > 20)
+            id_to_rank_f, _ = _compute_pareto_ranks(catalog)
+            _generate_figures(catalog, cfg, id_to_rank=id_to_rank_f)
         return
 
     templates = list(TEMPLATES.keys()) if args.all_templates \
                 else [fam_cfg.get("template", "cubic_mixed")]
 
     for tmpl in templates:
-        print(f"\n{'═'*60}")
+        print(f"\n{'='*60}")
         print(f"  TEMPLATE: {tmpl}")
-        print(f"{'═'*60}")
+        print(f"{'='*60}")
         t0 = time.time()
         run_pipeline(cfg, tmpl,
                      fam_cfg.get("n_samples", 300),
                      fam_cfg.get("sample_mode", "random"))
         print(f"  Tiempo total: {time.time()-t0:.1f} s")
 
-    if args.figures:
+    if args.figures or args.pareto:
         catalog = Catalog(cat_path)
-        _generate_figures(catalog, cfg)
-        print("  Figuras generadas.")
+        id_to_rank = _generate_pareto_overview(catalog, cfg)
+        _generate_atlas(catalog, cfg, id_to_rank)
+        _generate_figures(catalog, cfg, id_to_rank=id_to_rank)
 
 
 if __name__ == "__main__":
