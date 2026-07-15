@@ -115,13 +115,28 @@ Go_entropic_information/
     ├── 06_animaciones/             # GIF animations of real games
     │   └── *.gif
     │
-    ├── interactive/
-    │   └── feature_explorer.html   # Interactive feature dashboard
-    │
-    └── reports/
-        ├── reporte_completo.pdf
-        ├── libro_entropia_go.pdf
-        └── *.txt
+    └── interactive/
+        └── feature_explorer.html   # Interactive feature dashboard
+│
+└── experiments/
+    └── 06_hamiltonian_families/    # Búsqueda y clasificación de Hamiltonianos cúbicos
+        ├── pipeline.py             # Pipeline completo: generar, analizar, visualizar
+        ├── src/
+        │   ├── hamiltonians.py     # Familias de polinomios (cubic_mixed, h_m1, …)
+        │   ├── algebra.py          # Puntos críticos, nodos A₁, número de Milnor
+        │   ├── topology.py         # TDA: H₀/H₁ con gudhi CubicalComplex
+        │   └── robustness.py       # Perturbaciones ±5%, fracción de estabilidad
+        └── output/
+            ├── catalog.json        # 305 Hamiltonianos + métricas completas
+            ├── figures/
+            │   ├── pareto_overview.png      # Panorama de los 4 criterios Pareto
+            │   ├── atlas_candidatos.png     # Cuadrícula 15×20 de las 296 variedades (2D)
+            │   ├── atlas_candidatos_3d.png  # Idem con superficies 3D
+            │   ├── hasse_diagram.png        # Diagrama de Hasse del orden parcial (2D)
+            │   └── hasse_diagram_3d.png     # Idem con nodos como superficies 3D
+            └── reports/
+                ├── executive_summary.md     # Resumen ejecutivo + top 5
+                └── hasse_diagram_report.md  # Informe completo: matemática + Go
 ```
 
 ---
@@ -163,6 +178,26 @@ python compare_per_bond.py
 # → results/bond_distribution.png
 ```
 
+### Experiment 06 — Hamiltonian family search
+```bash
+cd experiments/06_hamiltonian_families
+
+# 1. Generate catalog (300 cubic_mixed + reference Hamiltonians)
+python pipeline.py --generate --n 300
+
+# 2. Pareto analysis + all figures
+python pipeline.py --pareto
+# → output/figures/pareto_overview.png
+# → output/figures/atlas_candidatos.png
+# → output/figures/atlas_candidatos_3d.png
+# → output/figures/hasse_diagram.png
+# → output/figures/hasse_diagram_3d.png
+
+# 3. Individual Hamiltonians (Frente 1)
+python pipeline.py --frente1
+# → output/figures/frente_1/H_00XX.png  (one per candidate)
+```
+
 ---
 
 ## Results overview
@@ -176,6 +211,38 @@ python compare_per_bond.py
 | `*_entropy_compare.gif` | Game animation: S_Shannon, S_Boltzmann, T_eff live |
 | `*_M1.gif` | Game animation: board + M1 energy overlay |
 | `dashboard_M1/M2.png` | Full energy and entropy dashboard per model |
+
+---
+
+## Experiment 06 — Hamiltonian families & Pareto order
+
+Systematic search over 300 cubic polynomial Hamiltonians H(x,y), evaluated with 4 criteria:
+
+| Criterion | Symbol | What it measures |
+|-----------|--------|-----------------|
+| Topological lifetime H₁ | H₁_max | Persistent 1-cycles in Milnor fibration — tactical complexity |
+| Robustness | Rob | Fraction of ±5% perturbations that preserve the candidate's rank |
+| Energy range | ΔE | H(max) − H(min) on [−2,2]² — contrast between extreme positions |
+| A₁ nodes | n_A₁ | Saddle critical points where fiber H⁻¹(c) changes topology |
+
+**296 candidates** passed the filter (97%). Pareto peeling produced **148 fronts**.
+
+**Frente 1 — 4 Pareto-optimal Hamiltonians (mutually incomparable):**
+
+| ID | H₁_max | Rob | ΔE | A₁ |
+|----|:------:|:---:|:--:|:--:|
+| H_0094 | **0.188** | 1.0 | 31.3 | 1 |
+| H_0113 | 0.173 | 1.0 | 35.4 | 1 |
+| H_0045 | 0.166 | 1.0 | **43.4** | **2** |
+| H_0042 | 0.120 | 1.0 | 33.5 | **2** |
+
+**Mathematical structure (Hasse diagram):**
+- The partial order is a finite poset with no top or bottom element (no supremum, no infimum)
+- Not a lattice: joins fail for pairs in Frente 1
+- By Dilworth's theorem: max antichain = 4 → minimum chain cover = **4 chains**
+- 475 cover relations visualized in `hasse_diagram.png`
+
+See [`experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md`](experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md) for the full mathematical and strategic interpretation.
 
 ---
 
