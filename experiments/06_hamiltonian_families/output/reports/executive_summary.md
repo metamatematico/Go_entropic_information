@@ -1,7 +1,7 @@
 # La familia de polinomios Go y sus variedades asociadas
 ## Informe ejecutivo — Fibración de Milnor en estrategia de Go
 
-*Generado automáticamente · 2026-07-14*
+*Generado automáticamente · 2026-07-15*
 *Catálogo: 305 Hamiltonianos (5 referencias + 300 candidatos) · 296 pasan el filtro*
 
 ---
@@ -19,11 +19,11 @@ Plantillas exploradas:
 | Total analizados     | 305  |
 | Pasan el filtro      | 296   |
 | Tasa de éxito        | 97.0 % |
-| Top candidatos       | 10   |
+| Top candidatos       | 5   |
 
 ---
 
-## Top 10 candidatos
+## Top 5 candidatos
 
 | ID | Template | Expresión | A₁ | Δc | ΔE | Rob. | Mejora | p-val | Score |
 |---|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -32,11 +32,6 @@ Plantillas exploradas:
 | H_0113 | cubic_mixed | `-0.778741064875593*x**2*y - 2.94444130` | 1 | 22.326 | 35.4 | 1.000 | +0.0000 | — | **0.4559** |
 | H_0045 | cubic_mixed | `0.849683738036124*x**2*y - 2.389968582` | 2 | 13.381 | 43.4 | 1.000 | +0.0000 | — | **0.4544** |
 | H_0275 | cubic_mixed | `0.697584226272177*x**2*y - 2.670390064` | 1 | 20.716 | 33.5 | 1.000 | +0.0000 | — | **0.4540** |
-| H_0168 | cubic_mixed | `-0.692948955890772*x**2*y - 2.13654782` | 1 | 8.888 | 29.3 | 1.000 | +0.0000 | — | **0.4213** |
-| H_0042 | cubic_mixed | `-0.650717058128295*x**2*y - 2.30705961` | 2 | 5.229 | 50.9 | 1.000 | +0.0000 | — | **0.4171** |
-| H_0104 | cubic_mixed | `0.122978788828769*x**2*y - 2.067350615` | 1 | 4.593 | 26.2 | 1.000 | +0.0000 | — | **0.4126** |
-| H_0222 | cubic_mixed | `-0.745447603341922*x**2*y - 2.11544427` | 2 | 2.430 | 25.7 | 1.000 | +0.0000 | — | **0.4113** |
-| H_0301 | cubic_mixed | `0.349625504811739*x**2*y - 1.798899416` | 0 | ∞ | 31.5 | 1.000 | +0.0000 | — | **0.4074** |
 
 > **A₁**: nodos A₁ detectados · **Δc**: separación mínima entre c* ·
 > **ΔE**: rango energético en [−2,2]² · **Rob.**: fracción de perturbaciones ±5% estables
