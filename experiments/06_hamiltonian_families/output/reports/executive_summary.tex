@@ -295,8 +295,7 @@ Tres miembros especiales fijan el marco de comparaci\'on:
   $H_{M1}$
     & \texttt{sparse\_cubic}
     & $x + 2y - xy^2 - x^2y$
-    & Modelo asim\'etrico con vac\'io activo; base del paper de josekis
-      (Jim\'enez \& Sesma, 2025) \\
+    & Modelo asim\'etrico con vac\'io activo; Mercado \& Jim\'enez \\
   Alvarado
     & \texttt{quadratic}
     & $xy$
@@ -450,6 +449,49 @@ $\;=\; 0.45 \times \mathrm{TDA}
     & Resoluci\'on entre reg\'imenes estrat\'egicos \\
 \end{tabularx}
 \end{center}
+
+% =============================================================================
+\section{Consistencia topol\'ogica vs.\ correcci\'on estrat\'egica}
+
+Un punto esencial sobre la interpretaci\'on de estos invariantes:
+
+\begin{tcolorbox}[quotebox]
+  La topolog\'ia de la fibra \textbf{no} dice qu\'e jugadas de Go son
+  objetivamente buenas. Dice qu\'e Hamiltonianos son \textbf{consistentes}
+  en sus preferencias a trav\'es del rango de temperatura estrat\'egico.
+\end{tcolorbox}
+
+Al variar la temperatura de $T=\infty$ a $T=0$, el sistema recorre el
+intervalo de energ\'ias $[E_{\min},\, E_{\max}]$ sobre los 6 pares Go.
+Un \textbf{nodo $A_1$ dentro de ese intervalo} produce una transici\'on de fase:
+el par m\'as favorecido puede cambiar abruptamente, y el modelo pierde consistencia.
+Un \textbf{nodo $A_1$ fuera del intervalo} (con $c^*<E_{\min}$) garantiza que
+la preferencia var\'ia suavemente de manera mon\'otona --- el modelo es predecible.
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{4cm}X}
+  \TH{Nodo $A_1$ en relaci\'on a $[E_{\min},\,E_{\max}]$}
+    & \TH{Efecto sobre la estrategia} \\[1pt]
+  Fuera, $c^* < E_{\min}$
+    & Preferencia suave y mon\'otona con $T$.
+      Los 6 pares Go est\'an en una sola zona topol\'ogica estable.
+      Modelo \textbf{consistente}. \\
+  Dentro, $c^* \in [E_{\min},\,E_{\max}]$
+    & Transici\'on de fase estrat\'egica: el par favorecido puede cambiar
+      bruscamente. Modelo \textbf{inconsistente} en ese rango. \\
+\end{tabularx}
+\end{center}
+
+\medskip
+Los candidatos del \textbf{Frente~1} tienen todos sus nodos $A_1$
+\emph{muy por debajo} de $E_{\min}$: el oval topol\'ogico que contiene
+los 6 pares Go nunca cruza un valor cr\'itico.
+La persistencia $H_1>0$ es el certificado cuantitativo de esta consistencia;
+la robustez $=1.0$ garantiza que no depende de coeficientes exactos.
+Los modelos de frentes bajos fallan porque alguno de sus nodos $A_1$
+cae dentro del rango Go, introduciendo una inconsistencia t\'ermica.
 
 \vfill
 \noindent{\color{cRule}\hrule height 0.5pt}\vspace{4pt}

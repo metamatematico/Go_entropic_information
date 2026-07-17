@@ -72,7 +72,7 @@ Tres miembros especiales fijan el marco de comparación:
 
 | ID | Expresión | Plantilla | Por qué es referencia |
 |----|-----------|-----------|----------------------|
-| H_M1 | x + 2y − xy² − x²y | sparse_cubic | Modelo asimétrico con vacío activo; derivado del paper de josekis (Jiménez & Sesma, 2025) |
+| H_M1 | x + 2y − xy² − x²y | sparse_cubic | Modelo asimétrico con vacío activo; Mercado & Jiménez |
 | Alvarado | xy | quadratic | Modelo simétrico canónico con vacío invisible; Atomic-Go (Rojas-Domínguez et al., 2019) |
 | Armónico | x³+y³ − 3xy − 3(x²y+xy²) | sym_cubic | Función armónica (Δf=0) y simétrica f(x,y)=f(y,x); 2 nodos A₁ |
 
@@ -142,6 +142,22 @@ Un candidato pasa si cumple **al menos 2 de 3**:
 | Genus g de fibra   | g=(d−1)(d−2)/2; cúbico → g=1 (toro)    | Tipo topológico de cada estado   |
 | c* (valor crítico) | H(punto crítico)                        | Umbral de cambio topológico      |
 | Separación Δc      | min|c*ᵢ − c*ⱼ|                          | Resolución entre regímenes       |
+
+---
+
+## Consistencia topológica vs. corrección estratégica
+
+> **La topología de la fibra no dice qué jugadas de Go son objetivamente buenas.  
+> Dice qué Hamiltonianos son consistentes en sus preferencias estratégicas a través del rango de temperatura.**
+
+Al variar la temperatura de T=∞ a T=0, el sistema recorre el intervalo [E_min, E_max] sobre los 6 pares Go. Un **nodo A₁ dentro de ese intervalo** produce una transición de fase: el par más favorecido puede cambiar abruptamente. Un **nodo A₁ fuera del intervalo** (c* < E_min) garantiza que la preferencia varía suavemente — el modelo es predecible.
+
+| Nodo A₁ respecto a [E_min, E_max] | Efecto |
+|---|---|
+| c* < E_min (fuera) | Preferencia monótona y suave. Modelo **consistente**. |
+| c* ∈ [E_min, E_max] (dentro) | Transición de fase estratégica. Modelo **inconsistente**. |
+
+Los candidatos del **Frente 1** tienen todos sus nodos A₁ con c* ≪ E_min: el oval topológico que contiene los 6 pares Go nunca cruza un valor crítico. La persistencia H₁ > 0 certifica esta consistencia; robustez = 1.0 garantiza que no depende de coeficientes exactos. Los modelos de frentes bajos fallan porque algún nodo A₁ cae dentro del rango Go, introduciendo una inconsistencia térmica.
 
 ---
 

@@ -7,12 +7,26 @@ reales de partidas profesionales (SGF) mejor que una línea base aleatoria.
 Metodología
 -----------
 Para cada jugada en las partidas SGF:
-  1. Se calculan los valores H(s0, s1) de los nuevos enlaces formados.
-  2. Se define el "c objetivo" del Hamiltoniano como el valor crítico
-     más cercano (si existe) o la media de valores sobre pares válidos.
-  3. Se compara si el valor H de la jugada real está más cerca del c objetivo
-     que el valor H esperado bajo jugada aleatoria.
-  4. Se reporta correlación y p-value (test de permutación).
+  1. Se coloca la piedra en un tablero simulado que aplica capturas reales
+     (grupos rivales sin libertades se remueven; ver _place/_group_and_liberties).
+  2. Se calculan los valores H(s0, s1) de los nuevos enlaces formados.
+  3. Se define el "c objetivo" del Hamiltoniano como la media de sus
+     valores críticos.
+  4. Se compara si el valor H de la jugada real está más cerca del c objetivo
+     que el valor H esperado bajo jugada aleatoria (muestra de vacíos).
+  5. La significancia se evalúa con un test de permutación de signo
+     (sign-flip) sobre las diferencias pareadas real-vs-aleatorio: NO es
+     un bootstrap de la propia muestra, sino una verdadera hipótesis nula
+     de "sin asociación" construida invirtiendo signos al azar.
+
+Limitaciones conocidas (ver informe de validación)
+---------------------------------------------------
+  - H es un modelo puramente local (par de vecinos); Go depende de
+    conectividad global (escaleras, vida/muerte, ko, territorio) que
+    ningún Hamiltoniano de interacción por par puede capturar en principio.
+  - No hay control por fuerza del jugador ni por fase de la partida.
+  - c_target (media de valores críticos) es una elección de diseño no
+    validada independientemente.
 """
 
 import re
@@ -37,9 +51,41 @@ def _parse_sgf(path: str) -> List[Tuple[str, int, int]]:
     return moves
 
 
+def _group_and_liberties(board: np.ndarray, r: int, c: int
+                          ) -> Tuple[set, set]:
+    """Grupo conectado (misma piedra) y sus libertades, vía flood-fill."""
+    color = board[r, c]
+    group: set = set()
+    liberties: set = set()
+    stack = [(r, c)]
+    while stack:
+        cr, cc = stack.pop()
+        if (cr, cc) in group:
+            continue
+        group.add((cr, cc))
+        for dr, dc in DIRS:
+            nr, nc = cr + dr, cc + dc
+            if 0 <= nr < 19 and 0 <= nc < 19:
+                nv = board[nr, nc]
+                if nv == 0:
+                    liberties.add((nr, nc))
+                elif nv == color and (nr, nc) not in group:
+                    stack.append((nr, nc))
+    return group, liberties
+
+
 def _place(board: np.ndarray, r: int, c: int, player: int):
-    """Coloca una piedra (sin captura completa para velocidad)."""
+    """Coloca una piedra y aplica capturas según las reglas de Go
+    (remueve grupos rivales adyacentes que se queden sin libertades)."""
     board[r, c] = player
+    opponent = -player
+    for dr, dc in DIRS:
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < 19 and 0 <= nc < 19 and board[nr, nc] == opponent:
+            group, liberties = _group_and_liberties(board, nr, nc)
+            if not liberties:
+                for gr, gc in group:
+                    board[gr, gc] = 0
 
 
 def _h_values_for_move(board: np.ndarray, r: int, c: int,
@@ -116,12 +162,18 @@ def validate_on_sgf(h, alg: Dict, sgf_dir: str,
     deltas = np.array(deltas)
     improvement = float(-np.mean(deltas))   # positivo = real más cercano
 
-    # Test de permutación: ¿es la mejora significativa?
-    n_perm = 1000
+    # Test de permutación de signo (sign-flip): bajo H0 ("la jugada real
+    # no está sistemáticamente más cerca de c_target que una aleatoria"),
+    # el signo de cada delta_i es igual de probable + o -. Se generan
+    # muchas asignaciones de signo al azar y se compara la mejora
+    # observada contra esa distribución nula.
+    n_perm = 2000
     rng2 = np.random.default_rng(0)
-    perm_means = [float(np.mean(rng2.choice(deltas, len(deltas), replace=True)))
-                  for _ in range(n_perm)]
-    p_value = float(np.mean(np.array(perm_means) <= -abs(improvement)))
+    perm_stats = np.empty(n_perm)
+    for i in range(n_perm):
+        signs = rng2.choice(np.array([-1.0, 1.0]), size=len(deltas))
+        perm_stats[i] = -float(np.mean(deltas * signs))
+    p_value = float(np.mean(perm_stats >= improvement))
 
     return {
         "n_games":    len(sgf_files),

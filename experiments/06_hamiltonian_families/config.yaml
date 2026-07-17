@@ -26,9 +26,9 @@ filter:
   n_robustness: 12   # perturbaciones ±5% para test de robustez
 
 validation:
-  sgf_dir: ../../data/sgf_partidas   # relativo a la carpeta del proyecto
-  n_games:  5                         # partidas SGF a analizar
-  window:   2                         # ventana ±window alrededor de cada jugada
+  sgf_dir: data/sgf_partidas   # relativo a la raíz del proyecto (PROJDIR)
+  n_games:  5                   # partidas SGF a analizar
+  window:   2                   # ventana ±window alrededor de cada jugada
 
 output:
   catalog_path: output/catalog.json

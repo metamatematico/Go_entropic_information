@@ -58,8 +58,8 @@ def register_fonts():
         ("SegoeUI-Bold",       "segoeuib.ttf"),
         ("SegoeUI-Italic",     "segoeuii.ttf"),
         ("SegoeUI-BoldItalic", "segoeuiz.ttf"),
-        ("CourierNew",         "cour.ttf"),
-        ("CourierNew-Bold",    "courbd.ttf"),
+        ("Consolas",           "consola.ttf"),
+        ("Consolas-Bold",      "consolab.ttf"),
     ]
     ok = set()
     for name, fname in pairs:
@@ -74,9 +74,9 @@ def register_fonts():
         addMapping("SegoeUI", 0, 1, "SegoeUI-Italic")
         addMapping("SegoeUI", 1, 1, "SegoeUI-BoldItalic")
 
-    if {"CourierNew","CourierNew-Bold"} <= ok:
-        addMapping("CourierNew", 0, 0, "CourierNew")
-        addMapping("CourierNew", 1, 0, "CourierNew-Bold")
+    if {"Consolas","Consolas-Bold"} <= ok:
+        addMapping("Consolas", 0, 0, "Consolas")
+        addMapping("Consolas", 1, 0, "Consolas-Bold")
 
 
 # ── Estilos ──────────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ def make_styles():
             fontName="SegoeUI", fontSize=8.5, textColor=C_BODY,
             leading=12),
         "td_mono": ParagraphStyle("td_mono",
-            fontName="CourierNew", fontSize=7.5, textColor=C_CODE_FG,
+            fontName="Consolas", fontSize=7.5, textColor=C_CODE_FG,
             leading=11),
     }
 
@@ -126,7 +126,7 @@ def markup(text: str) -> str:
     t = re.sub(r'\*\*(.+?)\*\*',     r'<b>\1</b>',        t)
     t = re.sub(r'\*(.+?)\*',         r'<i>\1</i>',        t)
     t = re.sub(r'`(.+?)`',
-               r'<font name="CourierNew" color="#1B3A70" size="8">\1</font>', t)
+               r'<font name="Consolas" color="#1B3A70" size="8">\1</font>', t)
     return t
 
 
@@ -137,7 +137,7 @@ def build_code_block(code_lines: list) -> KeepTogether:
     para = Paragraph(
         escaped,
         ParagraphStyle("cb",
-            fontName="CourierNew", fontSize=8, textColor=C_CODE_FG,
+            fontName="Consolas", fontSize=8, textColor=C_CODE_FG,
             leading=12, spaceAfter=0),
     )
     tbl = Table([[para]], colWidths=[TEXT_W])
@@ -165,7 +165,7 @@ def build_table(rows: list, styles: dict) -> KeepTogether:
         elif is_code:
             inner = raw[1:-1]
             return Paragraph(
-                f'<font name="CourierNew" color="#1B3A70" size="7.5">{html.escape(inner)}</font>',
+                f'<font name="Consolas" color="#1B3A70" size="7.5">{html.escape(inner)}</font>',
                 styles["td"])
         else:
             return Paragraph(markup(raw), styles["td"])

@@ -1,0 +1,1244 @@
+% ==============================================================================
+%  Variedades, Fibración de Milnor y Temperatura en Hamiltonianos de Go
+%  Análisis de 10 polinomios a través del diagrama de Hasse
+%  Overleaf / pdfLaTeX compatible
+% ==============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ── Codificación y fuente ──────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noquoting]{babel}
+\usepackage[default,scale=0.95]{sourcesanspro}
+\usepackage[scaled=0.82]{inconsolata}
+\usepackage{microtype}
+
+% ── Geometría ─────────────────────────────────────────────────────────────────
+\usepackage[top=2.2cm,bottom=2.4cm,left=2.4cm,right=2.4cm,
+            headheight=14pt]{geometry}
+\usepackage{parskip}
+\setlength{\parskip}{5pt}
+
+% ── Matemáticas ───────────────────────────────────────────────────────────────
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+
+% ── Tablas ───────────────────────────────────────────────────────────────────
+\usepackage{booktabs,tabularx,colortbl,array,multirow,longtable}
+\usepackage{adjustbox}
+
+% ── Color y gráficos ─────────────────────────────────────────────────────────
+\usepackage[dvipsnames,table,x11names]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes,calc,decorations.pathmorphing,
+                through,intersections,patterns}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable,theorems}
+
+% ── Tipografía ────────────────────────────────────────────────────────────────
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% ── Paleta de colores ─────────────────────────────────────────────────────────
+\definecolor{cNavy}{HTML}{1A2A4A}
+\definecolor{cAccent}{HTML}{2E6DA4}
+\definecolor{cGold}{HTML}{A07010}
+\definecolor{cBg}{HTML}{F4F6FA}
+\definecolor{cGrey}{HTML}{888888}
+\definecolor{cLBlue}{HTML}{D6E8FA}
+\definecolor{cGreen}{HTML}{1A7A3C}
+\definecolor{cRed}{HTML}{8B1A1A}
+\definecolor{cFront1}{HTML}{1A5C30}
+\definecolor{cFront2}{HTML}{2E6DA4}
+\definecolor{cFrontMid}{HTML}{7B5EA7}
+\definecolor{cFrontLow}{HTML}{8B4513}
+\definecolor{cFrontRef}{HTML}{444444}
+
+\hypersetup{colorlinks=true,linkcolor=cAccent,urlcolor=cAccent,
+            pdftitle={Variedades y Fibración de Milnor en Go}}
+
+% ── Cajas tcolorbox ──────────────────────────────────────────────────────────
+\tcbset{
+  defbox/.style={enhanced,colback=cBg,colframe=cNavy,
+    left=8pt,right=8pt,top=6pt,bottom=6pt,breakable,
+    fonttitle=\bfseries\color{white},
+    title style={fill=cNavy}},
+  theorembox/.style={enhanced,colback=yellow!6,colframe=cGold,
+    left=8pt,right=8pt,top=6pt,bottom=6pt,breakable,
+    fonttitle=\bfseries\color{white},
+    title style={fill=cGold}},
+  hambox/.style={enhanced,colback=cLBlue!35,colframe=cAccent,
+    left=8pt,right=8pt,top=5pt,bottom=5pt,breakable,
+    fonttitle=\bfseries\color{cNavy},
+    title style={fill=cLBlue,color=cNavy}},
+  codebox/.style={enhanced,colback=cBg,colframe=cAccent!60,
+    left=6pt,right=6pt,top=3pt,bottom=3pt,
+    fontupper=\small\ttfamily,breakable},
+  notebox/.style={enhanced,colback=yellow!10,colframe=cGold!60,
+    left=6pt,right=6pt,top=3pt,bottom=3pt,breakable,
+    fonttitle=\small\bfseries\color{cGold},
+    title style={fill=cGold!20}}
+}
+
+% ── Secciones ─────────────────────────────────────────────────────────────────
+\titleformat{\section}[block]{\large\bfseries\color{cNavy}}{%
+  \color{cAccent}\S\,\thesection\quad}{0pt}{}%
+  [\vspace{2pt}\color{cAccent}\rule{\linewidth}{1pt}\vspace{-4pt}]
+\titleformat{\subsection}[hang]{\normalsize\bfseries\color{cNavy}}{%
+  \color{cAccent}\thesubsection\quad}{0pt}{}
+\titleformat{\subsubsection}[hang]{\small\bfseries\itshape\color{cNavy}}{}{0pt}{}
+
+% ── Cabecera/pie ─────────────────────────────────────────────────────────────
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\color{cGrey}Variedades, Fibración de Milnor y Temperatura --- Go}
+\fancyhead[R]{\small\color{cGrey}\thepage}
+\renewcommand{\headrule}{\color{cAccent}\hrule width\textwidth height 0.4pt}
+
+% ── Operadores matemáticos ───────────────────────────────────────────────────
+\DeclareMathOperator{\Hess}{Hess}
+\DeclareMathOperator{\grad}{\nabla}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\crit}[1]{c^*_{#1}}
+\newcommand{\Gamma}{\Gamma}
+\newcommand{\dE}{\Delta E}
+\newcommand{\Zpart}{Z(T)}
+\newcommand{\pij}{p_{(s,s')}(T)}
+\newcommand{\hbox}[1]{\texttt{#1}}
+
+% ── Convenios de notación para pares de Go ──────────────────────────────────
+\newcommand{\BB}{(\text{N},\text{N})}
+\newcommand{\BV}{(\text{N},\varnothing)}
+\newcommand{\BW}{(\text{N},\text{B})}
+\newcommand{\WB}{(\text{B},\text{N})}
+\newcommand{\WV}{(\text{B},\varnothing)}
+\newcommand{\WW}{(\text{B},\text{B})}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% Barra de título
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[cNavy] (current page.north west)
+    rectangle ([yshift=-2.5cm]current page.north east);
+  \node[anchor=west,text=white,font=\Large\bfseries] at
+    ([xshift=1.8cm,yshift=-0.85cm]current page.north west)
+    {Variedades, Fibración de Milnor y Temperatura};
+  \node[anchor=west,text=cLBlue,font=\normalsize] at
+    ([xshift=1.8cm,yshift=-1.55cm]current page.north west)
+    {Análisis de 10 Hamiltonianos a través del Diagrama de Hasse de Go};
+  \node[anchor=east,text=cGrey!70!white,font=\small] at
+    ([xshift=-1.8cm,yshift=-2.15cm]current page.north east)
+    {Experimento 06 $\cdot$ 2026-07-15};
+\end{tikzpicture}
+\vspace{2.6cm}
+
+{\small\color{cGrey}\itshape
+Catálogo: 296 candidatos evaluados $\cdot$
+Plantilla: \texttt{cubic\_mixed} $\cdot$
+Criterios: TDA ($H_1$), robustez, $\Delta E$, nodos $A_1$ $\cdot$
+Diagrama de Hasse: 148 frentes Pareto
+}
+
+\tableofcontents
+\newpage
+
+% ==============================================================================
+\section{Introducción: Go como sistema de espines}
+% ==============================================================================
+
+En el modelo de espín de Go, cada intersección del tablero lleva un valor
+\[
+  s \in \{-1,\,0,\,+1\}
+  \quad\text{(negro, vacío, blanco)}
+\]
+y la energía de una configuración se calcula sumando sobre pares adyacentes:
+\[
+  E = \sum_{\langle i,j\rangle} H(s_i,\, s_j).
+\]
+Un \textbf{Hamiltoniano de par} $H:\{-1,0,+1\}^2 \to \R$ asigna un peso
+energético a cada tipo de vecindad. La familia de todos los Hamiltonianos
+posibles---no equivalentes sobre el dominio discreto---es exactamente la
+familia de polinomios cúbicos: sobre $\{-1,0,+1\}$, la identidad $x^3=x$
+reduce cualquier grado mayor a uno de los 7 monomios
+\[
+  x,\; y,\; x^2,\; xy,\; y^2,\; x^2y,\; xy^2.
+\]
+Esta es la \emph{plantilla \texttt{cubic\_mixed}}:
+\[
+  H(x,y) = a_1 x + a_2 y + b_{11}x^2 + b_{12}xy + b_{22}y^2
+            + c_{112}x^2 y + c_{122}xy^2.
+\]
+
+En este informe analizamos \textbf{10 polinomios representativos} tomados de
+distintas posiciones del diagrama de Hasse de orden parcial Pareto:
+dos referencias históricas, dos candidatos del \textit{Frente~1}, y
+candidatos de los Frentes 2, 3, 9, 25, 70 y 140.
+Para cada uno describimos:
+\begin{itemize}[noitemsep]
+  \item la variedad $\Gamma(H)$ y sus zonas topológicas,
+  \item los puntos críticos, nodos $A_1$ y cambios de topología de fibra,
+  \item la construcción de la fibración de Milnor sobre $\Gamma(H)$,
+  \item cómo mide la temperatura estratégica en Go.
+\end{itemize}
+
+% ==============================================================================
+\section{Marco matemático}
+% ==============================================================================
+
+\subsection{La variedad \texorpdfstring{$\Gamma(H)$}{Gamma(H)} y sus fibras}
+
+\begin{tcolorbox}[defbox,title={Definición: Variedad de un Hamiltoniano de Go}]
+Dado $H:\R^2\to\R$, su \textbf{variedad asociada} es la superficie gráfica
+\[
+  \Gamma(H) \;=\; \{(x,\,y,\,z)\in\R^3 \mid z = H(x,y)\}.
+\]
+Es siempre una superficie suave (es un grafo sobre $\R^2$).
+Para $c\in\R$ fijo, la \textbf{fibra de nivel} es
+\[
+  F_c \;=\; H^{-1}(c) \;=\; \{(x,y)\in\R^2 \mid H(x,y)=c\}\;\subset\;\R^2.
+\]
+Un valor $c$ es \textbf{regular} si $\nabla H(x,y)\neq 0$ para todo
+$(x,y)\in F_c$; de lo contrario es un \textbf{valor crítico} $c^*$.
+\end{tcolorbox}
+
+La superficie $\Gamma(H)$ se divide en \emph{zonas} determinadas por los
+valores críticos $c^*_1 < c^*_2 < \cdots < c^*_k$:
+\begin{itemize}[noitemsep]
+  \item \textbf{Zona superior}: $c > c^*_k$ --- fibra con una o más ramas no acotadas.
+  \item \textbf{Zonas intermedias}: entre valores críticos consecutivos --- topología fija.
+  \item \textbf{Zona inferior}: $c < c^*_1$ --- topología complementaria.
+  \item \textbf{Frontera de zona} ($c = c^*$): fibra singular con nodos.
+\end{itemize}
+
+El \textbf{dominio Go} de $H$ son los 6 pares válidos (con al menos
+una piedra):
+$\{-1,+1\}\times\{-1,0,+1\}$,
+que determinan los 6 valores energéticos
+$E_{ss'} = H(s,s')$ sobre los cuales opera la dinámica estratégica.
+Denotamos negro/blanco/vacío como N/B/$\varnothing$.
+
+\subsection{Puntos críticos y nodos \texorpdfstring{$A_1$}{A1}}
+
+\begin{tcolorbox}[defbox,title={Clasificación de puntos críticos}]
+Un punto $(x_0,y_0)$ con $\nabla H(x_0,y_0)=0$ se clasifica por el determinante
+del Hessiano:
+\[
+  \det\Hess H = H_{xx}H_{yy} - H_{xy}^2.
+\]
+\begin{itemize}[noitemsep]
+  \item $\det\Hess H > 0$, $H_{xx}>0$: \textbf{mínimo local}.
+  \item $\det\Hess H > 0$, $H_{xx}<0$: \textbf{máximo local}.
+  \item $\det\Hess H < 0$: \textbf{punto de silla} o \textbf{nodo $A_1$}
+        (singularidad aislada no degenerada). Es la singularidad genérica de un polinomio cúbico.
+\end{itemize}
+El \textbf{número de Milnor} $\mu$ es el número total de nodos $A_1$.
+Para un cúbico con singularidades aisladas: $\mu \leq (d-1)^2 = 4$.
+\end{tcolorbox}
+
+En un nodo $A_1$ con valor crítico $c^*$, la fibra $F_{c^*}$ tiene una
+auto-intersección transversal (figura en $\infty$ o \textit{figure-eight}),
+que se denomina \textbf{ciclo de Van\-ishing}: un ciclo de $F_c$ (para
+$c\neq c^*$ cercano) que se colapsa a un punto cuando $c\to c^*$.
+
+\subsection{Fibración de Milnor: construcción}
+
+\begin{tcolorbox}[theorembox,
+  title={Fibración de Milnor para polinomios reales en $\R^2$}]
+Sea $H:\R^2\to\R$ un polinomio con puntos críticos aislados
+$p_1,\ldots,p_k$ de valores $c^*_1\leq\cdots\leq c^*_k$.
+
+La \textbf{fibración de Milnor} de $H$ es la familia de fibras
+\[
+  \{F_c\}_{c\in\R\setminus\{c^*_1,\ldots,c^*_k\}}
+\]
+vista como fibrado localmente trivial sobre $\R\setminus\{c^*_i\}$.
+
+Propiedades clave:
+\begin{enumerate}[noitemsep]
+  \item Para $c$ regular, $F_c$ es una curva suave de grado $d=3$ en $\R^2$.
+  \item El género de la fibra genérica (sobre $\C$) es
+        $g = \tfrac{(d-1)(d-2)}{2} = 1$ \textbf{(toro)}.
+  \item Al cruzar un valor crítico $c^*_j$ (nodo $A_1$), la característica
+        de Euler cambia: $\chi(F_c) \to \chi(F_c) \pm 1$.
+  \item En términos topológicos: una componente oval se contrae a un punto
+        y desaparece, o una rama se auto-intersecta y se divide.
+  \item El número de componentes conexas de $F_c$ puede variar entre 1 y 3
+        para un cúbico genérico.
+\end{enumerate}
+\end{tcolorbox}
+
+\subsubsection{Interpretación topológica para Go}
+
+Para un Hamiltoniano de Go cúbico, el diagrama de Hasse clasifica
+$\mu$ (número de nodos $A_1$) como uno de los cuatro criterios Pareto.
+Cada nodo $A_1$ representa un \textbf{cambio de régimen estratégico}:
+la configuración de pares de piedras que el modelo distingue
+pasa por una transición topológica en la variedad.
+
+\begin{itemize}[noitemsep]
+  \item $\mu = 0$: H sin puntos silla $\Rightarrow$ estrategia monotónica
+        (preferencia global sin inversiones).
+  \item $\mu = 1$: un cambio de régimen $\Rightarrow$ un umbral estratégico.
+  \item $\mu = 2$: dos umbrales, el máximo posible para los candidatos
+        del catálogo.
+\end{itemize}
+
+\subsection{Temperatura y función de partición}
+
+\begin{tcolorbox}[defbox,title={Temperatura en el modelo de espín de Go}]
+Fijado $H$ y una temperatura $T>0$, la \textbf{función de partición} sobre
+los 6 pares válidos es:
+\[
+  Z(T) = \sum_{(s,s')\in\{-1,+1\}\times\{-1,0,+1\}}
+         e^{-H(s,s')/T}.
+\]
+La \textbf{probabilidad de ocupación} del par $(s,s')$ es:
+\[
+  p_{(s,s')}(T) = \frac{e^{-H(s,s')/T}}{Z(T)}.
+\]
+La \textbf{energía media} y la \textbf{capacidad calorífica} son:
+\[
+  \langle H\rangle(T) = \sum_{(s,s')} H(s,s')\,p_{(s,s')}(T), \qquad
+  C(T) = \frac{\text{Var}(H)}{T^2} = \frac{\langle H^2\rangle - \langle H\rangle^2}{T^2}.
+\]
+El rango energético $\dE = \max H - \min H$ sobre los 6 pares fija la
+\textbf{escala de temperatura estratégica}: para $T\ll\dE$ el modelo juega
+determinísticamente (elige el par de menor energía); para $T\gg\dE$ juega
+aleatoriamente.
+\end{tcolorbox}
+
+La persistencia TDA ($H_1$-máxima) mide la \textbf{complejidad topológica
+térmica}: cuántas ``burbujas'' en el paisaje de energía persisten a través
+de una gama de temperaturas antes de colapsar.
+
+\newpage
+% ==============================================================================
+\section{Los 10 Hamiltonianos: análisis individual}
+% ==============================================================================
+
+Presentamos los 10 polinomios en orden de posición en el diagrama de Hasse,
+desde los dos modelos de referencia histórica hasta el candidato del Frente
+140 (dominado por casi todos los demás).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{Alv}}$}{H\_Alv} --- Modelo Alvarado (Referencia, F-REF)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{Alv}}$ (Alvarado, Atomic-Go) $\cdot$ Frente: Referencia}]
+\[
+  H_{\text{Alv}}(x,y) = xy
+\]
+\textbf{Plantilla}: \texttt{quadratic} $\quad$
+\textbf{Nodos $A_1$}: 1 $\quad$
+\textbf{Robustez}: 0.0 $\quad$
+\textbf{Score}: 0.090
+\end{tcolorbox}
+
+\subsubsection*{Variedad $\Gamma(H_{\text{Alv}})$ y sus zonas}
+
+La superficie $z = xy$ es una \textbf{silla de montar} (paraboloide hiperbólico):
+\[
+  z = xy = \tfrac{1}{2}\bigl[(x+y)^2/2 - (x-y)^2/2\bigr].
+\]
+Las curvas de nivel $xy = c$ son hipérbolas (para $c\neq 0$) o las dos rectas
+$x=0$ e $y=0$ (para $c=0$). El único punto crítico es el origen:
+\[
+  \nabla H_{\text{Alv}} = (y, x) = (0,0) \quad\Longrightarrow\quad (x,y)=(0,0).
+\]
+Con $H_{xx}=0$, $H_{yy}=0$, $H_{xy}=1$: $\det\Hess = -1 < 0$ $\Rightarrow$ \textbf{nodo $A_1$}, valor crítico $c^*=0$.
+
+\medskip\noindent
+\textbf{Zonas de $\Gamma(H_{\text{Alv}})$}:
+\begin{itemize}[noitemsep]
+  \item \textbf{Zona positiva} ($c>0$): las hipérbolas $xy=c>0$ tienen dos ramas
+        en los cuadrantes I y III (mismos signos: NN y BB).
+  \item \textbf{Frontera} ($c=0$): los ejes coordenados; el vacío ($s=0$)
+        da $H=0$ para cualquier vecino.
+  \item \textbf{Zona negativa} ($c<0$): hipérbolas $xy=c<0$ en los cuadrantes II y IV
+        (signos opuestos: NB y BN).
+\end{itemize}
+
+\subsubsection*{Fibración de Milnor}
+
+Para $c\neq 0$, la fibra $F_c = \{xy=c\}$ es una hipérbola suave: dos ramas
+no acotadas, cada una homeomorfa a $\R$ (topología: dos copias de $\R$).
+En $c=0$, la fibra degenera en dos rectas que se cruzan: la figura en `X'
+(singularidad tipo $A_1$). El ciclo de Vanishing es el ``bucle'' que
+rodea el origen y colapsa a la X al llegar a $c^*=0$.
+
+\subsubsection*{Energías en pares de Go}
+
+\begin{center}
+\begin{tabular}{cccccc}
+  \toprule
+  Par & $(-1,-1)$ & $(-1,0)$ & $(-1,+1)$ & $(+1,-1)$ & $(+1,0)$ & $(+1,+1)$ \\
+  \midrule
+  Notación & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB \\
+  $H_{\text{Alv}}$ & $+1$ & $0$ & $-1$ & $-1$ & $0$ & $+1$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+$\dE=2$. El modelo premia la vecindad entre \emph{piedras del mismo color}
+(energía $-1$: favorecida) y penaliza la vecindad homogénea de mismo signo
+(¡wait: $H=+1$ para NN y BB es la energía \emph{más alta}!).
+
+\begin{tcolorbox}[notebox,title={Lectura estratégica}]
+$H_{\text{Alv}}$ es \textbf{simétrico}: $H(-x,-y)=H(x,y)$ (función par).
+No distingue negro de blanco.
+Minimiza la energía colocando piedras de colores opuestos como vecinas.
+Representa el \textbf{Ising antiferromagnético}: el vacío es invisible ($H(s,0)=0$).
+Temperatura característica: $T_{\text{eff}} \approx \dE/\ln 2 \approx 1.44$.
+\end{tcolorbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{M1}}$}{H\_M1} --- Modelo Mercado-Jiménez (Referencia, F-REF)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{M1}}$ (Mercado \& Jiménez, 2024) $\cdot$ Frente: Referencia}]
+\[
+  H_{\text{M1}}(x,y) = x + 2y - x^2y - xy^2
+\]
+\textbf{Plantilla}: \texttt{sparse\_cubic} $\quad$
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{Robustez}: 0.333 $\quad$
+\textbf{Score}: 0.190
+\end{tcolorbox}
+
+\subsubsection*{Variedad $\Gamma(H_{\text{M1}})$ y sus zonas}
+
+La superficie $z = x + 2y - x^2y - xy^2 = x(1-xy) + y(2-x^2)$
+exhibe un crecimiento asintótico cúbico dominado por $-x^2y - xy^2$.
+
+El gradiente es:
+\[
+  \frac{\partial H}{\partial x} = 1 - 2xy - y^2, \qquad
+  \frac{\partial H}{\partial y} = 2 - x^2 - 2xy.
+\]
+Igualando a cero se obtienen dos puntos críticos simétricos:
+$(x_0,y_0)\approx (\pm 1.075,\, \pm 0.393)$
+con valores críticos $c^* = \mp 1.2408$.
+La función es impar: $H_{\text{M1}}(-x,-y) = -H_{\text{M1}}(x,y)$,
+lo que garantiza la simetría $c^*_2 = -c^*_1 = 1.2408$.
+
+\medskip\noindent
+\textbf{Zonas de $\Gamma(H_{\text{M1}})$}:
+
+\begin{itemize}[noitemsep]
+  \item $c > 1.2408$: fibra desconectada en dos ramas separadas.
+  \item $c = 1.2408$: primera singularidad $A_1$; nodo en $(1.075, 0.393)$.
+  \item $-1.2408 < c < 1.2408$: fibra reconectada; topología de ciclo.
+  \item $c = -1.2408$: segunda singularidad $A_1$; nodo en $(-1.075,-0.393)$.
+  \item $c < -1.2408$: misma topología que la zona superior (por simetría impar).
+\end{itemize}
+
+\subsubsection*{Fibración de Milnor}
+
+Hay exactamente $\mu=2$ nodos $A_1$, separados por $\Delta c^* = 2.4816$.
+La fibra genérica de un cúbico tiene género $g=1$ (toro) sobre $\C$.
+En la región $|c| < 1.2408$, la fibra real $F_c$ contiene un oval compacto
+(ciclo no trivial): es la manifestación real del asa toroidal.
+Al cruzar $c^*=\pm 1.2408$, este oval se colapsa a un punto (ciclo de Vanishing)
+y la topología cambia de ``oval + rama'' a ``solo rama''.
+
+\subsubsection*{Energías en pares de Go}
+
+\begin{center}
+\begin{tabular}{cccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB \\
+  \midrule
+  $H_{\text{M1}}$ & $-1$ & $-1$ & $+1$ & $-1$ & $+1$ & $+1$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+$\dE=2$. Solo 2 niveles de energía: $\{-1, +1\}$.
+El modelo distingue \emph{pares que contienen una piedra blanca como segundo elemento}
+(energía $+1$: penalizados) de todos los demás (energía $-1$: favorecidos).
+
+\begin{tcolorbox}[notebox,title={Lectura estratégica}]
+$H_{\text{M1}}$ es \textbf{asimétrico}: negro ($s=-1$) como piedra activa
+tiene ventaja estructural sobre blanco.
+El vacío como segundo vecino da $H=-1$ si el primero es negro,
+$H=+1$ si es blanco: el \textbf{vacío es activo} (no invisible).
+Temperatura característica: $T_{\text{eff}}\approx 1.44$.
+\end{tcolorbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F1a}}$}{H\_F1a} --- Candidato H\_0045 (Frente 1)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F1a}}$ (H\_0045, \textcolor{cFront1}{Frente 1}) $\cdot$
+  $H_1$-max = 0.1664 $\cdot$ Rob = 1.000}]
+\begin{align*}
+  H_{\text{F1a}}(x,y) &=
+    -0.7583\,x + 0.1425\,y
+    - 2.3900\,x^2 + 2.0008\,xy - 2.6882\,y^2 \\
+  &\quad + 0.8497\,x^2y - 0.8018\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 8.00 $\quad$
+\textbf{Score}: 0.454
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+El término dominante en escala grande es $-2.390\,x^2 - 2.688\,y^2$
+(paraboloide elíptico negativo), modulado por los cúbicos $+0.850\,x^2y$
+y $-0.802\,xy^2$.
+Cerca del origen, la superficie desciende en todas las direcciones.
+Los dos nodos $A_1$ se ubican \emph{lejos del dominio Go}:
+\[
+  p_1 \approx (-0.171,\,-0.034),\quad c^*_1 \approx 0.063\quad (\text{máximo local})
+\]
+\[
+  p_2 \approx (6.288,\,2.996),\quad c^*_2 \approx -29.88\quad (A_1\text{-nodo})
+\]
+\[
+  p_3 \approx (-2.957,\,2.613),\quad c^*_3 \approx -16.50\quad (A_1\text{-nodo})
+\]
+
+\textbf{Zonas de $\Gamma(H_{\text{F1a}})$}:
+
+\begin{itemize}[noitemsep]
+  \item $c > 0.063$: la fibra está por encima del máximo local; vacía en el
+        dominio Go central.
+  \item $-16.50 < c < 0.063$: fibra con topología de \textbf{oval cerrado}
+        que contiene los 6 pares Go (todos con $-9.63 \leq E \leq -1.63$).
+  \item $-29.88 < c < -16.50$: una rama adicional aparece por el nodo en
+        $(6.29, 3.00)$; el oval Go sigue intacto.
+  \item $c < -29.88$: segunda transición topológica.
+\end{itemize}
+
+\subsubsection*{Milnor y ciclos de Vanishing}
+
+Los dos nodos $A_1$ activos ($\mu=2$) generan \textbf{dos ciclos de Vanishing}.
+El ciclo de Vanishing del nodo en $(-2.957, 2.613)$ (con $c^*=-16.50$)
+se encuentra dentro del rango de energía de los pares Go, ya que
+$E_{\min}=-9.63 > -16.50$. Esto significa que la fibra ``vista'' por
+los pares Go incluye el ciclo que va a colapsar al cruzar $-16.50$:
+hay \textbf{complejidad topológica accesible} para el sistema Go.
+
+\subsubsection*{Energías en pares de Go}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F1a}}$ & $-2.51$ & $-1.63$ & $-4.53$ & $-9.63$ & $-3.15$ & $-3.65$ & 8.00 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Todos los pares tienen energía negativa. El par BN ($s_i=+1, s_j=-1$)
+es el más favorecido ($E=-9.63$): \textbf{piedra blanca con vecino negro}
+es la configuración de mínima energía.
+
+\begin{tcolorbox}[notebox,title={Lectura estratégica y temperatura}]
+La asimetría BN $\ll$ NB (razón $\approx 2.1$) introduce una
+\textbf{direccionalidad}: colocar blanco junto a negro vale mucho más que
+negro junto a blanco. La escala de temperatura es $T\approx\dE/\ln 6\approx 4.5$.
+La persistencia $H_1=0.166$ indica que la burbuja topológica Go dura $\approx 0.166$
+unidades de temperatura antes de colapsar: buen discriminador térmico.
+\end{tcolorbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F1b}}$}{H\_F1b} --- Candidato H\_0042 (Frente 1)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F1b}}$ (H\_0042, \textcolor{cFront1}{Frente 1}) $\cdot$
+  $H_1$-max = 0.1204 $\cdot$ Rob = 1.000}]
+\begin{align*}
+  H_{\text{F1b}}(x,y) &=
+    -1.2917\,x - 2.0783\,y
+    - 2.3071\,x^2 - 2.8731\,xy - 2.6676\,y^2 \\
+  &\quad - 0.6507\,x^2y - 0.8932\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 11.75 $\quad$
+\textbf{Score}: 0.417
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+Todos los coeficientes son negativos. La superficie
+$z = H_{\text{F1b}}(x,y)$ desciende en todas las direcciones desde un
+pequeño máximo local en $(-0.095, -0.351)$ con $c^*_{\max}\approx 0.419$.
+Los dos nodos $A_1$ están en regiones \emph{muy alejadas} del dominio Go:
+\[
+  p_1\approx(-3.089,\,-3.221),\quad c^*_1=-18.97;\qquad
+  p_2\approx(-2.880,\,+4.187),\quad c^*_2=-13.74.
+\]
+
+\textbf{Zonas}:
+\begin{itemize}[noitemsep]
+  \item $c > 0.419$: fibra vacía (no hay $(x,y)$ con $H=c>0.419$
+        en la región del dominio Go).
+  \item $-12.76 \leq c \leq 0.419$: los 6 pares Go están en este rango.
+        La fibra es un oval compacto que encierra el dominio Go.
+  \item $-13.74 < c < -12.76$: primer nodo $A_1$ aún no alcanzado.
+  \item $c = -13.74$: \textbf{primer nodo $A_1$}: la fibra adquiere una
+        auto-intersección justo por debajo del par BB ($E=-12.76$).
+  \item $c = -18.97$: \textbf{segundo nodo $A_1$}.
+\end{itemize}
+
+\subsubsection*{Milnor: complejidad accesible}
+
+El par BB con $E=-12.76$ está \emph{entre} $c^*_2=-13.74$ y
+$c^*_3=-18.97$: la fibra al nivel del par más favorecido está
+precisamente en la zona de transición topológica.
+Esto explica la persistencia $H_1=0.120$: hay un ciclo topológico
+cuya ``vida'' corresponde a la separación energética $12.76-0$ del máximo.
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F1b}}$ & $-2.93$ & $-1.02$ & $-2.65$ & $-1.56$ & $-3.60$ & $-12.76$ & 11.75 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+BB es el mínimo absoluto con una separación notable: $-12.76$ vs.\ los demás
+($-1.0$ a $-3.6$). El modelo concentra toda la preferencia en la
+\textbf{vecindad blanco-blanco}.
+
+\begin{tcolorbox}[notebox,title={Lectura estratégica y temperatura}]
+Un modelo con esta distribución favorece abrumadoramente las formaciones
+compactas de piedras blancas. A temperatura $T\approx 2$, la probabilidad de
+elegir el par BB supera el 99\%. La escala $\dE=11.75$ da excelente
+resolución térmica: el paso de juego aleatorio a determinístico ocurre
+sobre una ventana de temperatura muy precisa.
+\end{tcolorbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F2}}$}{H\_F2} --- Candidato H\_0022 (Frente 2)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F2}}$ (H\_0022, \textcolor{cFront2}{Frente 2}) $\cdot$
+  $H_1$-max = 0.1798 $\cdot$ Rob = 1.000 $\cdot$ \textbf{Mayor $H_1$ del grupo}}]
+\begin{align*}
+  H_{\text{F2}}(x,y) &=
+    -1.0208\,x - 2.1329\,y
+    - 2.3796\,x^2 + 0.5259\,xy - 1.9764\,y^2 \\
+  &\quad + 0.8502\,x^2y + 0.1621\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: \textbf{1} $\quad$
+\textbf{$\dE$}: 4.61 $\quad$
+\textbf{Score}: 0.458
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+Con solo $\mu=1$ nodo $A_1$, este es el Hamiltoniano topológicamente más
+\emph{simple} entre los candidatos del Frente~2. El único punto silla está en:
+\[
+  p_1\approx(3.072,\,2.539),\quad c^*_1=-16.06.
+\]
+Hay además un \textbf{máximo local} en $(-0.222,\,-0.549)$ con
+$c^*_{\max}=+0.715$.
+
+\textbf{Zonas}:
+\begin{itemize}[noitemsep]
+  \item $c > 0.715$: fibra vacía en el dominio Go.
+  \item $-5.97 \leq c \leq 0.715$: los 6 pares Go están en esta zona.
+        Un solo oval compacto con una sola transición futura.
+  \item $c = -16.06$: único nodo $A_1$, lejos del dominio Go.
+  \item $c < -16.06$: cambio topológico; una rama adicional aparece.
+\end{itemize}
+
+\subsubsection*{Por qué $H_1=0.1798$ es el más alto}
+
+La persistencia TDA mide el tiempo de vida de los ``loops'' en la
+filtración por subniveles de $H$ sobre la cuadrícula discreta.
+Con $\mu=1$ y el nodo $A_1$ en $c^*=-16.06$ (bien separado de los pares Go),
+el único cambio de topología de la fibra dentro del rango de energía Go
+es suave y prolongado: el oval del dominio Go vive desde $c\approx -5.97$
+hasta $c\approx 0.715$, una longitud de $\approx 6.69$ niveles.
+El pico de persistencia $H_1=0.180$ refleja este ciclo de larga duración.
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F2}}$ & $-1.69$ & $-1.36$ & $-5.31$ & $-4.46$ & $-3.40$ & $-5.97$ & 4.61 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Los pares mixtos (NB, BN, BB) son los más favorecidos.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F3}}$}{H\_F3} --- Candidato H\_0027 (Frente 3)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F3}}$ (H\_0027, Frente 3) $\cdot$
+  $H_1$-max = 0.0072 $\cdot$ Rob = 1.000}]
+\begin{align*}
+  H_{\text{F3}}(x,y) &=
+    +2.4961\,x - 1.6187\,y
+    - 2.7755\,x^2 + 0.3291\,xy - 0.7745\,y^2 \\
+  &\quad + 0.6596\,x^2y + 0.6165\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 8.14 $\quad$
+\textbf{Score}: 0.392
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+Los términos lineales $+2.496\,x - 1.619\,y$ inclinan fuertemente la
+superficie: positivo en la dirección $x$ y negativo en $y$.
+Los puntos críticos están en posiciones moderadas:
+\[
+  p_1 \approx (0.431,-1.331),\quad c^*_{\max}=+1.462;
+\]
+\[
+  p_2 \approx (1.212,-4.615),\quad c^*=-0.474\;(A_1);
+\]
+\[
+  p_3 \approx (1.298,+1.566),\quad c^*=-1.499\;(A_1).
+\]
+El rango de valores críticos es pequeño: $[-1.499, 1.462]$.
+Los pares Go tienen energías en $[-7.95, +0.19]$, por lo que los
+valores críticos caen \emph{dentro} del rango de los pares Go.
+
+\textbf{Zonas y su intersección con el dominio Go}:
+\begin{itemize}[noitemsep]
+  \item $c > 1.462$: solo el par BN ($E=+0.193$) y
+        B$\varnothing$ ($E=-0.280$) están en esta región.
+  \item $-0.474 < c < 1.462$: máximo local + primer nodo $A_1$ en este
+        rango; todos los pares con $E > -0.474$.
+  \item $-1.499 < c < -0.474$: segundo nodo $A_1$; los pares NN, N$\varnothing$
+        y NB entran en esta zona.
+  \item $c < -1.499$: zona estable, contiene el mínimo global NB ($E=-7.95$).
+\end{itemize}
+
+\subsubsection*{Milnor: dos transiciones dentro del dominio Go}
+
+Este es el caso más interesante topológicamente para Go:
+\textbf{ambos nodos $A_1$ tienen valores críticos dentro del rango de
+pares válidos de Go}.
+Esto significa que al barrer la temperatura de $c=-7.95$ a $c=+0.19$,
+el sistema Go experimenta \emph{dos} cambios de régimen topológico,
+en $c^*=-1.499$ y $c^*=-0.474$.
+
+Sin embargo, la persistencia TDA es solo $H_1=0.007$: los ciclos son
+efímeros. La separación entre valores críticos es solo
+$\Delta c^* = |-0.474-(-1.499)|=1.025$, lo que implica que la
+burbuja topológica intermedia es muy angosta.
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F3}}$ & $-5.37$ & $-5.27$ & $-7.95$ & $+0.19$ & $-0.28$ & $-1.07$ & 8.14 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+El único par con energía \emph{positiva} es BN ($+0.19$):
+el modelo penaliza levemente la vecindad ``piedra blanca con negro al lado''.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F9}}$}{H\_F9} --- Candidato H\_0271 (Frente 9)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F9}}$ (H\_0271, \textcolor{cFrontMid}{Frente 9}) $\cdot$
+  $H_1$-max = 0.000 $\cdot$ Rob = 0.000}]
+\begin{align*}
+  H_{\text{F9}}(x,y) &=
+    +1.9970\,x - 1.1808\,y
+    - 0.3611\,x^2 + 2.9137\,xy + 2.9103\,y^2 \\
+  &\quad + 0.8122\,x^2y + 0.5969\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 11.02 $\quad$
+\textbf{Score}: 0.090
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+El término $+2.910\,y^2$ hace que la superficie \emph{crezca} en la
+dirección $y$, en contraste con los candidatos del Frente~1.
+Los valores críticos son \emph{positivos}: $c^*_1=1.186$ y $c^*_2=14.25$.
+Los pares Go tienen energías en $[-3.33, +7.69]$, que incluyen el primer
+valor crítico $c^*_1=1.186$ pero no el segundo.
+
+\textbf{Zonas relevantes para Go}:
+\begin{itemize}[noitemsep]
+  \item $c < 1.186$: los pares N$\varnothing$, NB (negativos) están aquí.
+        Un nodo $A_1$ separa esta zona de la siguiente.
+  \item $1.186 < c < 7.69$: los pares BN, B$\varnothing$, NN, BB (positivos)
+        están aquí. El ciclo de Vanishing ya colapsó.
+  \item $c > 14.25$: segundo nodo $A_1$, fuera del dominio Go.
+\end{itemize}
+
+\subsubsection*{Por qué Rob = 0 y $H_1$ = 0}
+
+La robustez cero indica que \emph{ninguna} de las 12 perturbaciones
+$\pm 5\%$ de los coeficientes mantiene $H_1 > 0.20$.
+La persistencia $H_1=0$ significa que no hay ciclos de larga vida
+en la filtración TDA: el paisaje energético no tiene ``cuencas''
+topológicamente no triviales en el rango discreto de Go.
+Este candidato fue superado por los del Frente~1 precisamente en
+este criterio: el nodo $A_1$ en $c^*=1.186$ cae dentro del rango Go
+pero la burbuja que genera es instantánea ($H_1=0$).
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F9}}$ & $+3.24$ & $-2.36$ & $-3.33$ & $+2.60$ & $+1.64$ & $+7.69$ & 11.02 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Los pares ``mismo color'' (NN=$+3.24$, BB=$+7.69$) son altamente penalizados.
+La vecindad entre piedras del mismo color es muy costosa energéticamente.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F25}}$}{H\_F25} --- Candidato H\_0185 (Frente 25)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F25}}$ (H\_0185, \textcolor{cFrontMid}{Frente 25}) $\cdot$
+  $H_1$-max = 0.000 $\cdot$ Rob = 0.000}]
+\begin{align*}
+  H_{\text{F25}}(x,y) &=
+    +2.8718\,x - 0.0082\,y
+    - 0.0380\,x^2 + 2.8253\,xy - 0.7156\,y^2 \\
+  &\quad - 0.2049\,x^2y + 0.1695\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 11.73 $\quad$
+\textbf{Score}: 0.090
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+El término dominante lineal $+2.872\,x$ crea una fuerte inclinación
+en la dirección $x$: la superficie sube rápidamente para $x>0$
+y baja para $x<0$.
+El coeficiente cuadrático dominante es $+2.825\,xy$:
+la interacción cruzada directa (tipo Ising).
+
+Los valores críticos son muy asimétricos: $c^*_1=-0.776$ (cercano)
+y $c^*_2=33.01$ (muy lejano, en $(14.47, 0.59)$).
+
+\textbf{Zonas}:
+\begin{itemize}[noitemsep]
+  \item $c < -0.776$: los pares NN, N$\varnothing$, NB (negativos) están aquí;
+        primer nodo $A_1$ separa la zona negativa.
+  \item $-0.776 < c < 4.90$: los pares BN ($-0.32$), B$\varnothing$ ($+2.83$),
+        BB ($+4.90$) están aquí.
+  \item $c > 33.01$: segundo nodo $A_1$, muy lejos del dominio Go.
+\end{itemize}
+
+El nodo $A_1$ en $c^*=-0.776$ cae entre los pares negativos y positivos,
+marcando el \textbf{umbral entre colocar negro y colocar blanco}.
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F25}}$ & $-0.76$ & $-2.91$ & $-6.83$ & $-0.32$ & $+2.83$ & $+4.90$ & 11.73 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[notebox,title={Lectura estratégica}]
+Este modelo favorece fuertemente los pares donde el \emph{primer} elemento
+es negro (NB=$-6.83$, N$\varnothing$=$-2.91$): negro con vecino blanco es
+óptimo. Los pares con primer elemento blanco y segundo positivo
+(B$\varnothing$, BB) son penalizados. Es un modelo con fuerte asimetría
+de color: negro domina como piedra activa.
+\end{tcolorbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F70}}$}{H\_F70} --- Candidato H\_0004 (Frente 70)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F70}}$ (H\_0004, \textcolor{cFrontLow}{Frente 70}) $\cdot$
+  $H_1$-max = 0.000 $\cdot$ Rob = 0.000}]
+\begin{align*}
+  H_{\text{F70}}(x,y) &=
+    +1.6437\,x - 0.3667\,y
+    + 2.1516\,x^2 + 1.1842\,xy - 2.4349\,y^2 \\
+  &\quad + 0.9512\,x^2y + 0.5223\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: \textbf{1} $\quad$
+\textbf{$\dE$}: 6.84 $\quad$
+\textbf{Score}: 0.090
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+El término $+2.152\,x^2$ hace que la superficie \emph{suba} en ambas
+direcciones de $x$ (coeficiente positivo), mientras $-2.435\,y^2$ la
+hace bajar en $y$. El único nodo $A_1$ está en:
+\[
+  p_1\approx(-0.370,\,-0.128),\quad c^*=-0.270.
+\]
+Este punto está muy \emph{cerca del origen} y dentro del dominio relevante
+de los pares Go. Con un solo valor crítico ($\mu=1$), la fibración
+de Milnor tiene exactamente una transición.
+
+\textbf{Zonas}:
+\begin{itemize}[noitemsep]
+  \item $c < -3.05$: los pares NB ($-3.05$) y NN ($-1.85$) están aquí;
+        topología pre-transición.
+  \item $c = -0.270$: único nodo $A_1$; el ciclo de Vanishing colapsa.
+  \item $c > -0.270$: los pares B$\varnothing$ ($+3.80$), BB ($+3.65$),
+        BN ($+0.11$) y N$\varnothing$ ($+0.51$) están en zona post-transición.
+\end{itemize}
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F70}}$ & $-1.85$ & $+0.51$ & $-3.05$ & $+0.11$ & $+3.80$ & $+3.65$ & 6.84 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+El nodo $A_1$ en $c^*=-0.270$ separa el grupo de pares
+negativos/bajos ($\text{NN}=-1.85$, $\text{NB}=-3.05$) del grupo positivo
+($\text{B}\varnothing=+3.80$, $\text{BB}=+3.65$). La transición topológica
+coincide con el umbral estratégico ``negro vs.\ blanco como primer elemento''.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{\texorpdfstring{$H_{\text{F140}}$}{H\_F140} --- Candidato H\_0013 (Frente 140)}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{tcolorbox}[hambox,title={$H_{\text{F140}}$ (H\_0013, \textcolor{cFrontLow}{Frente 140}) $\cdot$
+  $H_1$-max = 0.000 $\cdot$ Rob = 0.000}]
+\begin{align*}
+  H_{\text{F140}}(x,y) &=
+    +1.5900\,x + 0.8083\,y
+    + 0.3215\,x^2 + 0.3552\,xy - 1.1763\,y^2 \\
+  &\quad - 0.9384\,x^2y - 0.1266\,xy^2
+\end{align*}
+\textbf{Nodos $A_1$}: 2 $\quad$
+\textbf{$\dE$}: 4.72 $\quad$
+\textbf{Score}: 0.090
+\end{tcolorbox}
+
+\subsubsection*{Variedad y zonas}
+
+Este candidato presenta un fenómeno notable: uno de sus nodos $A_1$ está
+en una posición \emph{extremadamente alejada} del origen:
+\[
+  p_2\approx(-12.44,\,186.96),\quad c^*_2=-13876.85.
+\]
+El otro está en:
+\[
+  p_1\approx(-1.107,\,-0.355),\quad c^*_1=-1.236.
+\]
+El valor crítico $c^*_2=-13877$ es numéricamente gigantesco, producto de
+los términos cúbicos $-0.938\,x^2y$ cuando $y=186.96$. Para todos los
+propósitos Go, \textbf{solo el nodo cercano} con $c^*=-1.236$ es relevante.
+
+\textbf{Zonas relevantes para Go}:
+\begin{itemize}[noitemsep]
+  \item $c < -2.80$: solo NB ($-2.80$) aquí.
+  \item $-2.80 < c < -1.24$: NN, N$\varnothing$ y NB por encima de $-1.24$.
+  \item $c = -1.236$: nodo $A_1$ cercano; transición topológica.
+  \item $c > -1.236$: los pares BN ($+0.38$), BB ($+0.83$), B$\varnothing$ ($+1.91$).
+\end{itemize}
+
+\subsubsection*{Diagnóstico del frente bajo}
+
+El par BB ($+0.83$) es \emph{positivo}: el modelo penaliza la formación
+blanca. El par NB ($-2.80$) es el más favorecido.
+Los coeficientes cúbicos pequeños ($c_{112}=-0.938$, $c_{122}=-0.127$)
+implican que el dominio de los pares Go es casi completamente gobernado
+por los términos lineales y cuadráticos, con poca modulación cúbica.
+La ausencia de $H_1$ y robustez confirma que el polinomio no genera
+complejidad topológica útil en el rango Go.
+
+\subsubsection*{Energías}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  \toprule
+  Par & NN & N$\varnothing$ & NB & BN & B$\varnothing$ & BB & $\dE$ \\
+  \midrule
+  $H_{\text{F140}}$ & $-1.83$ & $-1.27$ & $-2.80$ & $+0.38$ & $+1.91$ & $+0.83$ & 4.72 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+% ==============================================================================
+\section{Análisis comparativo: los 10 Hamiltonianos}
+% ==============================================================================
+
+\subsection{Tabla resumen de invariantes}
+
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lllcccccr}
+  \toprule
+  \textbf{ID} & \textbf{Frente} & \textbf{Expresión (resumida)} &
+  \textbf{$\mu$} & \textbf{$H_1$} & \textbf{$\dE$} &
+  \textbf{Rob} & \textbf{Score} & \textbf{$c^*$ más cercano} \\
+  \midrule
+  $H_{\text{Alv}}$   & REF   & $xy$                     & 1 & 0.000 & 2.00 & 0.00 & 0.090 & 0.00 \\
+  $H_{\text{M1}}$    & REF   & $x+2y-x^2y-xy^2$         & 2 & 0.000 & 2.00 & 0.33 & 0.190 & $\pm 1.24$ \\
+  $H_{\text{F1b}}$   & 1     & {\small todos neg.\ + $-0.65x^2y$} & 2 & 0.120 & 11.75 & 1.00 & 0.417 & 0.42 \\
+  $H_{\text{F1a}}$   & 1     & {\small $+0.85x^2y-0.80xy^2$}      & 2 & 0.166 & 8.00 & 1.00 & 0.454 & 0.06 \\
+  $H_{\text{F2}}$    & 2     & {\small $+0.85x^2y+0.16xy^2$}      & 1 & 0.180 & 4.61 & 1.00 & 0.458 & 0.71 \\
+  $H_{\text{F3}}$    & 3     & {\small $+2.50x-1.62y-2.78x^2$}    & 2 & 0.007 & 8.14 & 1.00 & 0.392 & $-0.47$ \\
+  $H_{\text{F9}}$    & 9     & {\small $+1.997x+2.91y^2$}         & 2 & 0.000 & 11.02 & 0.00 & 0.090 & 1.19 \\
+  $H_{\text{F25}}$   & 25    & {\small $+2.87x+2.83xy$}           & 2 & 0.000 & 11.73 & 0.00 & 0.090 & $-0.78$ \\
+  $H_{\text{F70}}$   & 70    & {\small $+1.64x+2.15x^2$}          & 1 & 0.000 & 6.84 & 0.00 & 0.090 & $-0.27$ \\
+  $H_{\text{F140}}$  & 140   & {\small $+1.59x-0.94x^2y$}         & 2 & 0.000 & 4.72 & 0.00 & 0.090 & $-1.24$ \\
+  \bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\subsection{Jerarquía topológica vs.\ posición en el Hasse}
+
+\begin{tcolorbox}[theorembox,title={Patrón general observado}]
+Los Hamiltonianos del \textbf{Frente~1 y 2} comparten tres características
+que los ubican en la cima del Hasse:
+\begin{enumerate}[noitemsep]
+  \item Los nodos $A_1$ están \emph{fuera} del rango de energía de los pares Go
+        ($c^*$ mucho más negativo que $E_{\min}$), lo que garantiza que la
+        fibra Go vive en la zona topológicamente más rica (entre el máximo
+        local y el primer nodo).
+  \item La separación $c^*_{\max} - E_{\min}$ es grande (8--12 unidades):
+        el oval del dominio Go tiene larga vida en la filtración.
+  \item El rango $\dE$ es grande (4--12) con buena uniformidad entre pares.
+\end{enumerate}
+
+Los Hamiltonianos del \textbf{Frente~9 al 140} fallan en:
+\begin{itemize}[noitemsep]
+  \item Un valor crítico $c^*$ cae \emph{dentro} del rango Go, cortando
+        el ciclo topológico prematuramente ($H_1=0$).
+  \item O bien la robustez es 0: pequeñas perturbaciones destruyen la
+        estructura topológica.
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Temperatura: resolución energética comparada}
+
+La función de partición a temperatura $T=1$ (en unidades naturales) para
+cada uno de los 10 Hamiltonianos es:
+
+\begin{center}
+\begin{tabular}{lrrrr}
+  \toprule
+  Hamiltoniano & $E_{\min}$ & $E_{\max}$ & $\dE$ & $T_{\text{Go}}\approx \dE/\ln 6$ \\
+  \midrule
+  $H_{\text{Alv}}$  & $-1.0$ & $+1.0$ & 2.0  & 1.12 \\
+  $H_{\text{M1}}$   & $-1.0$ & $+1.0$ & 2.0  & 1.12 \\
+  $H_{\text{F1b}}$  & $-12.76$ & $-1.02$ & 11.75 & 6.57 \\
+  $H_{\text{F1a}}$  & $-9.63$ & $-1.63$ & 8.00  & 4.47 \\
+  $H_{\text{F2}}$   & $-5.97$ & $-1.36$ & 4.61  & 2.58 \\
+  $H_{\text{F3}}$   & $-7.95$ & $+0.19$ & 8.14  & 4.55 \\
+  $H_{\text{F9}}$   & $-3.33$ & $+7.69$ & 11.02 & 6.16 \\
+  $H_{\text{F25}}$  & $-6.83$ & $+4.90$ & 11.73 & 6.56 \\
+  $H_{\text{F70}}$  & $-3.05$ & $+3.80$ & 6.84  & 3.82 \\
+  $H_{\text{F140}}$ & $-2.80$ & $+1.91$ & 4.72  & 2.64 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+$T_{\text{Go}} = \dE/\ln 6$ es la temperatura a la que la probabilidad del
+par óptimo cae de $\approx 1$ a $\approx 1/2$: es la \textbf{temperatura
+de decisión estratégica}. Los modelos del Frente~1 tienen la mayor
+$T_{\text{Go}}$ de los candidatos con robustez~1, lo que significa que
+discriminan estratégicamente bien incluso ante ruido térmico.
+
+\subsection{Comparación visual de zonas críticas}
+
+\begin{tikzpicture}[scale=1.0]
+  % Eje de energía
+  \draw[->,thick,cNavy] (-0.3,0) -- (13.5,0) node[right,cNavy] {$\dE$};
+  \draw[thick,cNavy] (0,0.12) -- (0,-0.12) node[below,cNavy,font=\footnotesize] {0};
+
+  % Cada Hamiltoniano como barra de rango energético
+  \def\step{0.42}
+  \foreach \ham/\label/\emin/\emax/\nA/\col/\i in {%
+    HAlv/$H_\text{Alv}$/-1.0/1.0/1/cFrontRef/1,%
+    HM1/$H_\text{M1}$/-1.0/1.0/2/cFrontRef/2,%
+    HF1b/$H_\text{F1b}$/-12.76/-1.02/2/cFront1/3,%
+    HF1a/$H_\text{F1a}$/-9.63/-1.63/2/cFront1/4,%
+    HF2/$H_\text{F2}$/-5.97/-1.36/1/cFront2/5,%
+    HF3/$H_\text{F3}$/-7.95/0.19/2/cFront2/6,%
+    HF9/$H_\text{F9}$/-3.33/7.69/2/cFrontMid/7,%
+    HF25/$H_\text{F25}$/-6.83/4.90/2/cFrontMid/8,%
+    HF70/$H_\text{F70}$/-3.05/3.80/1/cFrontLow/9,%
+    HF140/$H_\text{F140}$/-2.80/1.91/2/cFrontLow/10%
+  }{%
+    \pgfmathsetmacro{\ypos}{(11-\i)*\step}
+    \pgfmathsetmacro{\xmin}{(\emin+13)/2}
+    \pgfmathsetmacro{\xmax}{(\emax+13)/2}
+    \filldraw[\col!70,draw=\col,line width=0.6pt,rounded corners=1pt]
+      (\xmin,\ypos-0.1) rectangle (\xmax,\ypos+0.1);
+    \node[left,font=\tiny,\col] at (\xmin-0.05,\ypos) {\label};
+  }
+
+  % Etiquetas del eje
+  \foreach \val/\lbl in {0.5/{$-12$},2.0/{$-9$},3.5/{$-6$},5.0/{$-3$},6.5/{$0$},8.0/{$+3$},9.5/{$+6$}}{
+    \draw[cGrey,thin] (\val,-0.05) -- (\val,0.05);
+    \node[below,font=\tiny,cGrey] at (\val,0) {\lbl};
+  }
+  \node[below=0.35cm,cNavy,font=\small] at (6.5,0) {Energía en pares Go (unidades de $H$)};
+\end{tikzpicture}
+
+\medskip
+
+Los Hamiltonianos del Frente~1 ($H_{\text{F1a}}$, $H_{\text{F1b}}$,
+color verde) tienen sus barras energéticas completamente en el semiplano
+negativo y son largas: el mínimo está muy por debajo de cero,
+lo que genera la escala de temperatura estratégica más alta.
+
+% ==============================================================================
+\section{Zonas Go en \texorpdfstring{$\Gamma(H)$}{Gamma(H)}: síntesis}
+% ==============================================================================
+
+\subsection{Zonas estratégicas y su geometría}
+
+Para cualquier Hamiltoniano de Go cúbico, las fibras de nivel
+$H^{-1}(c)$ dividen el plano $(x,y)$ en regiones estratégicas:
+
+\begin{tcolorbox}[defbox,title={Zonas estratégicas de $\Gamma(H)$}]
+\begin{enumerate}[noitemsep]
+  \item \textbf{Zona de piedras homogéneas} ($s_i=s_j$, NN o BB):
+        pares en los vértices $(\pm 1,\pm 1)$.
+        Si $H(\pm 1,\pm 1) < 0$: el modelo favorece la agrupación monocromática.
+  \item \textbf{Zona de interacción mixta} ($s_i\neq s_j\neq 0$, NB o BN):
+        pares en $(+1,-1)$ y $(-1,+1)$.
+        Son los más frecuentes en Go real (frontera de territorios).
+  \item \textbf{Zona de vacío} ($s_j=0$, N$\varnothing$ o B$\varnothing$):
+        pares en $(\pm 1, 0)$.
+        Si $H(s,0)=0$ (Alvarado): vacío invisible.
+        Si $H(s,0)\neq 0$: el vacío es un elemento estratégico activo.
+  \item \textbf{Punto crítico} (nodo $A_1$): punto de silla de $H$.
+        Geometricamente, el paso de Go donde la estrategia cambia de
+        ``local'' a ``global''; el mínimo y máximo local se separan.
+\end{enumerate}
+\end{tcolorbox}
+
+\subsection{Estructura toroidal y ciclos de Vanishing}
+
+El origen del toro en la fibra cúbica es la siguiente cadena de equivalencias:
+\begin{align*}
+  &\text{Curva cúbica plana genérica sobre }\C \;\cong\; \text{Toro }\C/\Lambda
+  \quad (g=1, \;\text{fórmula de Riemann-Hurwitz}) \\
+  &\text{Sobre }\R: \;\text{el toro real se manifiesta como oval compacto}
+  + \text{rama no acotada} \\
+  &\text{El oval }= \text{el ``ecuador'' del toro que contiene los pares Go}
+\end{align*}
+Cada nodo $A_1$ destruye uno de estos ovales: es el ``agujero del toro''
+que se cierra. En términos Go: la zona de estrategia diferenciada
+(el interior del oval) desaparece y el modelo ya no distingue entre
+configuraciones de esa energía.
+
+\subsection{Interpretación física: temperatura como exploración de la variedad}
+
+\begin{tcolorbox}[theorembox,
+  title={Temperatura como barrido de $\Gamma(H)$}]
+A temperatura $T$, el sistema Go explora los pares de piedras con
+distribución $p_{(s,s')}(T) \propto e^{-H(s,s')/T}$.
+
+La \textbf{trayectoria de enfriamiento} $T:\infty\to 0$ corresponde,
+en $\Gamma(H)$, a bajar desde el nivel $c=\langle H\rangle_{T=\infty}=\bar{E}$
+(la media de los 6 pares) hasta $c=E_{\min}$.
+
+\medskip
+
+\textbf{Cada vez que esta trayectoria cruza un valor crítico $c^*$},
+el sistema experimenta una transición de fase topológica:
+cambia el número de ``modos estratégicos'' disponibles
+(componentes conexas de la fibra de nivel).
+
+\medskip
+
+Los Hamiltonianos del \textbf{Frente~1} son superiores porque:
+\begin{itemize}[noitemsep]
+  \item La trayectoria de enfriamiento \emph{no cruza} ningún valor crítico
+        (los nodos $A_1$ están por debajo de $E_{\min}$): el sistema
+        baja suavemente al mínimo sin transiciones bruscas.
+  \item La persistencia $H_1>0$ certifica que el oval topológico
+        sobrevive todo el rango Go.
+  \item La robustez $=1$ garantiza que esta propiedad no es un accidente
+        de los coeficientes exactos.
+\end{itemize}
+\end{tcolorbox}
+
+% ==============================================================================
+\section{Conclusiones}
+% ==============================================================================
+
+\begin{enumerate}
+  \item \textbf{Toda la geometría Go está en la fibra}.
+        La variedad $\Gamma(H) = \{z=H(x,y)\}$ es trivialmente suave,
+        pero la riqueza estratégica está en las fibras $H^{-1}(c)$:
+        su topología cambia exactamente en los nodos $A_1$.
+
+  \item \textbf{El Frente~1 maximiza el ovalo Go.}
+        Los candidatos óptimos tienen sus nodos $A_1$ bien por debajo
+        del mínimo energético de los pares Go, asegurando que el dominio
+        Go esté contenido en la zona topológicamente más rica de la fibración
+        de Milnor (el oval compacto, homeomorfo al ``ecuador del toro'').
+
+  \item \textbf{$\mu=1$ puede superar a $\mu=2$ en $H_1$.}
+        $H_{\text{F2}}$ con un solo nodo $A_1$ tiene la mayor persistencia
+        ($H_1=0.180$), porque ese nodo único está perfectamente ubicado
+        para maximizar la vida del ciclo Go.
+
+  \item \textbf{La temperatura y el Milnor son duales.}
+        El barrido de temperatura $T:\infty\to 0$ es equivalente, en
+        $\Gamma(H)$, al barrido del parámetro $c:E_{\max}\to E_{\min}$.
+        Cada cruce de $c^*$ es una transición de fase estratégica.
+        El rango $\dE$ fija la escala $T_{\text{Go}}\approx \dE/\ln 6$.
+
+  \item \textbf{El diagrama de Hasse ordena la calidad topológica.}
+        Los frentes altos del Hasse corresponden a Hamiltonianos cuya
+        fibración de Milnor es ``suave para Go'': los ciclos viven
+        largo tiempo, la robustez es máxima, y la resolución térmica
+        es grande. Los frentes bajos fallan en al menos uno de estos
+        criterios.
+
+  \item \textbf{El Hamiltoniano de referencia $H_{\text{M1}}$ es notable.}
+        Con solo 2 nodos $A_1$ simétricos y $\dE=2$, la separación
+        $\Delta c^*=2.48$ es significativa pero el rango Go es pequeño.
+        El catálogo de 300 muestras encuentra mejores candidatos con
+        mayor $\dE$ y mejor ubicación de nodos.
+\end{enumerate}
+
+\vspace{1cm}
+\begin{center}
+{\small\color{cGrey}
+\textit{Pipeline}: \texttt{experiments/06\_hamiltonian\_families/} $\cdot$
+\textit{Catálogo}: \texttt{output/catalog.json} $\cdot$
+\textit{Diagrama de Hasse}: \texttt{output/figures/pareto\_fronts.json}
+}
+\end{center}
+
+\end{document}

@@ -250,6 +250,27 @@ Las líneas doradas que cruzan 30-40 frentes de golpe revelan algo importante: e
 
 En términos de Go: no siempre existe una secuencia de modelos de evaluación que transite suavemente entre "detecta bien los ciclos" y "detecta bien el contraste energético". A veces el salto es abrupto.
 
+### Qué mide la geometría: consistencia, no corrección
+
+Un punto crucial sobre la interpretación de los invariantes topológicos:
+
+> **La geometría de la fibra no determina qué jugadas de Go son buenas o malas.  
+> Lo que mide es si el Hamiltoniano es consistente en sus preferencias estratégicas a través del rango de temperatura relevante.**
+
+El argumento: al variar la temperatura de T=∞ a T=0, el sistema recorre el intervalo de energías [E_min, E_max] sobre los 6 pares Go. Un **nodo A₁ dentro de ese intervalo** (c* ∈ [E_min, E_max]) produce una **transición de fase estratégica**: la fibra H⁻¹(c) cambia de topología al cruzar c*, y el par más favorecido puede cambiar abruptamente. El modelo no sabe qué configuración preferir en la zona de la transición.
+
+Un **nodo A₁ fuera del intervalo Go** (c* < E_min) garantiza que la preferencia varía de forma suave y monótona a medida que T→0: no hay saltos de régimen dentro del dominio estratégico.
+
+| Situación del nodo A₁ | Efecto sobre la estrategia |
+|---|---|
+| c* < E_min (fuera, abajo) | Preferencia suave y monótona con T. Los 6 pares Go están en una sola zona topológica estable. Modelo **consistente**. |
+| c* ∈ [E_min, E_max] (dentro) | Transición de fase: el par favorecido puede cambiar bruscamente al variar T. Modelo **inconsistente** en ese rango. |
+| c* > E_max (fuera, arriba) | Todos los pares Go están por debajo de la transición: misma consistencia que el primer caso. |
+
+**El Frente 1 es óptimo precisamente por esto.** Los 4 candidatos tienen sus nodos A₁ con c* ≪ E_min. El oval topológico que contiene todos los pares Go nunca cruza un valor crítico: la fibra H⁻¹(c) para c ∈ [E_min, E_max] es siempre suave y de la misma topología. La persistencia H₁ > 0 es el certificado cuantitativo de esta propiedad; la robustez = 1 garantiza que no depende de los coeficientes exactos.
+
+Los candidatos de frentes bajos fallan porque alguno de sus nodos A₁ cae dentro del rango Go, introduciendo una inconsistencia térmica: a temperatura alta prefieren un par, a temperatura baja prefieren otro, con un cambio abrupto en el medio.
+
 ### El supremo ausente como objetivo de diseño
 
 El hecho de que el supremo teórico `(H₁=0.188, Rob=1.0, ΔE=50.9, A₁=2)` no exista como candidato real es una guía de diseño: **ese punto es el Hamiltoniano ideal**. Ningún Hamiltoniano cúbico muestreado lo alcanza, lo que sugiere que:

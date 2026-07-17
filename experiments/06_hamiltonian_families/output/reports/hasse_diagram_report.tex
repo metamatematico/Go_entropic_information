@@ -485,6 +485,71 @@ mantiene el ``estilo'' del modelo padre. Los candidatos de cadenas distintas
 son \textbf{estrat\'egicamente incomparables}: sirven para prop\'ositos
 distintos.
 
+\subsection{Qu\'e mide la geometr\'ia: consistencia, no correcci\'on}
+
+Un punto crucial sobre la interpretaci\'on de los invariantes topol\'ogicos:
+
+\begin{tcolorbox}[theorembox]
+  \textbf{La geometr\'ia de la fibra no determina qu\'e jugadas son buenas.}
+
+  \smallskip
+  Lo que mide es si el Hamiltoniano es \textbf{consistente en sus preferencias
+  estrat\'egicas} a trav\'es del rango de temperatura relevante para Go.
+\end{tcolorbox}
+
+El argumento es el siguiente. La funci\'on de partici\'on a temperatura $T$ es:
+\[
+  Z(T) = \sum_{(s,s')\in\{-1,+1\}\times\{-1,0,+1\}}
+         e^{-H(s,s')/T}
+\]
+y la probabilidad del par $(s,s')$ es $p_{(s,s')}(T) = e^{-H(s,s')/T}/Z(T)$.
+Al bajar la temperatura de $T=\infty$ a $T=0$, el sistema recorre el
+intervalo de energ\'ias $[E_{\min},\, E_{\max}]$ sobre los 6 pares Go.
+
+Un \textbf{nodo $A_1$ dentro de ese intervalo} (es decir, $c^*\in[E_{\min},E_{\max}]$)
+produce una \textbf{transici\'on de fase estrat\'egica}: la fibra $H^{-1}(c)$
+cambia de topolog\'ia al cruzar $c^*$, y el par m\'as favorecido puede cambiar
+abruptamente. El modelo ``no sabe'' cu\'al configuraci\'on preferir en la zona
+de la transici\'on.
+
+Un \textbf{nodo $A_1$ fuera del intervalo Go} (abajo de $E_{\min}$) implica
+que la preferencia varía de forma \emph{suave y mon\'otona} a medida que $T\to 0$:
+no hay saltos de r\'egimen dentro del dominio estrat\'egico. El oval topol\'ogico
+que encierra los 6 pares Go nunca se deforma cr\'iticamente.
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{3.8cm}X}
+  \TH{Situaci\'on del nodo $A_1$} & \TH{Efecto sobre la estrategia} \\[1pt]
+  $c^* < E_{\min}$ (fuera, abajo)
+    & La preferencia varía suavemente con $T$.
+      Los 6 pares Go est\'an en una sola zona topol\'ogica estable.
+      El modelo es \textbf{consistente}. \\
+  $c^* \in [E_{\min}, E_{\max}]$ (dentro)
+    & Hay una transici\'on de fase: el par favorecido puede cambiar
+      bruscamente al variar $T$. El modelo es \textbf{inconsistente}
+      en ese rango. \\
+  $c^* > E_{\max}$ (fuera, arriba)
+    & Todos los pares Go est\'an por debajo de la transici\'on:
+      misma zona topol\'ogica que el caso anterior, pero la direcci\'on
+      es la inversa (los pares entran en la zona post-transici\'on). \\
+\end{tabularx}
+\end{center}
+\medskip
+
+\textbf{El Frente~1 es \'optimo precisamente por esto.}
+Los 4 candidatos del Frente~1 tienen sus nodos $A_1$ con
+$c^*\ll E_{\min}$ (muy por debajo del m\'inimo de los pares Go).
+El oval topol\'ogico que contiene todos los pares Go no cruza ning\'un
+valor cr\'itico: la fibra $H^{-1}(c)$ para $c\in[E_{\min},E_{\max}]$
+es siempre suave y de la misma topolog\'ia.
+
+La persistencia $H_1>0$ es el \emph{certificado cuantitativo} de esta
+propiedad: un ciclo topol\'ogico vive durante toda la vida
+del intervalo relevante. La robustez $=1$ garantiza que la propiedad
+no depende de los coeficientes exactos, sino de la forma general del polinomio.
+
 \subsection{El supremo ausente como objetivo de dise\~no}
 
 El supremo te\'orico $(H_1=0.188, \mathrm{Rob}=1.0, \Delta E=50.9, A_1=2)$
