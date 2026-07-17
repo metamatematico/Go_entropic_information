@@ -1,6 +1,11 @@
 # Datos crudos — demasiado grandes para el repo (4 000 archivos SGF)
 data/sgf_partidas/
 
+# Motor KataGo descargado (binario, DLLs, redes neuronales, logs) —
+# software de terceros, no autoria propia. Ver experiments/07_moyo_dataset
+# para como descargarlo (binario OpenCL + red kata1-b15c192).
+tools/
+
 # Python
 __pycache__/
 **/__pycache__/
