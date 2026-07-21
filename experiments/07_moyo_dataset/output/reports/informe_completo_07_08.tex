@@ -1907,38 +1907,112 @@ r=\sqrt{R^2_{\text{completo}}} \approx \good{0.86}.
   estudiada, no un \'optimo global sin restricciones?
 \end{tcolorbox}
 
-\subsection{Pr\'oximos pasos, ordenados}
+\subsection{Estado actual, en una frase}
 
-\begin{enumerate}
-  \item \good{Hecho}: Fase~B (Secci\'on~\ref{sec:faseb}) encontr\'o
-        $H_{OPT\_B}$, con $\Delta R^2=0.421$ sobre las 20 partidas e
-        IC~95\,\% $[0.339,0.486]$ --- por encima, con traslape angosto,
-        de $H_{M1}$ y $H_{OPT\_A}$. Es la evidencia m\'as fuerte del
-        experimento de que ampliar a la familia completa
-        \texttt{cubic\_mixed} (con t\'erminos $b$) ayuda. Queda
-        pendiente resolver la advertencia metodol\'ogica sobre
-        $b_{12}$ en el borde de su rango antes de adoptarlo como
-        candidato definitivo.
-  \item Decidir sobre esa advertencia: ¿ampliar el rango permitido de
-        $b_{12}$ (perdiendo comparabilidad directa con el cat\'alogo de
-        47) o mantenerlo (aceptando que $H_{OPT\_B}$ es el mejor
-        \emph{dentro} de la familia estudiada)? Si se ampl\'ia,
-        repetir Fase~B con el nuevo rango.
-  \item Conseguir m\'as partidas (o separar un conjunto de validaci\'on)
-        --- ahora principalmente para confirmar la ventaja de
-        $H_{OPT\_B}$ con un traslape a\'un menor, y para resolver el
-        empate persistente entre $H_{M1}$ y $H_{OPT\_A}$
-        (Secci\'on~\ref{sec:bootstrap}).
-  \item Integrar al visor interactivo los 25 candidatos
-        \texttt{sparse\_cubic} generados al azar (Secci\'on~3.2) y
-        $H_{OPT\_B}$, pendiente desde el inicio del experimento.
-  \item Categor\'ias 6 (grupos de piedras / vida-muerte) y 7 (frontera
-        activa / aji) de la Secci\'on~\ref{sec:categorias}: a diferencia
-        de joseki/fuseki/sente-gote, requieren un mecanismo
-        \textbf{nuevo} (agregaci\'on a nivel de grupo de piedras, no a
-        nivel de punto) --- no reutilizan \texttt{relaxation\_field}
-        directamente.
-\end{enumerate}
+\good{Hecho}: Fase~B (Secci\'on~\ref{sec:faseb}) encontr\'o $H_{OPT\_B}$,
+con $\Delta R^2=0.421$ sobre las 20 partidas e IC~95\,\%
+$[0.339,0.486]$ --- por encima, con traslape angosto, de $H_{M1}$ y
+$H_{OPT\_A}$. Es la evidencia m\'as fuerte del experimento de que
+ampliar a la familia completa \texttt{cubic\_mixed} (con t\'erminos
+$b$) ayuda. Todo lo dem\'as de esta secci\'on son \textbf{decisiones
+pendientes}, no tareas ya definidas --- se presentan como caminos
+alternativos, no como una lista \'unica ordenada, porque elegir entre
+ellos depende de qu\'e pregunta interesa m\'as responder despu\'es.
+
+% =================================================================================
+\section{Caminos posibles a seguir}
+\label{sec:caminos}
+
+\subsection{Camino 1 --- Resolver el borde de $b_{12}$ en Fase B}
+
+$b_{12}=-3.0$ cay\'o exactamente en el l\'imite de su rango permitido
+(Secci\'on~\ref{sec:faseb}). Dos opciones, mutuamente excluyentes:
+
+\begin{itemize}
+  \item \textbf{Ampliar el rango} (p.ej. a $[-6,6]$, igual que
+        $\Sigma b$) y repetir Fase~B --- costo: otra corrida de
+        $\sim$100 min, y $H_{OPT\_B}$ dejar\'ia de ser directamente
+        comparable en $b_{12}$ con los otros 47 Hamiltonianos del
+        cat\'alogo (que s\'i respetan $[-3,3]$).
+  \item \textbf{Mantener el rango actual} y aceptar $H_{OPT\_B}$ como
+        el mejor candidato \emph{dentro} de la familia estudiada, con
+        comparabilidad limpia frente al resto del cat\'alogo, sin saber
+        si existe un \'optimo a\'un mejor m\'as all\'a del l\'imite.
+\end{itemize}
+
+\subsection{Camino 2 --- Rehacer el an\'alisis de variedades $\Gamma(H)$, pero sobre el polinomio reducido}
+\label{sec:camino-variedades}
+
+El an\'alisis topol\'ogico del experimento~06 (nodos $A_1$, puntos
+cr\'iticos, fibra de Milnor de $\Gamma(H)$) se calcul\'o siempre sobre
+el Hamiltoniano \textbf{crudo de 7 par\'ametros}, y no correlacion\'o
+con $\Delta R^2$ real --- el grupo "Frente~1", elegido justo por ese
+criterio, tuvo el \textbf{peor} desempe\~no emp\'irico
+(Secci\'on~3.1). La Parte~\ref{part:08} explica \textbf{por qu\'e} ten\'ia
+que pasar eso: \texttt{relaxation\_field} solo ve la proyecci\'on
+$\sigma$-invariante de 4 dimensiones ($\Sigma a,\Sigma b,b_{12},\Sigma c$);
+el an\'alisis de $\Gamma(H)$, al no promediar sobre $\sigma$, mezcla esas
+4 dimensiones relevantes con las 3 ($\Delta a,\Delta b,\Delta c$) que son
+\textbf{ruido puro} para la predicci\'on. Cualquier clasificaci\'on
+topol\'ogica del Hamiltoniano completo est\'a, por construcci\'on,
+contaminada por dimensiones invisibles al predictor real.
+
+\begin{tcolorbox}[quotebox]
+  \textbf{Camino nuevo, no probado a\'un}: repetir el mismo an\'alisis
+  de variedades (puntos cr\'iticos, tipo de nodo, fibra de Milnor), no
+  sobre $H(x,y)$ crudo, sino sobre el \textbf{polinomio reducido}
+  $\Sigma a(x{+}y)+\Sigma b(x^2{+}y^2)+b_{12}xy+\Sigma c(x^2y{+}xy^2)$
+  --- exactamente el objeto que \texttt{relaxation\_field} eval\'ua, sin
+  las 3 dimensiones invisibles. Ser\'ia la primera vez que se prueba si
+  la topolog\'ia correlaciona con $\Delta R^2$ usando el objeto correcto
+  (antes ni siquiera se sab\'ia qu\'e dimensiones filtrar). Podr\'ia
+  explicar, por ejemplo, por qu\'e $H_{OPT\_B}$ (con $b_{12}$ en el
+  extremo de su rango) rinde tanto mejor --- quiz\'a su variedad
+  reducida tiene una estructura de puntos cr\'iticos cualitativamente
+  distinta a la de $H_{M1}$/$H_{OPT\_A}$.
+\end{tcolorbox}
+
+\textbf{Costo}: moderado --- reutiliza el c\'odigo de puntos
+cr\'iticos/Milnor del experimento~06, pero hay que rederivar $\Gamma$
+sobre el polinomio reducido de 4 par\'ametros en vez del de 7, y
+recalcularlo para el cat\'alogo completo y para el espacio que explora
+Fase~B. Puede volver a salir nulo --- pero ser\'ia la primera prueba
+limpia de esta hip\'otesis, no una repetici\'on de la anterior.
+
+\subsection{Camino 3 --- M\'as partidas o una partici\'on de validaci\'on}
+
+Con 20 partidas, el IC~95\,\% de cualquier $\Delta R^2$ tiene un ancho
+de $\sim$0.13--0.15 (Secci\'on~\ref{sec:bootstrap}) --- suficiente para
+que $H_{OPT\_B}$ se distinga de $H_{M1}$/$H_{OPT\_A}$ con traslape
+angosto, pero \textbf{no} para resolver del todo el empate persistente
+entre estos \'ultimos dos. M\'as partidas (o separar expl\'icitamente
+un conjunto de validaci\'on nunca visto durante la b\'usqueda de
+coeficientes) es el \'unico camino que ataca directamente el ancho del
+intervalo de confianza, en vez de seguir buscando coeficientes.
+\textbf{Costo}: depende de cu\'antas partidas nuevas haya disponibles
+--- KataGo ya est\'a cacheado como pipeline, as\'i que el costo marginal
+es solo el de correr KataGo sobre las partidas nuevas (no hay que
+tocar el c\'odigo).
+
+\subsection{Camino 4 --- Completar el cat\'alogo del visor}
+
+Integrar al visor interactivo los 25 candidatos \texttt{sparse\_cubic}
+generados al azar (Secci\'on~3.2), pendientes desde el inicio del
+experimento. \textbf{Costo}: bajo --- es trabajo de integraci\'on
+(estos candidatos ya fueron evaluados, solo falta agregarlos al
+cat\'alogo de 48), no c\'omputo nuevo de KataGo ni de
+\texttt{relaxation\_field}.
+
+\subsection{Camino 5 --- Categor\'ias 6 y 7: mecanismo nuevo}
+
+Grupos de piedras/vida-muerte y frontera activa/aji
+(Secci\'on~\ref{sec:categorias}) son cualitativamente distintos de
+moyo/territorio/fase/joseki/fuseki/sente-gote: no se pueden resolver
+reutilizando \texttt{relaxation\_field} punto por punto --- necesitan
+agregaci\'on a nivel de \textbf{grupo completo de piedras} (vida/muerte
+de un grupo no es una propiedad de un punto individual). \textbf{Costo}:
+el m\'as alto de los cinco caminos --- requiere dise\~nar un mecanismo
+nuevo desde cero, no una extensi\'on del pipeline existente.
 
 \vfill
 \noindent{\color{cRule}\hrule height 0.5pt}\vspace{4pt}

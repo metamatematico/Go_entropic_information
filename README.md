@@ -119,7 +119,7 @@ Go_entropic_information/
         └── feature_explorer.html   # Interactive feature dashboard
 │
 └── experiments/
-    └── 06_hamiltonian_families/    # Búsqueda y clasificación de Hamiltonianos cúbicos
+    ├── 06_hamiltonian_families/    # Búsqueda y clasificación de Hamiltonianos cúbicos
         ├── pipeline.py             # Pipeline completo: generar, analizar, visualizar
         ├── src/
         │   ├── hamiltonians.py     # Familias de polinomios (cubic_mixed, h_m1, …)
@@ -137,6 +137,28 @@ Go_entropic_information/
             └── reports/
                 ├── executive_summary.md     # Resumen ejecutivo + top 5
                 └── hasse_diagram_report.md  # Informe completo: matemática + Go
+
+    ├── 07_moyo_dataset/            # Predicción de moyo/territorio contra KataGo real
+    │   ├── src/
+    │   │   ├── katago_engine.py        # Wrapper del motor KataGo (modo analysis, JSON)
+    │   │   ├── moyo_detector.py        # Flood-fill de regiones por banda de ownership
+    │   │   ├── features.py             # board_features, relaxation_field (Boltzmann)
+    │   │   ├── early_regions.py        # Muestreo de fuseki (3–15%) + regiones de joseki
+    │   │   ├── cache_positions.py      # Corre KataGo 1 vez, cachea moyo/territorio
+    │   │   ├── cache_early_positions.py# Idem para fuseki/joseki
+    │   │   ├── optimize_coefficients.py# Fase A/B: differential_evolution sobre el cache
+    │   │   ├── run_fase_b.py           # Fase B: búsqueda en las 4 dims. efectivas
+    │   │   └── analyze_results.py      # ΔR² incremental, bootstrap por partida
+    │   └── output/
+    │       ├── cache_*.pkl              # Caches de posiciones (KataGo corrido 1 vez)
+    │       └── reports/
+    │           ├── informe_completo_07_08.tex # Reporte unificado (exp. 07 + 08)
+    │           ├── avance_experimento07.tex   # Reporte solo del exp. 07 (histórico)
+    │           └── correlaciones_moyo.png     # Campo del Hamiltoniano vs. KataGo real
+    │
+    └── 08_teoria_invariantes/      # Por qué el campo solo ve 4 de 7 parámetros
+        └── output/reports/
+            └── teoria_invariantes_klein.tex  # Derivación vía el grupo de Klein
 ```
 
 ---
@@ -198,6 +220,26 @@ python pipeline.py --frente1
 # → output/figures/frente_1/H_00XX.png  (one per candidate)
 ```
 
+### Experiment 07 — moyo prediction pipeline
+```bash
+cd experiments/07_moyo_dataset/src
+
+# 1. Run KataGo once per position, cache board + regions (moyo/territory)
+python cache_positions.py --n_games 20
+# → ../output/position_cache.pkl
+
+# 2. Fuseki (3–15%) + joseki (corners), same caching pattern
+python cache_early_positions.py --n_games 20
+# → ../output/cache_early20.pkl
+
+# 3. Fase B: optimize directly in the 4 effective dimensions
+#    (Sigma_a, Sigma_b, b12, Sigma_c) over the full cubic_mixed family
+python run_fase_b.py
+# → ../output/fase_b_result.json
+```
+Requires a local KataGo binary + neural net (see the experiment's own
+setup notes) — not bundled in this repo (see `tools/` in `.gitignore`).
+
 ---
 
 ## Results overview
@@ -243,6 +285,131 @@ Systematic search over 300 cubic polynomial Hamiltonians H(x,y), evaluated with 
 - 475 cover relations visualized in `hasse_diagram.png`
 
 See [`experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md`](experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md) for the full mathematical and strategic interpretation.
+
+---
+
+## Experiments 07 & 08 — how they relate
+
+Experiments 07 and 08 are two sides of the same investigation, not two
+unrelated projects:
+
+- **Experiment 07 is empirical.** It uses classical Ising Hamiltonians
+  plus a Boltzmann relaxation field to **predict** real moyo/territory
+  the way KataGo (a reference AI engine) sees it after analyzing
+  professional games. It runs KataGo, measures ΔR², compares
+  candidates — applied statistics on real data.
+- **Experiment 08 is theoretical.** It predicts nothing new and never
+  runs KataGo. It takes one specific finding that surfaced *inside*
+  Experiment 07 — "the relaxation field only depends on 4 of the 7
+  coefficients of `cubic_mixed`, never on all 7 independently" — and
+  proves **why** that has to happen, systematically, using group
+  theory (the Klein four-group). It formalizes a mechanism Experiment
+  07 was already using without proving it.
+
+In short: Experiment 07 answers *"how well does this Hamiltonian
+predict real moyo?"*; Experiment 08 answers *"why does the relaxation
+field ignore certain coefficients of the Hamiltonian, no matter which
+Hamiltonian it is?"*. The second question was born inside the first
+experiment, but its answer is purely algebraic — it needs no KataGo run
+and no data — so it became its own experiment with its own folder.
+Both live in [`experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex`](experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex),
+a single unified report presented in the order they are logically
+needed: first the empirical evidence that motivates the question
+(Experiment 07), then the formal answer (Experiment 08).
+
+---
+
+## Experiment 07 — Predicting moyo against real KataGo analysis
+
+**Question:** can a classical pairwise Ising Hamiltonian $H(s_i,s_j)$,
+built on the Go spin model $s\in\{-1,0,+1\}$, predict **real territory**
+(*moyo*) — as computed by a reference AI engine (KataGo) analyzing
+professional games — better than board geometry alone (distance to
+stones, distance to the edge)?
+
+**Success metric:** ΔR² — the gain in R² from adding the Hamiltonian's
+averaged field over a candidate region, on top of a geometry-only
+baseline, with significance checked by an F-test.
+
+**Pipeline** (KataGo runs once per position, cached, then reused for
+hundreds of Hamiltonian evaluations — the expensive step is separated
+from the cheap one):
+
+```
+game.sgf → sample positions → KataGo (ownership, once) → cache
+                                                             │
+                              47+ Hamiltonians × relaxation_field(cache)
+                                                             │
+                                                 ΔR² per Hamiltonian
+```
+
+**Key results** (20 real professional games, `kata1-b15c192`, local OpenCL):
+
+| Finding | Result |
+|---|---|
+| Topological criteria (Experiment 06's "Frente 1") vs. real ΔR² | **worst** real performance of all groups tested — do not use to rank candidates |
+| Random search (69 candidates, 2 families) | never beats hand-derived Hamiltonians; unstable across interaction radius |
+| $H_{M1}$ (Mercado & Jiménez) / Alvarado, hand-derived | the only candidates whose ΔR² **improves** with wider interaction radius |
+| Fase A — direct optimization (`sparse_cubic`, 4 params) | $H_{OPT\_A}$: ΔR²=0.317, CI95%=[0.227,0.380] — statistical tie with $H_{M1}$ |
+| Fase B — optimization in the 4 effective dims (`cubic_mixed`, full) | $H_{OPT\_B}$: ΔR²=0.421, CI95%=[0.339,0.486] — narrow overlap, strongest result so far |
+| Full model $R^2$ (geometry + $H_{OPT\_B}$) | 0.733 ⇒ correlation $r\approx0.86$ against real KataGo territory |
+| KataGo signal audit (7 fields tested) | only `ownershipStdev` (via weighting) adds real signal; `policy`, `moveInfos`, `scoreStdev`, `winrate`, `scoreLead` don't |
+
+**Go-position categories covered** (all reusing the same
+`relaxation_field` machinery except sente/gote):
+
+| # | Category | Status |
+|---|---|---|
+| 1 | Moyo (contested territory) | ✅ enabled |
+| 2 | Settled territory | ✅ enabled |
+| 3 | Game phase (15–90%) | ✅ enabled |
+| 4 | Joseki (corners) | ✅ enabled |
+| 5 | Fuseki (opening, 3–15%) | ✅ enabled |
+| 6 | Stone groups / life-death | ⬜ pending — needs a new group-level mechanism |
+| 7 | Active border / aji | ⬜ pending — needs a new group-level mechanism |
+| 8 | Sente/gote (tempo) | ✅ enabled — real but weak signal |
+
+Full report, with every table, statistical caveat (game-level
+bootstrap, not row-level p-values), and open decision points:
+[`experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex`](experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex).
+
+---
+
+## Experiment 08 — Why the field only sees 4 of 7 parameters
+
+The `cubic_mixed` template has 7 free coefficients:
+$H(x,y)=a_1x+a_2y+b_{11}x^2+b_{12}xy+b_{22}y^2+c_{112}x^2y+c_{122}xy^2$.
+Experiment 07 found empirically that `relaxation_field` only ever
+depends on 4 combinations of them ($\Sigma a,\Sigma b,b_{12},\Sigma c$),
+because it always evaluates the symmetric sum $H(s,q)+H(q,s)$, never
+$H(s,q)$ alone. Experiment 08 derives **why** that has to be true, using
+representation theory instead of case-by-case algebra:
+
+1. **σ (position swap)**, $(x,y)\mapsto(y,x)$ — motivated directly by
+   the $H(s,q)+H(q,s)$ symmetrization. A group of order 2 splits any
+   polynomial into an invariant half (survives averaging) and an
+   anti-invariant half (cancels exactly) — no third option.
+2. Applied monomial by monomial: **4 of the 7 survive**, 3 cancel
+   identically. Verified both symbolically (`sympy`) and empirically —
+   Hamiltonians built purely from the anti-invariant part give
+   ΔR²=0.000000 exact, to machine precision, on real game data.
+3. **τ (color swap)**, $(x,y)\mapsto(-x,-y)$ — a second, independent
+   symmetry. Together, $\{e,\sigma,\tau,\sigma\tau\}$ form the **Klein
+   four-group** ($\mathbb{Z}_2\times\mathbb{Z}_2$, not cyclic $\mathbb{Z}_4$ — every
+   non-identity element has order 2), which has exactly 4 real
+   irreducible characters. Projecting `cubic_mixed` onto each
+   (Reynolds operator) refines the 4 surviving combinations without
+   changing how many there are.
+4. **Practical payoff:** searching directly in the 4 effective
+   dimensions instead of the 7 raw ones (used for Fase B, Experiment
+   07) is provably lossless for this objective — not just empirically
+   convenient.
+
+Full derivation, with the Cayley table, character table, and the
+corrected decomposition showing that $H_{M1}$ itself is *not* purely
+invariant (a subtlety the report explicitly walks through after an
+earlier overclaim):
+[`experiments/08_teoria_invariantes/output/reports/teoria_invariantes_klein.tex`](experiments/08_teoria_invariantes/output/reports/teoria_invariantes_klein.tex).
 
 ---
 
