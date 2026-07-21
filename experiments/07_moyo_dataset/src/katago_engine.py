@@ -65,12 +65,18 @@ class KataGoEngine:
     def analyze(self, moves: List[Tuple[str, Tuple[int, int]]],
                 analyze_turns: List[int],
                 max_visits: int = 300,
-                include_ownership: bool = True) -> Dict[int, Dict[str, Any]]:
+                include_ownership: bool = True,
+                include_ownership_stdev: bool = False,
+                include_policy: bool = False) -> Dict[int, Dict[str, Any]]:
         """
         moves: lista de (color, (fila, columna)) en orden de juego, 0-indexado,
                fila 0 = arriba (convención SGF ya usada en el resto del proyecto).
         analyze_turns: índices de jugada (0 = posición inicial, k = después de
                la jugada k-ésima) donde se pide el análisis.
+        include_ownership_stdev: agrega `ownershipStdev` (361 valores, misma
+               indexación que `ownership`) — incertidumbre de KataGo por punto.
+        include_policy: agrega `policy` (362 valores = 361 + pass) — probabilidad
+               de la red de política de jugar cada punto a continuación.
         Devuelve dict turno -> respuesta JSON de KataGo.
         """
         self._query_id += 1
@@ -88,6 +94,8 @@ class KataGoEngine:
             "analyzeTurns": analyze_turns,
             "maxVisits": max_visits,
             "includeOwnership": include_ownership,
+            "includeOwnershipStdev": include_ownership_stdev,
+            "includePolicy": include_policy,
         }
         self.proc.stdin.write(json.dumps(query) + "\n")
         self.proc.stdin.flush()

@@ -1,0 +1,965 @@
+% ─────────────────────────────────────────────────────────────────────────────
+% avance_experimento07.tex
+% Overleaf: Menu -> Compiler -> pdfLaTeX
+% ─────────────────────────────────────────────────────────────────────────────
+\documentclass[11pt, a4paper]{article}
+
+% -- Codificacion --------------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% -- Fuentes (disponibles en TeX Live / Overleaf) -------------------------------
+\usepackage[default, scale=0.95]{sourcesanspro}
+\usepackage[scaled=0.82]{inconsolata}
+
+% -- Geometria -------------------------------------------------------------------
+\usepackage[
+  a4paper,
+  top        = 2.8cm,
+  bottom     = 2.4cm,
+  left       = 2.2cm,
+  right      = 2.2cm,
+  headheight = 30pt,
+  headsep    = 14pt
+]{geometry}
+
+% -- Colores ----------------------------------------------------------------------
+\usepackage[table]{xcolor}
+\definecolor{cNavy}   {HTML}{0D1B3E}
+\definecolor{cBlue}   {HTML}{2A4F9B}
+\definecolor{cAccent} {HTML}{4A7FD4}
+\definecolor{cMuted}  {HTML}{6B7FA8}
+\definecolor{cCodeFG} {HTML}{1B3A70}
+\definecolor{cCodeBG} {HTML}{EEF2FA}
+\definecolor{cTHbg}   {HTML}{0D1B3E}
+\definecolor{cTRalt}  {HTML}{F2F5FC}
+\definecolor{cRule}   {HTML}{C0CADF}
+\definecolor{cQuoteBG}{HTML}{F0F5FF}
+\definecolor{cGood}   {HTML}{1E7A4C}
+\definecolor{cBad}    {HTML}{B23A3A}
+
+% -- Matematicas --------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% -- Tipografia y espaciado -----------------------------------------------------------
+\usepackage{microtype}
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+
+% -- Tablas --------------------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{adjustbox}
+\renewcommand{\arraystretch}{1.4}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% -- Cajas de codigo y citas -----------------------------------------------------------
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+
+\tcbset{
+  codebox/.style = {
+    enhanced,
+    colback    = cCodeBG,
+    colframe   = cAccent,
+    arc        = 3pt,
+    leftrule   = 3pt,  rightrule  = 0.5pt,
+    toprule    = 0.5pt, bottomrule = 0.5pt,
+    left = 10pt, right = 10pt, top = 7pt, bottom = 7pt,
+    fontupper  = \small\ttfamily\color{cCodeFG},
+    breakable
+  },
+  quotebox/.style = {
+    enhanced,
+    colback    = cQuoteBG,
+    colframe   = cAccent,
+    arc        = 2pt,
+    leftrule   = 3pt,  rightrule  = 0pt,
+    toprule    = 0pt,  bottomrule = 0pt,
+    left = 12pt, right = 10pt, top = 7pt, bottom = 7pt,
+    fontupper  = \itshape\color{cCodeFG},
+    breakable
+  },
+  pendingbox/.style = {
+    enhanced,
+    colback    = white,
+    colframe   = cMuted,
+    arc        = 2pt,
+    dashed,
+    left = 12pt, right = 10pt, top = 7pt, bottom = 7pt,
+    fontupper  = \color{cMuted},
+    breakable
+  }
+}
+
+% -- Encabezados de seccion -------------------------------------------------------------
+\usepackage{titlesec}
+
+\titleformat{\section}
+  {\color{cNavy}\Large\bfseries}
+  {}{0em}{}
+  [\vspace{2pt}{\color{cAccent}\hrule height 1.6pt}\vspace{4pt}]
+
+\titleformat{\subsection}
+  {\color{cBlue}\large\bfseries}
+  {}{0em}{}
+  [\vspace{1pt}{\color{cRule}\hrule height 0.5pt}\vspace{2pt}]
+
+\titleformat{\subsubsection}
+  {\color{cBlue}\normalsize\bfseries}
+  {}{0em}{}
+
+\titlespacing*{\section}      {0pt}{20pt}{8pt}
+\titlespacing*{\subsection}   {0pt}{14pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{3pt}
+
+% -- Cabecera y pie -----------------------------------------------------------------
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyhead[C]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[cNavy]
+      (current page.north west)
+      rectangle ($(current page.north east)+(0,-1.15cm)$);
+    \fill[cAccent]
+      (current page.north west)
+      rectangle ($(current page.north west)+(0.28\paperwidth,-1.15cm)$);
+    \node[white, anchor=west, font=\small\itshape] at
+      ($(current page.north west)+(0.28\paperwidth+8pt,-0.58cm)$)
+      {Go Ising \enspace\textbullet\enspace
+       Experimento~07 \enspace\textbullet\enspace
+       Predicci\'on de moyos};
+  \end{tikzpicture}%
+}
+
+\fancyfoot[L]{\small\color{cMuted}
+  Leonardo Jim\'enez Mart\'inez \enspace\textbullet\enspace UNAM \enspace\textbullet\enspace 2026}
+\fancyfoot[R]{\small\color{cMuted} P\'agina \thepage}
+\def\footrule{{\color{cRule}\vspace{-3pt}\hrule width\headwidth height 0.4pt\vspace{2pt}}}
+
+% -- Listas ----------------------------------------------------------------------------
+\usepackage{enumitem}
+\setlist[itemize]{
+  leftmargin = 1.5em, itemsep = 2pt, topsep = 4pt,
+  label = {\color{cAccent}\small$\bullet$}
+}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=2pt, topsep=4pt}
+
+% -- PDF metadata ------------------------------------------------------------------------
+\usepackage[
+  colorlinks = true,
+  linkcolor  = cAccent,
+  urlcolor   = cAccent,
+  pdfauthor  = {Leonardo Jim\'enez Mart\'inez},
+  pdftitle   = {Predicci\'on de moyos con Hamiltonianos Go -- Informe de avance},
+  pdfsubject = {Go Ising -- Experimento 07}
+]{hyperref}
+
+% -- Macros -------------------------------------------------------------------------------
+\newcommand{\TH}[1]{\cellcolor{cTHbg}\color{white}\textbf{#1}}
+\newcommand{\good}[1]{\color{cGood}\textbf{#1}}
+\newcommand{\bad}[1]{\color{cBad}\textbf{#1}}
+
+% =================================================================================
+\begin{document}
+\thispagestyle{fancy}
+
+% -- Portada ----------------------------------------------------------------------------
+\vspace*{4pt}
+{\color{cNavy}\Huge\bfseries Predicci\'on de moyos}\\[3pt]
+{\color{cNavy}\Large\bfseries con Hamiltonianos cl\'asicos de Ising}
+
+\vspace{6pt}
+{\color{cMuted}\large\itshape
+  Informe de avance --- Experimento 07}
+
+\vspace{4pt}
+{\color{cMuted}\small\itshape Generado autom\'aticamente \textbullet\ 2026-07-18}\\[1pt]
+{\color{cMuted}\small\itshape
+  20 partidas profesionales reales \textbullet\ motor de an\'alisis KataGo local
+  (kata1-b15c192)}
+
+\vspace{8pt}
+{\color{cAccent}\hrule height 2pt}
+\vspace{10pt}
+
+% =================================================================================
+\section{Objetivo}
+
+Determinar si un Hamiltoniano cl\'asico de interacci\'on por pares
+$H(s_i,s_j)$, definido sobre el modelo de esp\'in de Go
+$s\in\{-1,0,+1\}$, puede predecir el \textbf{territorio real} (\emph{moyo})
+que produce un motor de IA de referencia (KataGo) al analizar partidas
+profesionales, mejor de lo que predice la sola geometr\'ia del tablero
+(distancia a piedras, distancia al borde).
+
+La m\'etrica de \'exito es $\Delta R^2$: la ganancia de $R^2$ al agregar
+el campo promedio del Hamiltoniano sobre una regi\'on candidata,
+por encima de un modelo base que solo usa geometr\'ia, con significancia
+verificada por prueba $F$.
+
+% =================================================================================
+\section{Flujo de trabajo}
+
+El pipeline separa tres etapas; \textbf{KataGo solo interviene en la
+segunda}, y se corre una sola vez por posici\'on:
+
+\begin{enumerate}
+  \item \textbf{Partida $\to$ tablero.} Se parsea el \texttt{.sgf}, se
+  muestrean $\sim$6 momentos por partida y se reconstruye el tablero
+  $19\times19$ en cada uno, antes de invocar a KataGo.
+
+  \item \textbf{An\'alisis KataGo.} \texttt{katago.exe} se lanza como
+  proceso persistente en modo \texttt{analysis} (protocolo JSON por
+  \texttt{stdin}/\texttt{stdout}, backend OpenCL sobre GPU). Por cada
+  posici\'on se env\'ia una consulta con \texttt{maxVisits} fijo y se
+  recibe \texttt{ownership} (estimaci\'on de control por punto) y
+  \texttt{rootInfo.scoreLead}. Es \textbf{sin estado}: cada proceso es
+  independiente, no existe base de datos persistente, y el motor mezcla
+  aleatoriedad interna entre corridas separadas.
+
+  \item \textbf{Post-proceso (sin KataGo).} Con el \texttt{ownership}
+  crudo se detectan regiones de moyo/territorio (\emph{flood-fill}
+  por bandas de control), se calculan features geom\'etricas, y por
+  separado se eval\'ua el campo de relajaci\'on de Boltzmann del
+  Hamiltoniano candidato --- este \'ultimo paso no requiere a KataGo,
+  es puro c\'alculo del modelo Ising cl\'asico.
+\end{enumerate}
+
+\begin{tcolorbox}[quotebox]
+  \textbf{Decisi\'on de dise\~no confirmada}: correr KataGo \emph{una
+  sola vez} por posici\'on y cachear tablero + regiones + geometr\'ia
+  en disco, reutilizando ese cache para evaluar cientos de
+  Hamiltonianos distintos (solo cambia el c\'alculo barato del campo).
+  Es el patr\'on que hace viable la b\'usqueda de coeficientes descrita
+  en la Secci\'on~\ref{sec:optimizacion}.
+\end{tcolorbox}
+
+% =================================================================================
+\section{Lo que ya se descart\'o}
+
+\subsection{Criterios topol\'ogicos (Frente 1 de Pareto)}
+
+El experimento~06 hab\'ia ordenado los 44 candidatos \texttt{cubic\_mixed}
+por criterios topol\'ogicos (persistencia $H_1$, separaci\'on de puntos
+cr\'iticos, rango energ\'etico), definiendo un ``Frente~1'' de candidatos
+te\'oricamente superiores. Contrastado contra $\Delta R^2$ real:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Grupo (Hasse)} & \TH{$\overline{\Delta R^2}$ (r=1)} & \TH{$\overline{\Delta R^2}$ (r=9)} \\[1pt]
+  Frente 1 (``mejor'' te\'orico) & 0.130 & \bad{0.055} \\
+  Medios                          & 0.204 & 0.170 \\
+  Tard\'ios                       & 0.216 & 0.152 \\
+\end{tabular}
+\end{center}
+\medskip
+
+El Frente~1 --- el grupo que la topolog\'ia predec\'ia como superior ---
+resulta ser el de \textbf{peor} desempe\~no real, y el que m\'as se
+degrada al ampliar el radio de interacci\'on. Los criterios topol\'ogicos
+no predicen utilidad real para este problema.
+
+\subsection{Muestreo aleatorio, en cualquier tama\~no de familia}
+
+Se probaron dos familias de Hamiltonianos generados al azar
+(\texttt{seed} fija):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabularx}{0.96\textwidth}{L{3.4cm}C{2cm}C{2.3cm}C{2.3cm}X}
+  \TH{Familia} & \TH{Candidatos} & \TH{$\overline{\Delta R^2}$ r=1} & \TH{$\overline{\Delta R^2}$ r=9} & \TH{Tendencia con radio} \\[1pt]
+  \texttt{cubic\_mixed} (7 par\'am.) & 44 & 0.130--0.216 & 0.055--0.170 & \bad{degrada} \\
+  \texttt{sparse\_cubic} (4 par\'am., misma forma que $H_{M1}$) & 25 & 0.102 & 0.056 & \bad{degrada} \\
+\end{tabularx}
+\end{center}
+\medskip
+
+Reducir la familia a los mismos 4 mon\'omios de $H_{M1}$ y muestrear
+sus coeficientes al azar \textbf{no ayuda}: el promedio (0.056--0.102)
+es incluso peor que el de la familia completa de 7 par\'ametros. Lo que
+importa no es la \emph{forma} de los mon\'omios sino el \emph{valor}
+espec\'ifico de sus coeficientes.
+
+\subsection{Inestabilidad de los mejores candidatos aleatorios}
+
+El mejor candidato aleatorio individual, $H_{0106}$, ilustra el
+problema con m\'as claridad que cualquier promedio:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ (r=1)} & \TH{$\Delta R^2$ (r=9)} & \TH{Cambio} \\[1pt]
+  $H_{0106}$ (aleatorio, mejor en r=1) & \good{0.408} & \bad{0.005} & $-0.403$ \\
+  $H_{0115}$ (aleatorio, mejor en r=9) & 0.385 & \good{0.437} & $+0.052$ \\
+\end{tabular}
+\end{center}
+\medskip
+
+$H_{0106}$ es el mejor candidato aleatorio a radio~1 y se
+\textbf{colapsa} a radio~9 --- una ca\'ida de m\'as del 98\,\%. Ning\'un
+candidato aleatorio es consistentemente bueno en ambos reg\'imenes.
+
+% =================================================================================
+\section{Lo que s\'i funciona: los Hamiltonianos derivados a mano}
+
+$H_{M1}$ (Mercado \& Jim\'enez) y el modelo de Alvarado (Atomic-Go) no
+fueron generados al azar --- sus coeficientes vienen de una construcci\'on
+te\'orica previa, ajena a este pipeline. Son, hasta ahora, los
+\textbf{\'unicos} Hamiltonianos probados que \textbf{mejoran} al ampliar
+el radio de interacci\'on de Manhattan:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ (r=1)} & \TH{$\Delta R^2$ (r=9)} & \TH{Cambio} \\[1pt]
+  $H_{M1}$ (\texttt{sparse\_cubic}) & 0.242 & \good{0.309} & \good{$+0.067$} \\
+  Alvarado (\texttt{quadratic})     & 0.169 & \good{0.255} & \good{$+0.086$} \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  Este es el hallazgo emp\'irico que motiva el pivote de la
+  Secci\'on~\ref{sec:optimizacion}: la mejora sostenida con el radio no
+  parece ser un accidente del muestreo, sino una propiedad de
+  coeficientes \emph{deliberadamente} elegidos. Ninguno de los 69
+  candidatos generados al azar (44 + 25) replica ese comportamiento.
+\end{tcolorbox}
+
+% =================================================================================
+\section{Pivote: optimizaci\'on directa de coeficientes}
+\label{sec:optimizacion}
+
+Dado que ni el criterio topol\'ogico ni el muestreo aleatorio producen
+candidatos consistentemente buenos, se reemplaz\'o la b\'usqueda al
+azar por \textbf{optimizaci\'on directa} contra la se\~nal real
+($\Delta R^2$), usando \texttt{scipy.optimize.differential\_evolution}.
+
+\subsection{Infraestructura de cach\'e}
+
+\begin{tcolorbox}[codebox]
+\texttt{cache\_positions.py} \\
+\ \ \ $\to$ corre KataGo 1 vez por posici\'on \\
+\ \ \ $\to$ guarda tablero + moyos detectados + features geom\'etricas \\[4pt]
+\texttt{optimize\_coefficients.py} \\
+\ \ \ $\to$ reutiliza el cache cientos de veces \\
+\ \ \ $\to$ solo recalcula el campo (barato) para cada vector de coeficientes
+\end{tcolorbox}
+
+La funci\'on objetivo se verific\'o antes de optimizar: evaluada en los
+coeficientes exactos de $H_{M1}$ sobre un cache de 6 partidas, reproduce
+$\Delta R^2 \approx 0.315$--$0.329$ (seg\'un n\'umero de barridos de
+relajaci\'on), consistente con el $0.309$ medido sobre las 20 partidas
+completas.
+
+\subsection{Fase A --- prueba de concepto}
+
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{ll}
+  \TH{Par\'ametro} & \TH{Valor} \\[1pt]
+  Plantilla & \texttt{sparse\_cubic} (4 coeficientes, forma de $H_{M1}$) \\
+  Radio de Manhattan & 9 \\
+  Partidas en cach\'e & 6 \\
+  Arranques sembrados & $H_{M1}$, y proyecciones de $H_{0106}$/$H_{0115}$ \\
+  Optimizador & \texttt{differential\_evolution} (\texttt{workers=1}) \\
+\end{tabular}
+\end{center}
+
+\textbf{Resultado} (547 evaluaciones, $\sim$75 min, sobre el cach\'e
+de 6 partidas):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{ll}
+  \TH{Coeficiente} & \TH{Valor \'optimo} \\[1pt]
+  $a_1$    & $-0.8404$ \\
+  $a_2$    & $-0.1608$ \\
+  $c_{112}$ & $\phantom{-}0.9828$ \\
+  $c_{122}$ & $-0.1221$ \\
+  $\Delta R^2$ (cach\'e de 6 partidas) & \good{0.3523} \\
+\end{tabular}
+\end{center}
+\medskip
+
+Superior al $\Delta R^2=0.3152$ de $H_{M1}$ real medido sobre el mismo
+cach\'e y mismas condiciones ($n\_sweeps=4$). El optimizador no
+convergi\'o formalmente (\texttt{success: false}, la funci\'on
+objetivo se aplan\'o hacia el final --- ver Secci\'on~\ref{sec:degeneracion}
+sobre por qu\'e el paisaje tiene direcciones exactamente planas), pero
+el resultado final s\'i mejora a la referencia.
+
+\subsubsection{Verificaci\'on cruzada con la identidad de degeneraci\'on}
+
+Sumando los coeficientes \'optimos: $\Sigma a = a_1+a_2 = -1.0013$,
+$\Sigma c = c_{112}+c_{122} = 0.8607$. Seg\'un la
+Secci\'on~\ref{sec:degeneracion}, cualquier otro reparto de esas
+mismas sumas deber\'ia dar id\'entico $\Delta R^2$. Se prob\'o un
+reparto alterno, $(a_1,a_2,c_{112},c_{122}) = (2.499,-3.501,-0.270,1.130)$,
+misma $\Sigma a$ y $\Sigma c$ pero valores individuales muy distintos:
+
+\begin{tcolorbox}[quotebox]
+  \'Optimo original: $\Delta R^2=0.3523$. Reparto alterno:
+  $\Delta R^2=0.3523$. \textbf{Id\'entico a 4 cifras decimales} ---
+  confirma emp\'iricamente, sobre un punto real hallado por el
+  optimizador (no solo sobre coeficientes unitarios sint\'eticos),
+  que la identidad algebraica de la Secci\'on~\ref{sec:degeneracion}
+  es exacta.
+\end{tcolorbox}
+
+\subsubsection{Validaci\'on sobre las 20 partidas completas}
+
+Aplicando el est\'andar de rigor de la Secci\'on~\ref{sec:barrido9}
+(nunca aceptar un candidato sin probarlo fuera del subset donde se
+encontr\'o), se evalu\'o el \'optimo de Fase~A sobre el cach\'e
+completo de 20 partidas:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ ($n{=}4$ barridos)} & \TH{$\Delta R^2$ ($n{=}8$ barridos)} \\[1pt]
+  \'Optimo de Fase~A & \good{0.3112} & \good{0.3165} \\
+  $H_{M1}$ real       & 0.2858 & 0.2981 \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  \textbf{A diferencia de la clase espejo de la
+  Secci\'on~\ref{sec:barrido9}, esta mejora s\'i se sostiene} al pasar
+  de 6 a 20 partidas, en ambos ajustes de barridos. Es la primera vez
+  en este experimento que un Hamiltoniano supera consistentemente a
+  $H_{M1}$ sobre el cach\'e completo, y sali\'o de b\'usqueda
+  deliberada, no de muestreo al azar ni de una coincidencia de subset
+  peque\~no.
+\end{tcolorbox}
+
+\subsubsection{Tambi\'en mejora con el radio, m\'as que $H_{M1}$}
+
+La Secci\'on~4 identific\'o como propiedad distintiva de $H_{M1}$ y
+Alvarado que su $\Delta R^2$ \textbf{mejora} al ampliar el radio de
+Manhattan --- ning\'un candidato aleatorio de los 69 probados hac\'ia
+eso. El \'optimo de Fase~A, evaluado en ambos radios sobre las 20
+partidas completas ($n\_sweeps=8$, id\'entico a la Secci\'on~4):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ (r=1)} & \TH{$\Delta R^2$ (r=9)} & \TH{Cambio} \\[1pt]
+  \'Optimo de Fase~A & 0.235 & \good{0.3165} & \good{$+0.082$} \\
+  $H_{M1}$ real       & 0.242 & 0.2981          & $+0.056$ \\
+\end{tabular}
+\end{center}
+\medskip
+
+No solo supera a $H_{M1}$ en ambos radios: tambi\'en mejora \emph{m\'as}
+al ampliar el radio ($+0.082$ contra $+0.056$). Es el tercer
+Hamiltoniano --- y el primero encontrado por b\'usqueda deliberada en
+vez de derivaci\'on te\'orica externa --- que exhibe esta propiedad.
+
+\subsection{Degeneraci\'on algebraica de \texttt{sparse\_cubic}}
+\label{sec:degeneracion}
+
+Mientras se esperaba el resultado de Fase A se audit\'o la
+implementaci\'on de \texttt{relaxation\_field} (\texttt{features.py:136})
+y se encontr\'o una identidad exacta que reduce el espacio de
+b\'usqueda efectivo. El campo nunca eval\'ua $H(s,q)$ sola: cada
+actualizaci\'on usa siempre la suma sim\'etrica $H(s,q)+H(q,s)$, donde
+$s$ es el punto que se actualiza y $q$ cada vecino en el kernel:
+
+\begin{tcolorbox}[codebox]
+\texttt{e\_matrix = CF * (h(S, NV) + h(NV, S))}
+\end{tcolorbox}
+
+Para la plantilla \texttt{sparse\_cubic},
+$H(x,y)=a_1x+a_2y+c_{112}x^2y+c_{122}xy^2$, esa suma se simplifica
+algebraicamente (v\'alido para $s,q\in\mathbb{R}$, no solo en
+$\{-1,0,1\}$):
+
+\begin{tcolorbox}[codebox]
+$H(s,q)+H(q,s) \;=\; (a_1+a_2)(s+q) \;+\; (c_{112}+c_{122})\,(s^2q+sq^2)$
+\end{tcolorbox}
+
+\begin{tcolorbox}[quotebox]
+  \textbf{Consecuencia}: el campo de relajaci\'on --- y por lo tanto
+  todo el $\Delta R^2$ que se est\'a optimizando --- depende
+  \'unicamente de las dos sumas $\Sigma a = a_1+a_2$ y
+  $\Sigma c = c_{112}+c_{122}$, nunca de $a_1,a_2,c_{112},c_{122}$
+  por separado. El espacio de b\'usqueda de 4 par\'ametros contin\'uos
+  de Fase~A tiene direcciones exactamente planas: infinitos pares
+  $(a_1,a_2)$ con la misma suma --- e infinitos pares
+  $(c_{112},c_{122})$ con la misma suma --- producen exactamente el
+  mismo $\Delta R^2$.
+\end{tcolorbox}
+
+\subsubsection{Clasificaci\'on con coeficientes unitarios}
+
+Restringiendo cada uno de los 4 par\'ametros a $\pm1$ hay
+$2^4=16$ combinaciones de signos posibles. Bajo la identidad anterior,
+$\Sigma a\in\{-2,0,+2\}$ y $\Sigma c\in\{-2,0,+2\}$, cada uno con
+multiplicidad $1,2,1$ seg\'un el signo --- lo que reduce las 16
+combinaciones a solo \textbf{9 clases efectivas distintas}:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{ccc}
+  \TH{$\Sigma a=a_1+a_2$} & \TH{$\Sigma c=c_{112}+c_{122}$} & \TH{Miembros (de 16) en esta clase} \\[1pt]
+  $-2$ & $-2$ & 1 \\
+  $-2$ & $0$  & 2 \\
+  $-2$ & $+2$ & 1 \\
+  $0$  & $-2$ & 2 \\
+  $0$  & $0$  & \bad{4 (m\'axima redundancia)} \\
+  $0$  & $+2$ & 2 \\
+  $+2$ & $-2$ & \good{1 (clase de $H_{M1}$)} \\
+  $+2$ & $0$  & 2 \\
+  $+2$ & $+2$ & 1 \\
+\end{tabular}
+\end{center}
+\medskip
+
+$H_{M1}$ tiene signos $(+,+,-,-)$, que cae en la clase
+$(\Sigma a{=}2,\ \Sigma c{=}{-}2)$ --- una clase \emph{singleton}: no
+hay otro patr\'on de signos unitarios que produzca el mismo campo.
+
+\begin{tcolorbox}[pendingbox]
+  \textbf{Advertencia de alcance}: esta reducci\'on es exclusiva de
+  \texttt{relaxation\_field} (el pipeline de predicci\'on de moyo). No
+  aplica al an\'alisis topol\'ogico de $\Gamma(H)$ del experimento~06
+  (nodos $A_1$, puntos cr\'iticos, g\'enero de la fibra), que s\'i
+  distingue $a_1$ de $a_2$ y $c_{112}$ de $c_{122}$ individualmente ---
+  ese an\'alisis eval\'ua $H(x,y)$ directamente, sin simetrizar.
+\end{tcolorbox}
+
+\textbf{Implicaci\'on pr\'actica}: para Fase~B, reparametrizar la
+b\'usqueda de \texttt{sparse\_cubic} como 2 par\'ametros efectivos
+($\Sigma a$, $\Sigma c$) en vez de 4 evitar\'ia gastar presupuesto de
+evaluaci\'on en direcciones planas del objetivo --- estrictamente m\'as
+eficiente sin p\'erdida, \emph{solo} para el objetivo de $\Delta R^2$.
+
+\subsection{Barrido ordenado de las 9 clases efectivas}
+\label{sec:barrido9}
+
+Antes de seguir esperando a la optimizaci\'on continua de Fase~A, se
+aprovech\'o la reducci\'on de la Secci\'on~\ref{sec:degeneracion} para
+evaluar de forma \textbf{exhaustiva y determinista} --- sin
+aleatoriedad, sin optimizador --- las 9 clases efectivas con
+coeficientes unitarios, contra el mismo cach\'e de 6 partidas de
+Fase~A (radio~9, 4 barridos de relajaci\'on):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{rrcp{4cm}rr}
+  \TH{$\Sigma a$} & \TH{$\Sigma c$} & \TH{miembros} & \TH{representante $(a_1,a_2,c_{112},c_{122})$} & \TH{$\Delta R^2$} & \TH{$p$-valor} \\[1pt]
+  $-2$ & $+2$ & 1 & $(-1,-1,+1,+1)$ & \good{0.3263} & $1.1\times10^{-16}$ \\
+  $+2$ & $-2$ & 1 & $(+1,+1,-1,-1)$ \small (signos de $H_{M1}$) & 0.3013 & $1.1\times10^{-16}$ \\
+  $0$  & $+2$ & 2 & $(-1,+1,+1,+1)$ & 0.1019 & $2.1\times10^{-10}$ \\
+  $+2$ & $+2$ & 1 & $(+1,+1,+1,+1)$ & 0.0671 & $3.6\times10^{-7}$ \\
+  $0$  & $-2$ & 2 & $(-1,+1,-1,-1)$ & 0.0529 & $7.1\times10^{-6}$ \\
+  $-2$ & $-2$ & 1 & $(-1,-1,-1,-1)$ & 0.0277 & $1.3\times10^{-3}$ \\
+  $-2$ & $0$  & 2 & $(-1,-1,-1,+1)$ & 0.0044 & $0.201$ \\
+  $+2$ & $0$  & 2 & $(+1,+1,-1,+1)$ & 0.0044 & $0.201$ \\
+  $0$  & $0$  & 4 & $(-1,+1,-1,+1)$ & \bad{0.0000} & $1.000$ \\
+\end{tabular}
+\end{center}
+\medskip
+
+Dos confirmaciones y un hallazgo nuevo:
+
+\begin{itemize}
+  \item \textbf{Confirma la identidad algebraica}: la clase
+        $(\Sigma a{=}0,\Sigma c{=}0)$ da $\Delta R^2=0.0000$ exacto
+        --- el campo simetrizado es id\'enticamente cero para
+        cualquiera de sus 4 miembros, como predice la
+        Secci\'on~\ref{sec:degeneracion}.
+  \item \textbf{Confirma a $H_{M1}$}: la clase con el mismo patr\'on de
+        signos que $H_{M1}$ ($+,+,-,-$) da $\Delta R^2=0.3013$,
+        consistente con el $0.309$ medido sobre las 20 partidas
+        completas (Secci\'on 4).
+  \item \textbf{Candidato provisional}: en el subset de 6 partidas, la
+        clase \emph{espejo} de $H_{M1}$ --- todos los signos
+        invertidos, $(-1,-1,+1,+1)$ --- rendia \emph{mejor} que la
+        clase de $H_{M1}$: $0.3263$ contra $0.3013$.
+\end{itemize}
+
+\begin{tcolorbox}[quotebox]
+  \textbf{Verificaci\'on sobre las 20 partidas completas} (115
+  posiciones, mismo radio y barridos): la ventaja del espejo
+  \textbf{no se sostiene}. Con el cach\'e completo, la clase de
+  $H_{M1}$ vuelve a ganar:
+
+  \medskip
+  \begin{center}
+  \rowcolors{2}{white}{cTRalt}
+  \begin{tabular}{lrr}
+    \TH{Clase} & \TH{$\Delta R^2$ (6 partidas)} & \TH{$\Delta R^2$ (20 partidas)} \\[1pt]
+    $H_{M1}$ $(+1,+1,-1,-1)$ & 0.3013 & \good{0.3158} \\
+    Espejo $(-1,-1,+1,+1)$   & \good{0.3263} & 0.3034 \\
+  \end{tabular}
+  \end{center}
+  \medskip
+
+  El orden se invierte al pasar de 6 a 20 partidas: lo que parec\'ia
+  un hallazgo nuevo era ruido de muestra peque\~na, no una propiedad
+  real del espejo. Es exactamente el mismo tipo de inestabilidad
+  documentado para $H_{0106}$ en la Secci\'on~3.3 --- la raz\'on por
+  la que este informe exige confirmar sobre el cach\'e completo antes
+  de aceptar cualquier candidato, incluso uno que surja de una
+  clasificaci\'on ordenada y no de b\'usqueda al azar.
+\end{tcolorbox}
+
+El resto de las 9 clases mantiene el mismo orden relativo entre 6 y 20
+partidas (la clase nula $\Sigma a=\Sigma c=0$ sigue en $\Delta R^2
+\approx 0$ exacto), as\'i que la inversi\'on es espec\'ifica al par
+$H_{M1}$/espejo, no un efecto general del tama\~no de muestra sobre
+todas las clases.
+
+% =================================================================================
+\section{Explotando toda la informaci\'on de KataGo: resultados}
+\label{sec:rich}
+
+Se integraron al pipeline los dos campos identificados como
+aprovechables (\texttt{ownershipStdev}, \texttt{policy}), y se subi\'o
+\texttt{maxVisits} de 250 a \textbf{600} para reducir el ruido interno
+de KataGo. Se reconstruy\'o el cach\'e de 20 partidas
+(\texttt{cache\_full20\_rich}: 113 posiciones, 864 moyos) con estos
+campos y se repiti\'o el an\'alisis de $H_{M1}$ y $H_{OPT\_A}$ en
+cuatro variantes.
+
+\subsection{Ponderar por incertidumbre de KataGo}
+
+Hip\'otesis: parte de la varianza no explicada ($\sim$37\,\% en la
+Secci\'on~\ref{sec:optimizacion}) podr\'ia ser incertidumbre \emph{del
+propio KataGo} en zonas t\'acticamente no resueltas, no una limitaci\'on
+del Hamiltoniano. Se pondera la regresi\'on por
+$1/\texttt{ownership\_stdev\_mean}^2$ (m\'inimos cuadrados ponderados):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ sin ponderar} & \TH{$\Delta R^2$ ponderado} \\[1pt]
+  $H_{M1}$      & 0.2967 & \good{0.4041} \\
+  $H_{OPT\_A}$  & 0.3073 & \good{0.3832} \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  Hip\'otesis confirmada: al bajarle peso a los moyos donde KataGo mismo
+  est\'a inseguro, el $\Delta R^2$ sube fuertemente para ambos ($+36\,\%$
+  y $+25\,\%$ respectivamente). Una parte real de lo "no explicado"
+  s\'i era ruido de KataGo, no falta de poder predictivo del modelo.
+  \textbf{Pero el orden se invierte}: ponderando, $H_{M1}$ supera a
+  $H_{OPT\_A}$ (0.404 contra 0.383) --- lo opuesto al resultado sin
+  ponderar. Tercera vez en el experimento que un ranking se invierte
+  al cambiar la metodolog\'ia de medici\'on, no los datos.
+\end{tcolorbox}
+
+\subsection{¿Aporta \texttt{policy} algo independiente?}
+
+Se prob\'o \texttt{policy\_mass} (masa de la red de pol\'itica dentro
+de la regi\'on) como predictor, tanto agregado a la geometr\'ia base
+como su aporte marginal solo:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lr}
+  \TH{Prueba} & \TH{Resultado} \\[1pt]
+  $\Delta R^2$ de $H$ agregando \texttt{policy\_mass} a la base & sin cambio (0.297 / 0.308, igual que sin \texttt{policy\_mass}) \\
+  $\Delta R^2$ de \texttt{policy\_mass} solo, sobre geometr\'ia & \bad{0.0007} ($p=0.36$, no significativo) \\
+\end{tabular}
+\end{center}
+\medskip
+
+\texttt{policy\_mass} \textbf{no aporta nada} en este pipeline ---
+a diferencia de \texttt{ownershipStdev}, esta hip\'otesis no se
+confirm\'o. El \texttt{ownership} ya captura lo que importa para
+predecir moyo; la red de pol\'itica no agrega se\~nal independiente
+\'util aqu\'i.
+
+\subsection{Lo que faltaba de KataGo: \texttt{moveInfos}, \texttt{scoreStdev}, \texttt{winrate}, \texttt{scoreLead}}
+
+Para completar la auditor\'ia de toda la informaci\'on disponible de
+KataGo, se agreg\'o tambi\'en \texttt{moveInfos} (las jugadas candidatas
+del motor en la ra\'iz) --- se calcul\'o \texttt{n\_top\_moves\_in\_region}:
+cu\'antas de las 10 mejores jugadas candidatas caen dentro de cada
+regi\'on (si el motor a\'un considera buenas jugadas ah\'i, el marco
+no est\'a resuelto). Tambi\'en se probaron \texttt{rootInfo.scoreStdev},
+\texttt{winrate} (volatilidad global de la posici\'on) y, en una
+revisi\'on posterior que hab\'ia quedado pendiente,
+\texttt{rootInfo.scoreLead} (diferencial de puntuaci\'on esperado ---
+ya se guardaba en el cach\'e desde el principio, pero nunca se hab\'ia
+probado como predictor):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Se\~nal (aporte solo, sobre geometr\'ia)} & \TH{$\Delta R^2$} & \TH{$p$-valor} \\[1pt]
+  \texttt{n\_top\_moves\_in\_region} & \bad{0.0002} & 0.61 \\
+  \texttt{score\_stdev}              & \bad{0.0002} & 0.62 \\
+  \texttt{winrate}                   & \bad{0.0013} & 0.20 \\
+  \texttt{score\_lead}               & \bad{0.0015} & 0.16 \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  Ninguna de las cuatro aporta se\~nal significativa, ni cambia
+  materialmente el $\Delta R^2$ de $H_{M1}$ (0.277 con o sin
+  \texttt{score\_lead} como control) o $H_{OPT\_A}$ al agregarse como
+  control. Con esto se completa la auditor\'ia de
+  \texttt{rootInfo}/\texttt{ownership}/\texttt{ownershipStdev}/%
+  \texttt{policy}/\texttt{moveInfos}: de los \textbf{7} campos
+  evaluados en este experimento, \textbf{solo \texttt{ownershipStdev}}
+  (ponderaci\'on) aport\'o algo real. El resto de la informaci\'on de
+  KataGo, para esta pregunta espec\'ifica (predecir moyo con un campo
+  Ising cl\'asico), es redundante con lo que ya captura
+  \texttt{ownership}.
+\end{tcolorbox}
+
+\subsection{La correcci\'on m\'as importante: bootstrap por partida}
+\label{sec:bootstrap}
+
+Como se discuti\'o antes de esta secci\'on, los p-valores reportados en
+todo el experimento ($p\approx10^{-16}$) tratan cada \textbf{fila}
+(moyo) como independiente, cuando en realidad las filas de una misma
+partida est\'an correlacionadas --- pseudo-replicaci\'on cl\'asica. Se
+remuestre\'o por \textbf{partida completa} (bootstrap, 500 r\'eplicas,
+$n=20$ partidas) para obtener un intervalo de confianza honesto de
+$\Delta R^2$:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Hamiltoniano} & \TH{$\Delta R^2$ media (bootstrap)} & \TH{IC 95\,\%} \\[1pt]
+  $H_{M1}$      & 0.294 & $[0.223,\ 0.358]$ \\
+  $H_{OPT\_A}$  & 0.305 & $[0.227,\ 0.380]$ \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  \textbf{Los intervalos se traslapan casi por completo.} Con solo 20
+  partidas, \textbf{no hay evidencia estad\'isticamente confiable de
+  que $H_{OPT\_A}$ sea mejor que $H_{M1}$} --- la diferencia puntual
+  (0.307 vs.\ 0.298) est\'a bien dentro del ruido de muestreo a este
+  tama\~no. Esto no invalida el hallazgo de Fase A, pero s\'i cambia
+  c\'omo debe presentarse: es un candidato \textbf{prometedor y
+  consistente con ser al menos tan bueno como $H_{M1}$}, no un
+  reemplazo confirmado.
+\end{tcolorbox}
+
+\textbf{Implicaci\'on directa}: la pregunta de "¿cu\'antas partidas
+hacen falta?" (Secci\'on~\ref{sec:optimizacion}) ten\'ia una respuesta
+concreta esperando --- con 20 partidas el ancho del IC~95\,\% es de
+$\sim$0.13--0.15 en $\Delta R^2$, demasiado ancho para distinguir entre
+los mejores candidatos actuales. Hacen falta m\'as partidas (o un
+conjunto de validaci\'on separado) antes de declarar un ganador.
+
+\subsection{Estabilidad de las familias aleatorias ante un segundo seed}
+
+Las medias de \texttt{cubic\_mixed} (44 candidatos) y
+\texttt{sparse\_cubic} (25 candidatos) reportadas en este experimento
+se generaron con un \'unico seed cada una (42 y 7) --- una brecha de
+dise\~no experimental se\~nalada expl\'icitamente: sin una segunda
+r\'eplica, no se pod\'ia distinguir "as\'i se comporta la familia" de
+"as\'i sali\'o este seed en particular". Se gener\'o una segunda
+tanda (seeds 123 y 99) y se reevalu\'o sobre el mismo cach\'e
+(\texttt{cache\_full20\_cats}):
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Familia (radio)} & \TH{Seed original} & \TH{Seed nuevo} \\[1pt]
+  \texttt{cubic\_mixed} (r=1)  & $0.135\ [0.115,\,0.156]$ & $0.131\ [0.102,\,0.160]$ \\
+  \texttt{cubic\_mixed} (r=9)  & $0.103\ [0.072,\,0.134]$ & $0.099\ [0.064,\,0.134]$ \\
+  \texttt{sparse\_cubic} (r=1) & $0.086\ [0.055,\,0.118]$ & $0.092\ [0.070,\,0.115]$ \\
+  \texttt{sparse\_cubic} (r=9) & $0.050\ [0.018,\,0.081]$ & $0.044\ [0.019,\,0.069]$ \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  Los intervalos se traslapan casi por completo en los 4 casos ---
+  \textbf{la media de cada familia es estable ante un segundo seed
+  independiente}. Las conclusiones cualitativas del experimento
+  (aleatorio rinde muy por debajo de $H_{M1}$/$H_{OPT\_A}$; ambas
+  familias se degradan con el radio) no son producto de la suerte de
+  un seed particular --- se replican. Esta brecha de dise\~no queda
+  cerrada.
+\end{tcolorbox}
+
+% =================================================================================
+\section{M\'as all\'a del moyo: otras categor\'ias de KataGo}
+\label{sec:categorias}
+
+El moyo no es la \'unica categor\'ia que \texttt{detect\_moyos()} puede
+dar. La funci\'on ya clasifica cada regi\'on vac\'ia en 3 bandas de
+\texttt{ownership} --- \texttt{territory} (>0.85, asentado),
+\texttt{moyo} (0.15--0.85, disputado), \texttt{neutral} (<0.15) --- pero
+hasta ahora \texttt{filter\_moyos()} descartaba \texttt{territory} y
+\texttt{neutral}. Se habilit\'o \texttt{territory} como segunda
+categor\'ia (\texttt{filter\_territory()}, mismo mecanismo, sin volver
+a dise\~nar nada) y se reconstruy\'o el cach\'e
+(\texttt{cache\_full20\_cats}: 120 posiciones, 872 moyos, 312
+territorios).
+
+\subsection{Territorio asentado: la categor\'ia "f\'acil"}
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{llrrr}
+  \TH{Hamiltoniano} & \TH{Categor\'ia} & \TH{$R^2$ geom. sola} & \TH{$R^2$ completo} & \TH{$\Delta R^2$} \\[1pt]
+  $H_{M1}$      & Moyo       & 0.312 & 0.589 & \good{0.277} \\
+  $H_{M1}$      & Territorio & \good{0.670} & 0.789 & 0.119 \\
+  $H_{OPT\_A}$  & Moyo       & 0.312 & 0.596 & \good{0.284} \\
+  $H_{OPT\_A}$  & Territorio & \good{0.670} & 0.777 & 0.107 \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  Confirma la intuici\'on conceptual: en territorio asentado, la sola
+  \textbf{geometr\'ia} (distancia a piedras/borde) ya explica el
+  67\,\% de la varianza --- casi tautol\'ogico, un punto lejos de
+  piedras enemigas y cerca de las propias casi siempre termina siendo
+  territorio propio. El Hamiltoniano aporta bastante menos ah\'i
+  ($\Delta R^2\approx0.11$--$0.12$) que en moyo ($\approx0.28$). El
+  moyo sigue siendo, con evidencia, la categor\'ia \textbf{dif\'icil}
+  donde el campo de $H$ realmente agrega algo que la geometr\'ia sola
+  no puede --- territorio es m\'as un piso de control/sanidad que un
+  reto real.
+\end{tcolorbox}
+
+\subsection{Fase de la partida (dentro del rango muestreado)}
+
+El muestreo de posiciones ya restring\'ia deliberadamente a
+jugadas entre el 15\,\% y el 90\,\% de cada partida
+(\texttt{sample\_move\_numbers}, evita aperturas triviales y finales ya
+resueltos) --- por lo que \textbf{no hay fuseki puro ni yose puro} en
+los datos actuales; solo un gradiente dentro de ese rango medio.
+Segmentando el moyo en tercios de ese rango:
+
+\medskip
+\begin{center}
+\rowcolors{2}{white}{cTRalt}
+\begin{tabular}{lrr}
+  \TH{Fase (dentro de 15\%--90\%)} & \TH{$\Delta R^2$ $H_{M1}$} & \TH{$\Delta R^2$ $H_{OPT\_A}$} \\[1pt]
+  Temprano (15--40\,\%) & \good{0.334} & \good{0.313} \\
+  Medio (40--65\,\%)    & 0.152 & 0.154 \\
+  Tard\'io (65--90\,\%) & \bad{0.102} & \bad{0.119} \\
+\end{tabular}
+\end{center}
+\medskip
+
+\begin{tcolorbox}[quotebox]
+  El poder predictivo de \textbf{ambos} Hamiltonianos cae de forma
+  mon\'otona conforme avanza la partida --- m\'as del triple entre
+  temprano y tard\'io. Interpretaci\'on razonable: un moyo reci\'en
+  formado depende m\'as de estructura simple (distancia, interacci\'on
+  local), mientras que uno que sobrevive hasta tarde en la partida ya
+  fue puesto a prueba t\'acticamente (invasiones, lecturas de vida-muerte)
+  --- terreno donde un campo cl\'asico de 4 par\'ametros
+  estructuralmente no puede competir.
+\end{tcolorbox}
+
+\begin{tcolorbox}[pendingbox]
+  \textbf{Pendiente}: para analizar joseki (secuencias de esquina) y
+  fuseki/yose reales hace falta muestrear \emph{fuera} del rango
+  15\%--90\% actual --- jugadas muy tempranas (<15\,\%) con una regi\'on
+  geom\'etrica fija por esquina, no definida por \texttt{ownership}
+  como moyo/territorio. Es una extensi\'on nueva del pipeline, no un
+  reanálisis del cach\'e existente.
+\end{tcolorbox}
+
+% =================================================================================
+\section{Estado y siguientes pasos}
+
+\begin{enumerate}
+  \item \good{Hecho}: Fase A termin\'o y encontr\'o $H_{OPT\_A}$, con
+        mejor $\Delta R^2$ puntual que $H_{M1}$ en el cach\'e de 20
+        partidas (Secci\'on~\ref{sec:optimizacion}).
+  \item \bad{Corregido}: el bootstrap por partida
+        (Secci\'on~\ref{sec:bootstrap}) muestra que esa ventaja
+        \textbf{no es estad\'isticamente distinguible} del ruido de
+        muestreo con solo 20 partidas --- los IC~95\,\% de $H_{M1}$ y
+        $H_{OPT\_A}$ se traslapan casi por completo. $H_{OPT\_A}$ sigue
+        siendo un candidato v\'alido y prometedor, no un reemplazo
+        confirmado de $H_{M1}$.
+  \item \good{Hecho}: se integr\'o \textbf{toda} la informaci\'on
+        aprovechable de KataGo --- \texttt{ownershipStdev} (pondera la
+        regresi\'on --- sube $\Delta R^2$ $\sim$30\,\% para ambos,
+        \'unica se\~nal que aport\'o algo), \texttt{policy},
+        \texttt{moveInfos}, \texttt{scoreStdev}, \texttt{winrate} y
+        \texttt{scoreLead} (ninguna de estas \'ultimas cinco aport\'o
+        se\~nal significativa) --- con \texttt{maxVisits} subido de
+        250 a 600 (Secci\'on~\ref{sec:rich}).
+  \item Conseguir m\'as partidas (o separar un conjunto de validaci\'on)
+        antes de declarar cu\'al Hamiltoniano es mejor --- es el paso
+        que realmente hace falta para resolver el empate estad\'istico
+        de arriba, no m\'as b\'usqueda de coeficientes.
+  \item \good{Hecho}: se habilit\'o \texttt{territorio asentado} como
+        segunda categor\'ia (Secci\'on~\ref{sec:categorias}) --- $H$
+        aporta bastante menos ah\'i ($\Delta R^2\approx0.11$) que en
+        moyo ($\approx0.28$), confirmando que moyo es la categor\'ia
+        dif\'icil donde el modelo genuinamente compite. Tambi\'en se
+        confirm\'o que el poder predictivo cae con la fase de la
+        partida (0.33 temprano $\to$ 0.10 tard\'io, dentro del rango
+        muestreado). Joseki/fuseki real quedan pendientes --- requieren
+        muestrear fuera del rango 15\,\%--90\,\% actual.
+  \item Escalar a Fase~B: extender la familia completa
+        \texttt{cubic\_mixed} de 7 par\'ametros (reparametrizada como
+        4 efectivos: $\Sigma a,\Sigma b,b_{12},\Sigma c$) sobre el
+        cach\'e enriquecido, ambos radios --- pero interpretando
+        cualquier mejora puntual con el mismo bootstrap por partida,
+        no solo el punto estimado.
+  \item \good{Hecho}: el \'optimo de Fase~A ($H_{OPT\_A}$) se integr\'o
+        al visor interactivo existente como entrada del nuevo grupo
+        \texttt{optimizado}, con su variedad 3D, puntos cr\'iticos
+        marcados y ambos $\Delta R^2$ (r=1, r=9). Adem\'as, todos los
+        47 Hamiltonianos del cat\'alogo se clasificaron por tipo de
+        polinomio (tipo $H_{M1}$, espejo, nulo, cuadr\'atico puro,
+        mixto) seg\'un el signo de $(\Sigma a,\Sigma b,b_{12},\Sigma c)$,
+        con agrupaci\'on visual en el visor.
+\end{enumerate}
+
+\vfill
+\noindent{\color{cRule}\hrule height 0.5pt}\vspace{4pt}
+{\color{cMuted}\small\itshape
+  Pipeline:~\texttt{experiments/07\_moyo\_dataset/}
+  \quad\textbullet\quad
+  20 partidas profesionales \texttt{.sgf}
+  \quad\textbullet\quad
+  Motor:~KataGo \texttt{kata1-b15c192} (local, OpenCL)
+}
+
+\end{document}

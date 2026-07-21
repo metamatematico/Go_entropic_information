@@ -1,0 +1,23 @@
+{
+  "referencia": {
+    "H_0000": {
+      "template": "h_m1",
+      "coefficients": {
+        "a1": 1.0,
+        "a2": 2.0,
+        "c112": -1.0,
+        "c122": -1.0
+      }
+    },
+    "H_0001": {
+      "template": "quadratic",
+      "coefficients": {
+        "a1": 0,
+        "a2": 0,
+        "b11": 0,
+        "b12": 1,
+        "b22": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "n_games": 20,
+  "n_rows": 863,
+  "n_samples_per_game": 6,
+  "hamiltonians": {
+    "H_0000": {
+      "group": "referencia",
+      "template": "h_m1",
+      "coefficients": {
+        "a1": 1.0,
+        "a2": 2.0,
+        "c112": -1.0,
+        "c122": -1.0
+      },
+      "expression": "-1.0*x**2*y - 1.0*x*y**2 + 1.0*x + 2.0*y"
+    },
+    "H_0001": {
+      "group": "referencia",
+      "template": "quadratic",
+      "coefficients": {
+        "a1": 0,
+        "a2": 0,
+        "b11": 0,
+        "b12": 1,
+        "b22": 0
+      },
+      "expression": "x*y"
+    }
+  },
+  "moyo_thresholds": {
+    "settled": 0.85,
+    "neutral": 0.15,
+    "note": "sin estandar en la literatura; eleccion propia, documentada"
+  },
+  "katago_model": "kata1-b15c192-s1672170752-d466197061",
+  "katago_max_visits": 250,
+  "relaxation_n_sweeps": 8,
+  "manhattan_radius": 9,
+  "schema": [
+    "game",
+    "move_number",
+    "score_lead",
+    "moyo_kind",
+    "moyo_size",
+    "label_pct_black",
+    "region_size",
+    "centroid_row",
+    "centroid_col",
+    "dist_to_nearest_black",
+    "dist_to_nearest_white",
+    "dist_to_edge",
+    "n_black_stones",
+    "n_white_stones",
+    "H_0000_H_field_mean",
+    "H_0000_H_field_std",
+    "H_0000_n_A1",
+    "H_0000_n_critical_points",
+    "H_0000_min_crit_separation",
+    "H_0000_mean_critical_value",
+    "H_0000_group",
+    "H_0001_H_field_mean",
+    "H_0001_H_field_std",
+    "H_0001_n_A1",
+    "H_0001_n_critical_points",
+    "H_0001_min_crit_separation",
+    "H_0001_mean_critical_value",
+    "H_0001_group"
+  ]
+}

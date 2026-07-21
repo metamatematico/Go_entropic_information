@@ -75,6 +75,72 @@ def incremental_r2_test(df: pd.DataFrame, h_field_col: str, label_col: str,
     }
 
 
+def weighted_incremental_r2_test(df: pd.DataFrame, h_field_col: str, label_col: str,
+                                  geom_cols: list, weight_col: str) -> dict:
+    """Igual que incremental_r2_test pero pondera cada fila por
+    1/ownership_stdev_mean^2 (menos peso a moyos donde KataGo mismo
+    está incierto) — separa "el modelo falla" de "KataGo no está seguro ahí"."""
+    y = df[label_col].values
+    X_base = df[geom_cols].values
+    X_full = df[geom_cols + [h_field_col]].values
+    n = len(y)
+    w = 1.0 / np.clip(df[weight_col].values, 1e-6, None) ** 2
+
+    reg_base = LinearRegression().fit(X_base, y, sample_weight=w)
+    r2_base = reg_base.score(X_base, y, sample_weight=w)
+    reg_full = LinearRegression().fit(X_full, y, sample_weight=w)
+    r2_full = reg_full.score(X_full, y, sample_weight=w)
+
+    p_base = X_base.shape[1]
+    p_full = X_full.shape[1]
+    rss_base = np.sum(w * (y - reg_base.predict(X_base)) ** 2)
+    rss_full = np.sum(w * (y - reg_full.predict(X_full)) ** 2)
+
+    df1 = p_full - p_base
+    df2 = n - p_full - 1
+    if rss_full <= 0 or df2 <= 0:
+        f_stat, p_value = float("nan"), float("nan")
+    else:
+        f_stat = ((rss_base - rss_full) / df1) / (rss_full / df2)
+        p_value = float(1 - f_dist.cdf(f_stat, df1, df2))
+
+    return {
+        "r2_base": r2_base, "r2_full": r2_full,
+        "delta_r2": r2_full - r2_base,
+        "f_stat": f_stat, "p_value": p_value,
+    }
+
+
+def cluster_robust_f_test(df: pd.DataFrame, h_field_col: str, label_col: str,
+                           geom_cols: list, cluster_col: str = "game") -> dict:
+    """Corrige la pseudo-replicacion: agrupa filas por partida (cluster_col)
+    y bootstrapea por partida (no por fila) para obtener un intervalo de
+    confianza de delta_r2 que respeta que las filas de una misma partida
+    no son independientes."""
+    rng = np.random.default_rng(0)
+    games = df[cluster_col].unique()
+    n_games = len(games)
+    n_boot = 500
+    deltas = []
+    for _ in range(n_boot):
+        sample_games = rng.choice(games, size=n_games, replace=True)
+        parts = [df[df[cluster_col] == g] for g in sample_games]
+        boot_df = pd.concat(parts, ignore_index=True)
+        try:
+            inc = incremental_r2_test(boot_df, h_field_col, label_col, geom_cols)
+            deltas.append(inc["delta_r2"])
+        except Exception:
+            continue
+    deltas = np.array(deltas)
+    return {
+        "delta_r2_mean": float(np.mean(deltas)),
+        "delta_r2_std": float(np.std(deltas)),
+        "ci_lo": float(np.percentile(deltas, 2.5)),
+        "ci_hi": float(np.percentile(deltas, 97.5)),
+        "n_games": n_games, "n_boot": len(deltas),
+    }
+
+
 def analyze(parquet_path: str, manifest_path: str):
     df = pd.read_parquet(parquet_path)
     manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
