@@ -903,7 +903,7 @@ python experiments/08_teoria_invariantes/src/klein.py
 # Autores y referencias
 
 - **Leonardo Jiménez Martínez** — análisis entrópico, comparación de modelos,
-  experimentos 06–09 (UNAM · BIOMAT, Centro de Biomatemáticas)
+  experimentos 06–09 (BIOMAT, Centro de Biomatemáticas Dr. Epifanio Jiménez Ávila)
 - **Mario Mercado Sánchez** — desarrollo del modelo de Ising
   ([Ometitlan / Project-Quantum-Go](https://github.com/ometitlan/Project-Quantum-Go))
 
