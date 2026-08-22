@@ -111,7 +111,7 @@ def page_footer(fig, page_num, total):
     ax.text(0.5, 0.35,
             'Jimenez Martinez & Mercado Sanchez (Ometitlan)  |  '
             'Paper: Pattern Acquisition and Comparative Analysis in the Game of Go  |  '
-            'Jimenez Martinez & Sesma Gonzalez — Journal of Go Studies 2025',
+            'Journal of Go Studies, Vol. 19 No. 2, 2025',
             ha='center', va='center', fontsize=5.5, color=C['muted'],
             transform=ax.transAxes)
     ax.text(0.95, 0.45, f'{page_num} / {total}', ha='right', va='center',
@@ -190,7 +190,7 @@ def page_cover(pdf):
             ha='center', va='center', fontsize=9, color=C['cover_acc'],
             style='italic', transform=ax.transAxes)
     ax.text(0.5, 0.62,
-            'Jimenez Martinez & Sesma Gonzalez — Journal of Go Studies, Vol. 19 No. 2, 2025',
+            'Journal of Go Studies, Vol. 19 No. 2, 2025',
             ha='center', va='center', fontsize=9,
             color=C['cover_text'], transform=ax.transAxes)
 
@@ -385,8 +385,7 @@ def page_intro(pdf, page_num, total):
                 'Alvarado, Rojas-Dominguez, Barradas-Bautista (2019). '
                 '"Modeling the Game of Go by Ising Hamiltonian, '
                 'Deep Belief Networks and Common Fate Graphs". IEEE Access.\n'
-                'Jimenez Martinez & Sesma Gonzalez (2025). '
-                '"Pattern Acquisition and Comparative Analysis in the Game of Go". '
+                                '"Pattern Acquisition and Comparative Analysis in the Game of Go". '
                 'Journal of Go Studies, Vol. 19 No. 2.\n'
                 'Repositorio Ometitlan (Jimenez Martinez & Mercado Sanchez): '
                 'github.com/ometitlan/Project-Quantum-Go',
@@ -1292,7 +1291,7 @@ def main():
         # Metadatos
         d = pdf.infodict()
         d['Title']   = 'Analisis de Informacion Entropica en el Juego de Go'
-        d['Author']  = 'Jimenez Martinez, L. & Mercado Sanchez, M. (Ometitlan). Paper: Jimenez Martinez & Sesma Gonzalez (2025)'
+        d['Author']  = 'Jimenez Martinez, L. & Mercado Sanchez, M. (Ometitlan)'
         d['Subject'] = 'Comparacion de modelos de Ising: M1 vs Atomic-Go (Alvarado 2019)'
         d['Keywords']= 'Go, Ising, Entropia, Shannon, Boltzmann, Patrones de apertura'
 

@@ -3,7 +3,7 @@ build_patterns_dataset.py
 =========================
 Genera el dataset de los 19 patrones base extraidos de la Tabla I del articulo:
 
-    Sesma Gonzalez & Jimenez Martinez (2025)
+    Journal of Go Studies (2025)
     "Pattern Acquisition and Comparative Analysis in the Game of Go"
 
 Columna 2025(b): patrones del juego moderno con IA.
@@ -367,7 +367,7 @@ def build_viz(rows):
     fig = plt.figure(figsize=(22, 20), facecolor=BG)
     fig.suptitle(
         'Patrones Base de Apertura — Tabla I\n'
-        'Sesma Gonzalez & Jimenez Martinez (2025)  ·  Columna 2025(b)',
+        'Journal of Go Studies (2025)  ·  Columna 2025(b)',
         fontsize=14, fontweight='bold', y=0.985, color='#1a1a1a'
     )
 
@@ -516,7 +516,7 @@ def build_comparison_viz():
     fig = plt.figure(figsize=(26, 22), facecolor=BG)
     fig.suptitle(
         'Comparacion Historica de Patrones  ·  2007(a)  vs  2025(b)\n'
-        'Sesma Gonzalez & Jimenez Martinez (2025) — Tabla I',
+        'Journal of Go Studies (2025) — Tabla I',
         fontsize=13, fontweight='bold', y=0.988, color='#1a1a1a'
     )
 
@@ -651,7 +651,7 @@ def build_comparison_viz():
 
 def main():
     print('\n' + '='*60)
-    print('  DATASET PATRONES BASE — Sesma & Jimenez (2025)')
+    print('  DATASET PATRONES BASE — Journal of Go Studies (2025)')
     print('='*60)
 
     rows = build_csv()

@@ -225,10 +225,6 @@ Proviene de una derivación teórica previa del grupo, ajena a este pipeline. Ti
 enlace `{−2, −1, 0, +1, +2}`, es **asimétrico** en el orden de los argumentos (`H(i→j) ≠ H(j→i)`
 en 6 de los 9 pares), y tiene el **vacío activo**. Es el caso deliberadamente enriquecido.
 
-> **Nota de autoría, para evitar una confusión recurrente.** El modelo M1 es de Mercado Sánchez
-> & Jiménez Martínez. El artículo sobre adquisición de patrones (Journal of Go Studies, 2025)
-> es de Sesma González & Jiménez Martínez. Son trabajos distintos y no deben mezclarse.
-
 ### 4.3 Por qué estos dos, y por qué resultaron ser el arranque correcto
 
 La justificación inicial era conceptual: son los dos extremos de la decisión de modelado. Pero
@@ -514,8 +510,6 @@ clasificación; no está cerrada por refutación definitiva.**
 
 ## Referencias
 
-- Sesma González, Á. A. y Jiménez Martínez, L. (2025). *Pattern Acquisition and Comparative
-  Analysis in the Game of Go*. Journal of Go Studies, 19(2).
 - Rojas-Domínguez, A., Barradas-Bautista, D. y Alvarado, M. (2019). *Atomic-Go*. IEEE Access.
 - Fischbach, M. A. y Walsh, C. T. (2024). *Problem choice and decision trees in science and
   engineering*. Cell, 187, 1828–1833.

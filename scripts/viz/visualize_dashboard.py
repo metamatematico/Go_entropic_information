@@ -140,7 +140,7 @@ def create_dashboard(records: list, M: int, output_path: str):
     fig.text(0.5, 0.97,
              f'Entropía de la distribución de energía (Ising Clásico, Manhattan-{M})\n'
              f'19 patrones de apertura de Go — Tabla I  '
-             f'(Sesma González & Jiménez Martínez, 2025)',
+             f'(Journal of Go Studies, 2025)',
              ha='center', va='top', fontsize=13, fontweight='bold', color='#1a1a1a')
 
     fig.text(0.5, 0.92,

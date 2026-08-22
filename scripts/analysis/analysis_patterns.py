@@ -5,7 +5,7 @@ Analisis de entropia y temperatura efectiva para los 19 patrones de
 apertura del juego de Go descritos en la Tabla I del articulo:
 
     "Pattern Acquisition and Comparative Analysis in the Game of Go"
-    Sesma Gonzalez & Jimenez Martinez, Journal of Go Studies, 2025.
+    Journal of Go Studies, Vol. 19 No. 2, 2025.
 
 Metodologia:
     1. Cada patron se codifica como tablero 9x9 (esquina superior izquierda)

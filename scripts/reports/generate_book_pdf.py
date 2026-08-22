@@ -578,7 +578,7 @@ def draw_cover(canvas, doc):
     canvas.setFont('Helvetica', 7.5)
     canvas.setFillColor(HexColor('#94A3B8'))
     canvas.drawCentredString(PW/2, PH - 21.4*cm,
-        'Jiménez Martínez & Sesma González — Journal of Go Studies, 2025')
+        'Journal of Go Studies, Vol. 19 No. 2, 2025')
 
     # Logo / pie de portada
     canvas.setFont('Helvetica', 7.5)
@@ -1007,8 +1007,7 @@ def build_content(S):
         ('[1] Alvarado, M., Rojas-Domínguez, A. & Barradas-Bautista, D. (2019). '
          '<i>Modeling the Game of Go by Ising Hamiltonian, Deep Belief Networks and '
          'Common Fate Graphs</i>. IEEE Access, 7, 120117–120127.'),
-        ('[2] Jiménez Martínez, L. & Sesma González, A.A. (2025). '
-         '<i>Pattern Acquisition and Comparative Analysis in the Game of Go</i>. '
+        ('[2] <i>Pattern Acquisition and Comparative Analysis in the Game of Go</i>. '
          'Journal of Go Studies, Vol. 19 No. 2.'),
         ('[3] Mercado Sánchez, M. & Jiménez Martínez, L. (2026). '
          '<i>Repositorio Ometitlan: Project-Quantum-Go</i>. '

@@ -2,8 +2,6 @@
 ## Análisis Comparativo de Modelos de Ising Aplicados al Juego de Go
 
 **Autores del análisis:** Leonardo Jiménez Martínez & Mario Mercado Sánchez (repositorio Ometitlan)  
-**Paper relacionado:** *"Pattern Acquisition and Comparative Analysis in the Game of Go"*,  
-Jiménez Martínez & Sesma González — Journal of Go Studies, Vol. 19 No. 2, 2025  
 **Fecha de análisis:** Julio 2026
 
 ---

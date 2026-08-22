@@ -4,9 +4,6 @@ Comparative analysis of two classical Ising models applied to the game of Go.
 Computes bond-level interaction energies, Shannon entropy, Boltzmann entropy, and
 effective temperature for 19 standard opening patterns and real professional games.
 
-**Paper:** Sesma González & Jiménez Martínez, *"Pattern Acquisition and Comparative
-Analysis in the Game of Go"*, Journal of Go Studies, Vol. 19 No. 2, 2025.
-
 ---
 
 ## Guía conceptual — léase primero
@@ -741,7 +738,5 @@ See [REPORTE.md](REPORTE.md) for the full scientific findings report.
 
 - **Leonardo Jiménez Martínez** — Entropic analysis, model comparison (UNAM)
 - **Mario Mercado Sánchez** — Ising model development ([Ometitlan / Project-Quantum-Go](https://github.com/ometitlan/Project-Quantum-Go))
-
-Paper co-authored with **Ángel Alberto Sesma González**: *"Pattern Acquisition and Comparative Analysis in the Game of Go"*, Journal of Go Studies, Vol. 19 No. 2, 2025.
 
 Comparison with: Rojas-Domínguez, Barradas-Bautista & Alvarado (2019), *Atomic-Go*. IEEE Access.

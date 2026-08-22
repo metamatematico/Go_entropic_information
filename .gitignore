@@ -25,3 +25,6 @@ Thumbs.db
 # Frames de debug / previews intermedios (generados durante desarrollo)
 results/**/_preview_*.png
 results/**/_prologue_*.png
+
+# PDF del articulo de patrones de apertura (2025): retirado del repositorio
+docs/Sesma_Jimenez_2025_patrones_apertura.pdf
