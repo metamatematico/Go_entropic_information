@@ -9,6 +9,244 @@ Analysis in the Game of Go"*, Journal of Go Studies, Vol. 19 No. 2, 2025.
 
 ---
 
+## Guía conceptual — léase primero
+
+Esta sección explica, sin suponer conocimiento previo de física estadística ni de Go, qué
+se está haciendo y por qué. El resto del README es referencia técnica.
+Versión extendida: [`docs/reporte_conceptual_07_08.md`](docs/reporte_conceptual_07_08.md).
+
+### 1. La pregunta
+
+El objeto central del Go no es una pieza: es el **espacio vacío**. Ganar consiste en
+rodear más territorio —intersecciones vacías controladas— que el rival. Ese control es una
+propiedad difusa: hay zonas cuyo dueño ya es inapelable (*territorio asentado*) y zonas
+grandes, delimitadas por piedras propias pero todavía invadibles, que son una promesa en
+disputa (*moyo*).
+
+La intuición que funda el proyecto es que esa influencia se comporta como un **campo
+físico**: cada piedra irradia control que decae con la distancia, las influencias opuestas
+compiten, y lo que ocurre en cada punto vacío emerge del balance colectivo. La física
+estadística tiene un lenguaje hecho para eso —el modelo de Ising— y la pregunta, formulada
+de manera falsable, es:
+
+> ¿Un Hamiltoniano clásico de Ising captura algo **real** del territorio de Go, más allá de
+> lo que ya explica la pura geometría del tablero?
+
+No se trata de igualar a un motor de Go —que hace lectura táctica completa—, sino de saber
+si un campo clásico de pocos parámetros agrega poder predictivo genuino por encima de lo
+obvio.
+
+### 2. Hamiltoniano y "modelo de Ising" no son lo mismo
+
+Es la confusión más frecuente al leer este repositorio, y conviene despejarla antes de
+seguir.
+
+Un **Hamiltoniano** es simplemente una función que le asigna una energía a cada
+configuración de un sistema. No es una fórmula concreta: es un *rol*. Su importancia viene
+de que, una vez que se tiene, la mecánica estadística dice qué observar: la probabilidad de
+una configuración decae exponencialmente con su energía —el peso de Boltzmann `exp(-H/T)`—
+y de ahí sale todo lo medible.
+
+El **modelo de Ising** es *una elección particular* de Hamiltoniano, la más simple que
+describe imanes:
+
+```
+H_total = -J · Σ_⟨i,j⟩ s_i · s_j        con  s_i ∈ {−1, +1}
+```
+
+Es decir: "Ising" nombra la **forma funcional** del acoplamiento —el producto `s_i·s_j`—,
+no el concepto de energía. Hablar de "el polinomio de Ising" mezcla las dos cosas: lo que
+existe es un Hamiltoniano *cuyo acoplamiento* es bilineal.
+
+Este proyecto **conserva la estructura de Hamiltoniano de Ising** (una suma de energías
+sobre pares de vecinos) y **generaliza únicamente la función de acoplamiento**:
+
+```
+H_total = Σ_⟨i,j⟩ H(s_i, s_j)
+
+H(x,y) = a₁x + a₂y + b₁₁x² + b₁₂xy + b₂₂y² + c₁₁₂x²y + c₁₂₂xy²
+```
+
+Sigue siendo, formalmente, un Hamiltoniano de Ising clásico. Solo que el acoplamiento es
+más rico que el simple producto. El modelo es **enteramente clásico** en todo el proyecto,
+nunca cuántico.
+
+### 3. Por qué un Hamiltoniano cúbico es legítimo — y qué gana
+
+**Por qué se puede.** Nada en la mecánica estadística exige que la energía sea bilineal.
+Los requisitos son dos: que `H` sea una función real bien definida de la configuración, y
+que `exp(-H/T)` sea normalizable. Aquí el espacio de configuraciones es **finito** —cada
+intersección toma un valor en `{−1, 0, +1}` sobre un tablero de 19×19—, así que la función
+de partición es una suma finita y está siempre bien definida. **Cualquier** función real es
+un Hamiltoniano legítimo sobre este espacio. La restricción bilineal del Ising de libro de
+texto no es una ley: es una elección de modelado heredada del magnetismo.
+
+**Por qué hace falta.** El acoplamiento `s_i·s_j` solo sabe expresar "alinéate o no te
+alinees", y arrastra dos propiedades que el magnetismo quiere pero el Go no:
+
+| Propiedad de `s_i·s_j` | En un imán | En Go |
+|---|---|---|
+| Simétrico bajo inversión de signo: `(−s_i)(−s_j) = s_i·s_j` | correcto: norte y sur son intercambiables | **problema**: una posición concreta no es simétrica entre negro y blanco |
+| El vacío no existe; con `s = 0` la energía es 0 siempre | no aplica | **problema**: el vacío es *el objeto del juego* — el territorio ES espacio vacío |
+
+Con el modelo de Alvarado (`H = xy`), una intersección vacía aporta exactamente cero: el
+vacío es **invisible**. Los términos lineales y cúbicos rompen justamente esas dos
+limitaciones — los términos lineales `x`, `y` hacen que el vacío **cargue energía**, y los
+términos impares en color permiten **distinguir negro de blanco**. Eso es exactamente lo
+que el Go necesita y el magnetismo no.
+
+**Por qué grado 3 y no más.** No es arbitrario: es *completo*. Sobre `s ∈ {−1, 0, +1}` vale
+la identidad `s³ = s`, así que subir el grado en una misma variable no agrega ninguna
+función nueva. Un par de espines tiene 3 × 3 = 9 estados posibles, de modo que el espacio
+de **todas** las interacciones de pares imaginables es un espacio vectorial de dimensión
+exactamente 9, con base
+
+```
+{ 1,  x,  x²,  y,  y²,  xy,  x²y,  xy²,  x²y² }
+```
+
+La plantilla `cubic_mixed` de 7 parámetros cubre **7 de esas 9 dimensiones**. Las dos que
+faltan son la constante `1` —físicamente irrelevante, porque desplaza todas las energías
+por igual y se cancela en el peso de Boltzmann— y el término `x²y²`, que actúa como
+indicador de "ambas intersecciones ocupadas".
+
+> **Consecuencia abierta, verificada simbólicamente.** Bajo la simetrización que usa el
+> predictor, `x²y²` **sí es visible**: cae en la pieza `P₊₊` de la descomposición de Klein
+> (ver Experimento 08, más abajo). Las búsquedas de coeficientes realizadas hasta ahora
+> exploran 4 dimensiones efectivas, cuando el espacio que el campo puede ver tiene **5**.
+> Explorar la quinta es una extensión natural y todavía no hecha.
+
+### 4. De dónde salen los dos polinomios de partida
+
+El proyecto no empezó eligiendo polinomios al azar. Partió de dos Hamiltonianos de origen
+independiente, que representan las dos posturas opuestas sobre cómo tratar el vacío y el
+color:
+
+| | **Alvarado** — Atomic-Go | **M1** — Mercado Sánchez & Jiménez Martínez |
+|---|---|---|
+| Fórmula | `H(x,y) = xy` | `H(x,y) = x + 2y − x²y − xy²` |
+| Origen | Rojas-Domínguez, Barradas-Bautista & Alvarado (2019), *IEEE Access* | derivación teórica previa del grupo |
+| Valores de enlace | `{−1, 0, +1}` | `{−2, −1, 0, +1, +2}` |
+| Orden de los argumentos | simétrico: `H(i→j) = H(j→i)` | **asimétrico** en 6 de 9 pares |
+| El vacío | **invisible**: `H(0,y) = 0` siempre | **activo**: `H(0,y) ≠ 0` |
+| Grado | 2 — Ising puro | 3 |
+
+Son, respectivamente, el caso mínimo y un caso deliberadamente enriquecido. Y resultaron
+ser el punto de partida correcto por una razón empírica que solo apareció después: de todos
+los candidatos probados —incluidos 69 generados al azar—, **únicamente estos dos
+mejoraban** al ampliar el radio de interacción, en lugar de degradarse. Esa anomalía es la
+que motivó abandonar el muestreo aleatorio y pasar a **optimizar coeficientes directamente**
+dentro de la familia cúbica que ambos habitan.
+
+Dicho de otro modo: Alvarado y M1 no son dos modelos rivales a comparar, sino **dos puntos
+conocidos dentro de un espacio continuo** que el proyecto se dedica a explorar. Ambos son
+casos particulares de `cubic_mixed`.
+
+### 5. Por qué usamos KataGo, y qué devuelve realmente
+
+**Por qué hace falta un motor.** Para hacer ciencia sobre el territorio se necesita una
+verdad de terreno: un número objetivo que diga cuánto controla cada color cada zona. Y aquí
+está la dificultad de fondo: **a mitad de partida, el territorio no es decidible por las
+reglas.** No es un hecho del tablero presente, es una *predicción sobre cómo terminará la
+partida*. Las reglas del Go determinan el territorio solo al final, tras el conteo. No hay
+fórmula, ni árbitro, ni tabla que lo resuelva antes.
+
+Por eso se usa un motor de fuerza sobrehumana. **KataGo no es "la verdad" del Go — es el
+mejor estimador disponible**, y se trata como cualquier ciencia experimental trata su
+instrumento: se cuantifica su ruido, se verifica que las conclusiones no dependan de una
+corrida particular, y se reporta la incertidumbre.
+
+**Qué devuelve, literalmente.** Verificado sobre la instalación de este repositorio
+(KataGo v1.16.5, red `kata1-b15c192`), el modo `analysis` responde con:
+
+| Bloque | Contenido |
+|---|---|
+| raíz | `ownership` (361 números), `ownershipStdev`, `policy`, `moveInfos`, `rootInfo`, `turnNumber` |
+| `rootInfo` | 18 campos numéricos: `winrate`, `scoreLead`, `scoreStdev`, `utility`, `visits`, … |
+| `moveInfos` | 21 campos por jugada candidata: `prior`, `lcb`, `pv`, `ownership` por jugada, … |
+
+**Ninguno de esos campos es un objeto de Go.** No existe una clave `moyo`, ni `joseki`, ni
+`shape`, ni `influence`. No hay ninguna salida donde KataGo nombre una estructura del
+juego. Lo que hay son **números por intersección y por jugada**.
+
+La única excepción en todo el motor está en la interfaz GTP, no en `analysis`: el comando
+`final_status_list` acepta exactamente tres argumentos —`dead`, `alive`, `seki`— y ahí sí el
+motor se compromete con una **etiqueta discreta** del juego. Es la única categorización de
+Go que KataGo emite por sí mismo.
+
+### 6. Cómo llegamos nosotros a "moyo"
+
+Entonces, ¿cómo sabe KataGo qué es un moyo? **No lo sabe, y no lo dice.**
+
+Lo que la red aprendió es algo más simple y más útil: su cabeza de *ownership* está
+entrenada para predecir, en cada una de las 361 intersecciones, **quién será el dueño de
+ese punto al final de la partida**, en una escala continua de `−1` (negro) a `+1` (blanco).
+Es un campo escalar. La red nunca vio la palabra "moyo" ni ningún concepto de Go nombrado:
+aprendió a estimar un número por punto a partir de millones de partidas.
+
+El moyo aparece en el paso siguiente, y es **construcción nuestra**
+([`moyo_detector.py`](experiments/07_moyo_dataset/src/moyo_detector.py)):
+
+1. Se toma el mapa de `ownership` que devuelve el motor.
+2. Se agrupan los puntos **vacíos** por inundación (*flood-fill*) en regiones conexas.
+3. Cada región se clasifica según su `ownership` promedio, contra umbrales **que elegimos
+   nosotros**: `|own| > 0.85` → territorio asentado; `0.15 ≤ |own| ≤ 0.85` → **moyo**;
+   `|own| < 0.15` → neutral (*dame*). Tamaño mínimo de región: 4 puntos.
+4. La etiqueta a predecir, `pct_black`, es el porcentaje de control negro de la región,
+   derivado del mismo campo.
+
+Es decir: **"moyo" es un constructo operacional** —una región conexa de puntos vacíos cuyo
+promedio de `ownership` cae en una banda elegida—, no una salida del motor. Los umbrales
+`0.85` y `0.15` son decisiones de diseño, no hechos del Go ni de KataGo.
+
+Lo mismo, en distinto grado, vale para las demás categorías del pipeline:
+
+| Categoría | Quién define la **región** | Quién pone la **etiqueta** |
+|---|---|---|
+| moyo | nuestros umbrales sobre `ownership` | `ownership` |
+| territorio | nuestros umbrales sobre `ownership` | `ownership` |
+| fuseki | los mismos umbrales, en jugadas 3–15 % | `ownership` |
+| joseki | **geometría pura: las 4 esquinas**; el motor no interviene | `ownership` |
+
+Joseki es el caso extremo: esas regiones existirían igual sin motor. Ninguna de las cuatro
+es una categoría de KataGo.
+
+### 7. Qué queda licenciado afirmar
+
+**Sí:** *un campo de Ising clásico predice, mejor que la geometría del tablero, el
+`ownership` medio de las regiones vacías conexas dentro de una banda dada.* Ese es el
+resultado, y es sólido: ΔR² = 0.44 sobre partidas nunca vistas por ninguna búsqueda, para
+un modelo completo con R² = 0.73 (r ≈ 0.86).
+
+**Todavía no:** *"el Hamiltoniano predice el moyo"* como concepto de Go, porque ahí "moyo"
+es una elección de umbral. La prueba que falta es de **sensibilidad a los umbrales**: si
+ΔR² aguanta mover `0.85` / `0.15` / tamaño mínimo, el constructo es robusto; si se mueve,
+parte del resultado es artefacto de la banda elegida.
+
+Esa prueba está hoy **bloqueada por una decisión de diseño del cache**: se guardaron las
+regiones ya clasificadas pero **no el `ownership` crudo**, de modo que reclasificar exige
+volver a correr el motor en vez de reprocesar. Queda anotado como el arreglo prioritario de
+la próxima corrida de KataGo — son ~120 posiciones × 361 flotantes, kilobytes.
+
+Hay evidencia de que la advertencia es pertinente: al comparar dos corridas del motor sobre
+**los mismos tableros** con distinto presupuesto de búsqueda (`maxVisits` 250 contra 600),
+solo **131 de 262 regiones** conservan el mismo conjunto de puntos, mientras que allí donde
+la región coincide las etiquetas son casi idénticas (r = 0.974, mediana de diferencia 0.3
+puntos porcentuales). Es decir: **lo inestable es la capa de interpretación, no la
+medición.** El `ownership` de KataGo es estable; el flood-fill con umbral fijo sobre un
+campo continuo con ruido no lo es.
+
+### 8. Los dos experimentos activos, en una frase cada uno
+
+- **Experimento 07 — empírico.** Corre KataGo sobre 20 partidas profesionales, deriva las
+  regiones, y mide cuánto agrega el campo del Hamiltoniano por encima de la geometría
+  (ΔR²). Es donde se buscan y validan coeficientes.
+- **Experimento 08 — teórico.** No corre KataGo ni predice nada nuevo: explica, con teoría
+  de representaciones del grupo de Klein, **por qué** el campo solo puede ver 4 de los 7
+  coeficientes del polinomio. Nació de una anomalía encontrada dentro del 07 y le devolvió
+  el favor: esa garantía es la que hizo posible el mejor resultado empírico del proyecto.
+
+---
 ## Models compared
 
 ### Model M1 — Mercado Sánchez & Jiménez Martínez
@@ -138,28 +376,35 @@ Go_entropic_information/
                 ├── executive_summary.md     # Resumen ejecutivo + top 5
                 └── hasse_diagram_report.md  # Informe completo: matemática + Go
 
-    ├── 07_moyo_dataset/            # Predicción de moyo/territorio contra KataGo real
-    │   ├── src/
-    │   │   ├── katago_engine.py        # Wrapper del motor KataGo (modo analysis, JSON)
-    │   │   ├── moyo_detector.py        # Flood-fill de regiones por banda de ownership
-    │   │   ├── features.py             # board_features, relaxation_field (Boltzmann)
-    │   │   ├── early_regions.py        # Muestreo de fuseki (3–15%) + regiones de joseki
-    │   │   ├── cache_positions.py      # Corre KataGo 1 vez, cachea moyo/territorio
-    │   │   ├── cache_early_positions.py# Idem para fuseki/joseki
-    │   │   ├── optimize_coefficients.py# Fase A/B: differential_evolution sobre el cache
-    │   │   ├── run_fase_b.py           # Fase B: búsqueda en las 4 dims. efectivas
-    │   │   └── analyze_results.py      # ΔR² incremental, bootstrap por partida
-    │   └── output/
-    │       ├── cache_*.pkl              # Caches de posiciones (KataGo corrido 1 vez)
-    │       └── reports/
-    │           ├── informe_completo_07_08.tex # Reporte unificado (exp. 07 + 08)
-    │           ├── avance_experimento07.tex   # Reporte solo del exp. 07 (histórico)
-    │           └── correlaciones_moyo.png     # Campo del Hamiltoniano vs. KataGo real
-    │
-    └── 08_teoria_invariantes/      # Por qué el campo solo ve 4 de 7 parámetros
-        └── output/reports/
-            └── teoria_invariantes_klein.tex  # Derivación vía el grupo de Klein
+    └── 07_moyo_dataset/            # Predicción de moyo/territorio contra KataGo real
+        ├── src/
+        │   ├── katago_engine.py        # Wrapper del motor KataGo (modo analysis, JSON)
+        │   ├── moyo_detector.py        # Flood-fill de regiones por banda de ownership
+        │   ├── features.py             # board_features, relaxation_field (Boltzmann)
+        │   ├── early_regions.py        # Muestreo de fuseki (3–15%) + regiones de joseki
+        │   ├── cache_positions.py      # Corre KataGo 1 vez, cachea moyo/territorio
+        │   ├── cache_early_positions.py# Idem para fuseki/joseki
+        │   ├── optimize_coefficients.py# Fase A/B: differential_evolution sobre el cache
+        │   ├── run_fase_b.py           # Fase B: búsqueda en las 4 dims. efectivas
+        │   ├── analyze_results.py      # ΔR² incremental, bootstrap por partida
+        │   └── calibration.py          # Ajusta el campo crudo contra pct_black real
+        └── output/
+            ├── cache_*.pkl                       # Caches de posiciones (KataGo corrido 1 vez)
+            ├── hamiltonians_clasificados.{csv,json} # Los 307 Hamiltonianos: simetría, sesgo, tipo, ΔR²
+            ├── *_calibration*.json               # Constantes de calibración por Hamiltoniano/nº de barridos
+            └── reports/
+                ├── informe_completo_07_08.tex        # Reporte unificado (exp. 07 + 08), fuente única de verdad
+                ├── avance_experimento07.tex          # Reporte solo del exp. 07 (histórico)
+                ├── hamiltonianos_clasificados.pdf     # Clasificación completa, formato legible
+                ├── correlaciones_moyo.png             # Campo del Hamiltoniano vs. KataGo real
+                └── comparacion_energia_vs_relajacion_*.mp4 # Energía pura vs. relajación de Boltzmann, mismo tablero
 ```
+
+> **Nota**: el Experimento 08 (teoría de invariantes, por qué el campo solo ve 4 de 7
+> parámetros) ya no tiene una carpeta/reporte propio separado — su derivación completa
+> vive, actualizada, como Parte II de `informe_completo_07_08.tex` (ver más abajo). La
+> versión standalone anterior quedó obsoleta y se eliminó para evitar dos fuentes de
+> verdad divergentes.
 
 ---
 
@@ -286,6 +531,55 @@ Systematic search over 300 cubic polynomial Hamiltonians H(x,y), evaluated with 
 
 See [`experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md`](experiments/06_hamiltonian_families/output/reports/hasse_diagram_report.md) for the full mathematical and strategic interpretation.
 
+### Estado: en pausa — no es un experimento fallido
+
+**De qué trataba.** La hipótesis del Experimento 06 era razonable y estaba bien planteada:
+si un Hamiltoniano `H(x,y)` define una superficie `z = H(x,y)`, entonces las propiedades
+matemáticas *intrínsecas* de esa superficie —sus puntos críticos, sus nodos `A₁`, la fibra
+de Milnor, la persistencia `H₁`— deberían decir algo sobre la calidad del modelo como
+descripción del Go. Un Hamiltoniano con estructura crítica "rica" sería un mejor modelo.
+Con esos invariantes se construyó un orden de Pareto sobre 305 candidatos cúbicos, con 148
+frentes, y se llamó **Frente 1** a la élite teórica resultante.
+
+**Por qué quedó en pausa.** La hipótesis era falsable, y resultó falsa — dos veces:
+
+1. Contrastado contra el ΔR² real del Experimento 07, el Frente 1 no solo dejó de ser la
+   élite: fue el grupo de **peor** desempeño (0.055 a radio 9, contra 0.152–0.170 de los
+   grupos "medios" y "tardíos"). El criterio no era neutro: seleccionaba activamente en la
+   dirección equivocada.
+2. El Experimento 08 explicó **por qué** tenía que pasar eso. El predictor real
+   (`relaxation_field`) solo ve la proyección σ-invariante de 4 dimensiones; el análisis
+   topológico, al evaluar `H(x,y)` directamente sin simetrizar, mezclaba esas 4 dimensiones
+   relevantes con 3 que son **ruido puro** para la predicción. Se repitió entonces el
+   análisis sobre el *polinomio reducido* —el objeto que el campo realmente evalúa— y el
+   resultado también fue nulo (|ρ| ≤ 0.21, p > 0.31).
+
+**Por qué "en pausa" y no "descartado".** Tres razones concretas:
+
+- **La infraestructura sobrevivió intacta y sostiene todo lo posterior.** El catálogo de
+  305 candidatos con sus coeficientes, el código de puntos críticos, el visor interactivo y
+  el diagrama de Hasse siguen siendo la base sobre la que corren los Experimentos 07 y 08.
+  Nada de eso se perdió.
+- **La prueba tuvo un rango muestral limitado.** Las correlaciones se calcularon sobre los
+  44 candidatos que tenían ΔR² medido, y esos 44 son **mayoritariamente aleatorios
+  débiles**. Una hipótesis puede fallar sobre una población pobre sin que eso resuelva la
+  pregunta sobre una población bien elegida.
+- **Ahora sí sabemos cómo clasificar los polinomios cúbicos.** Cuando se corrió el
+  Experimento 06 no existía la descomposición de Klein: no había manera de saber qué
+  dimensiones del polinomio son relevantes y cuáles invisibles. Hoy sí — y el criterio que
+  sí funciona (el sesgo de color `β`, con ρ = −0.71 contra el desempeño real) apareció
+  justamente de mirar la estructura de simetría, no la de puntos críticos.
+
+**Cómo se retomaría.** La vía natural es reconstruir el catálogo clasificado por las
+coordenadas efectivas `(Σa, Σb, b₁₂, Σc)` —y eventualmente la quinta dimensión `x²y²`
+señalada en la Guía conceptual—, muestrear de forma equilibrada dentro de esas clases en
+lugar de uniformemente en los 7 coeficientes crudos, y recién entonces preguntar si la
+topología de la variedad reducida separa a los buenos de los malos. Sería la primera prueba
+sobre una población construida a propósito, en vez de sobre lo que quedó del muestreo
+aleatorio. **La rama está en pausa esperando esa clasificación, no cerrada por refutación
+definitiva.**
+
+
 ---
 
 ## Experiments 07 & 08 — how they relate
@@ -354,6 +648,9 @@ game.sgf → sample positions → KataGo (ownership, once) → cache
 | Fase B — optimization in the 4 effective dims (`cubic_mixed`, full) | $H_{OPT\_B}$: ΔR²=0.421, CI95%=[0.339,0.486] — narrow overlap, strongest result so far |
 | Full model $R^2$ (geometry + $H_{OPT\_B}$) | 0.733 ⇒ correlation $r\approx0.86$ against real KataGo territory |
 | KataGo signal audit (7 fields tested) | only `ownershipStdev` (via weighting) adds real signal; `policy`, `moveInfos`, `scoreStdev`, `winrate`, `scoreLead` don't |
+| Color bias, classified for all 307 catalog Hamiltonians | ~66% never cross zero (locked to one color regardless of the board); only ~6% are genuinely color-balanced |
+| Color-balanced Hamiltonians predict better (n=64 evaluated) | mean ΔR² 0.257 (balanced) vs. 0.148 (biased), Welch's t-test $p=0.0007$; confound (quadratic-term weight) ruled out via regression |
+| $H_{0202}$ — random, never-optimized, happens to be balanced | ΔR²=0.4195 (moyo), 0.466 (fuseki), 0.458 (joseki) — ties/beats $H_{OPT\_B}$ across categories with **zero** deliberate search |
 
 **Go-position categories covered** (all reusing the same
 `relaxation_field` machinery except sente/gote):
@@ -397,19 +694,33 @@ representation theory instead of case-by-case algebra:
    symmetry. Together, $\{e,\sigma,\tau,\sigma\tau\}$ form the **Klein
    four-group** ($\mathbb{Z}_2\times\mathbb{Z}_2$, not cyclic $\mathbb{Z}_4$ — every
    non-identity element has order 2), which has exactly 4 real
-   irreducible characters. Projecting `cubic_mixed` onto each
-   (Reynolds operator) refines the 4 surviving combinations without
-   changing how many there are.
-4. **Practical payoff:** searching directly in the 4 effective
+   irreducible characters. Projecting `cubic_mixed` onto each via the
+   **Reynolds operator** $P_\chi(H)=\frac{1}{|G|}\sum_{g\in G}\chi(g)(g\cdot H)$
+   — the standard representation-theory tool for decomposing a
+   function under a finite symmetry group (the same machinery behind
+   Fourier analysis and even/odd decomposition) — refines the 4
+   surviving combinations without changing how many there are.
+4. **τ also predicts color bias**, independently of the σ-reduction:
+   Hamiltonians with $\Sigma a=\Sigma c=0$ respond identically to
+   swapping which color is "+1", so their field is provably
+   color-balanced; when they don't cancel, the field is provably
+   biased toward one color. Verified against the full 307-candidate
+   catalog and confirmed empirically that **color-balanced
+   Hamiltonians predict real territory better** (Welch's t-test,
+   $p=0.0007$) — motivating a proposed "Fase C" that searches only
+   within the balanced region instead of the unrestricted 4D space.
+5. **Practical payoff:** searching directly in the 4 effective
    dimensions instead of the 7 raw ones (used for Fase B, Experiment
    07) is provably lossless for this objective — not just empirically
    convenient.
 
-Full derivation, with the Cayley table, character table, and the
-corrected decomposition showing that $H_{M1}$ itself is *not* purely
-invariant (a subtlety the report explicitly walks through after an
-earlier overclaim):
-[`experiments/08_teoria_invariantes/output/reports/teoria_invariantes_klein.tex`](experiments/08_teoria_invariantes/output/reports/teoria_invariantes_klein.tex).
+Full derivation — Cayley table, character table, the corrected
+decomposition showing $H_{M1}$ itself is *not* purely invariant, the
+Reynolds-operator justification (idempotency + completeness from
+character orthogonality), and the color-bias/balance investigation —
+lives entirely in Part II of
+[`experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex`](experiments/07_moyo_dataset/output/reports/informe_completo_07_08.tex);
+there is no separate Experiment 08 report file anymore.
 
 ---
 
