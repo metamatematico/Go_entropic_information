@@ -141,12 +141,74 @@ def relaxation_field(h, board: np.ndarray, radius: int = 1, n_sweeps: int = 15,
     return F
 
 
-def region_field_features(field: np.ndarray, region_points: list) -> Dict[str, float]:
-    """Resume el campo H sobre una región: media y desviación estándar."""
+def equivariant_fields(h, board: np.ndarray, radius: int = 1, n_sweeps: int = 15,
+                        temperature: float = 1.0,
+                        board_size: int = 19) -> Dict[str, np.ndarray]:
+    """Descompone el campo relajado en sus dos componentes exactas respecto
+    a la inversión de color, relajando el tablero y su negativo:
+
+        F_eq(B)    = [F(B) - F(-B)] / 2     parte EQUIVARIANTE
+        F_sesgo(B) = [F(B) + F(-B)] / 2     parte de SESGO
+
+    F_eq responde con justicia a los dos colores: por construcción cumple
+    F_eq(-B) = -F_eq(B) para cualquier H, incluso uno sesgado. F_sesgo es
+    lo que el campo predice sin distinguir cuál tablero se le mostró — el
+    fondo casi uniforme que un H con P_+-(H) != 0 arrastra a todas partes
+    (ver klein.py y el teorema de equivariancia).
+
+    Si H ya es equivariante (sin sesgo de color) entonces F_sesgo == 0 a
+    precisión de máquina y F_eq == F: usar F_eq nunca pierde información,
+    solo remueve un fondo que — medido sobre las 864 regiones reales —
+    no transporta señal predictiva.
+
+    Cuesta el DOBLE que `relaxation_field`: dos relajaciones por posición.
+    """
+    f_pos = relaxation_field(h, board, radius=radius, n_sweeps=n_sweeps,
+                              temperature=temperature, board_size=board_size)
+    f_neg = relaxation_field(h, -board, radius=radius, n_sweeps=n_sweeps,
+                              temperature=temperature, board_size=board_size)
+    return {
+        "F": f_pos,
+        "F_eq": 0.5 * (f_pos - f_neg),
+        "F_bias": 0.5 * (f_pos + f_neg),
+    }
+
+
+def beta_empty_board(h, radius: int = 1, n_sweeps: int = 15,
+                      temperature: float = 1.0, board_size: int = 9) -> float:
+    """beta(H): campo relajado medio sobre un tablero VACÍO — el diagnóstico
+    de sesgo de color de costo cero (milisegundos, sin partida, sin KataGo).
+
+    Sin piedras no hay información posicional alguna, así que un campo
+    honesto debería quedarse en 0. Que no lo haga revela la preferencia de
+    color que el polinomio ya traía: la relajación no crea el sesgo, solo
+    lo revela y lo amplifica por retroalimentación. El signo es legible en
+    los coeficientes — sign(beta) = -sign(Sigma_a) acierta en ~98% de los
+    candidatos del catálogo; las excepciones tienen Sigma_a minúsculo, donde
+    deciden Sigma_c y b12.
+
+    |beta| correlaciona negativamente con el Delta R^2 real (rho = -0.71 a
+    radio 9 sobre los 44 candidatos evaluados), lo que lo vuelve un filtro
+    previo utilizable ANTES de gastar cómputo de campo sobre partidas.
+
+    Los valores por defecto son los del protocolo publicado: radio 1,
+    15 barridos, tablero vacío 9x9.
+    """
+    empty = np.zeros((board_size, board_size), dtype=float)
+    field = relaxation_field(h, empty, radius=radius, n_sweeps=n_sweeps,
+                              temperature=temperature, board_size=board_size)
+    return float(np.mean(field))
+
+
+def region_field_features(field: np.ndarray, region_points: list,
+                           prefix: str = "H_field") -> Dict[str, float]:
+    """Resume el campo H sobre una región: media y desviación estándar.
+    `prefix` permite convivir con varios predictores en la misma fila
+    (p. ej. H_field_mean para F y H_field_eq_mean para F_eq)."""
     vals = [field[r, c] for (r, c) in region_points]
     return {
-        "H_field_mean": float(np.mean(vals)),
-        "H_field_std": float(np.std(vals)),
+        f"{prefix}_mean": float(np.mean(vals)),
+        f"{prefix}_std": float(np.std(vals)),
     }
 
 

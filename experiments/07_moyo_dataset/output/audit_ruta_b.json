@@ -1,0 +1,98 @@
+{
+  "A1_A2_base_geometrica": {
+    "moyo": {
+      "hold-out": {
+        "n": 610,
+        "r2_geom": 0.31729724660739067,
+        "cv_dist_edge": 0.9461552221148918,
+        "cv_dist_black": 0.5767270435050355,
+        "degenerada": false
+      },
+      "completo": {
+        "n": 872,
+        "r2_geom": 0.3119194004342899,
+        "cv_dist_edge": 0.9398944575002026,
+        "cv_dist_black": 0.5918843486602477,
+        "degenerada": false
+      }
+    },
+    "territorio": {
+      "hold-out": {
+        "n": 247,
+        "r2_geom": 0.7097424518513294,
+        "cv_dist_edge": 1.385740002527588,
+        "cv_dist_black": 0.44459799521846766,
+        "degenerada": false
+      },
+      "completo": {
+        "n": 312,
+        "r2_geom": 0.6700229587551367,
+        "cv_dist_edge": 1.3202388410170316,
+        "cv_dist_black": 0.4695388667596862,
+        "degenerada": false
+      }
+    },
+    "fuseki": {
+      "hold-out": {
+        "n": 355,
+        "r2_geom": 0.31375526112941454,
+        "cv_dist_edge": 0.6832731094011151,
+        "cv_dist_black": 0.8943283798295744,
+        "degenerada": false
+      },
+      "completo": {
+        "n": 493,
+        "r2_geom": 0.3173043138738173,
+        "cv_dist_edge": 0.6612523375897114,
+        "cv_dist_black": 0.9149021691652691,
+        "degenerada": false
+      }
+    },
+    "joseki": {
+      "hold-out": {
+        "n": 224,
+        "r2_geom": 0.3529632789944054,
+        "cv_dist_edge": 0.050929149589206885,
+        "cv_dist_black": 1.247993952639907,
+        "degenerada": false
+      },
+      "completo": {
+        "n": 320,
+        "r2_geom": 0.3492014046091415,
+        "cv_dist_edge": 0.048318575464538854,
+        "cv_dist_black": 1.2599161576481368,
+        "degenerada": false
+      }
+    }
+  },
+  "A3_reparametrizacion": {
+    "moyo": {
+      "n": 262,
+      "delta_r2_crudo": 0.3002816268999001,
+      "delta_r2_reparam": 0.30028162689990023,
+      "dif": 1.1102230246251565e-16,
+      "ok": true
+    },
+    "territorio": {
+      "n": 65,
+      "delta_r2_crudo": 0.24802377819025978,
+      "delta_r2_reparam": 0.2480237781902599,
+      "dif": 1.1102230246251565e-16,
+      "ok": true
+    },
+    "fuseki": {
+      "n": 138,
+      "delta_r2_crudo": 0.3816712057539764,
+      "delta_r2_reparam": 0.3816712057539764,
+      "dif": 0.0,
+      "ok": true
+    },
+    "joseki": {
+      "n": 96,
+      "delta_r2_crudo": 0.38374018362939,
+      "delta_r2_reparam": 0.3837401836293902,
+      "dif": 2.220446049250313e-16,
+      "ok": true
+    }
+  }
+}
