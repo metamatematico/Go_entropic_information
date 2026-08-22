@@ -908,7 +908,7 @@ python experiments/08_teoria_invariantes/src/klein.py
   ([Ometitlan / Project-Quantum-Go](https://github.com/ometitlan/Project-Quantum-Go))
 
 El sistema axiomático (experimento 09) se desarrolló en colaboración con
-Claude Opus 5 (Anthropic).
+Claude Opus 5 (Anthropic). Este sistema axiomático se verifica a través de un sistema LEAN que he construido https://github.com/metamatematico/Metamatematico---Razonamiento-Formal-con-Lean
 
 **Referencias**
 
